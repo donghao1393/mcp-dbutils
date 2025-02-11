@@ -4,6 +4,7 @@
 ![PyPI version](https://img.shields.io/pypi/v/mcp-dbutils)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![License](https://img.shields.io/github/license/donghao1393/mcp-dbutils)
+[![smithery badge](https://smithery.ai/badge/@donghao1393/mcp-dbutils)](https://smithery.ai/server/@donghao1393/mcp-dbutils)
 
 [中文文档](README_CN.md)
 
@@ -21,6 +22,13 @@ MCP Database Utilities is a unified database access service that supports multip
 ## Installation and Configuration
 
 ### Installation Methods
+#### Installing via Smithery
+
+To install Database Utilities for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils):
+
+```bash
+npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
+```
 
 #### Using uvx (Recommended)
 No installation required, run directly using `uvx`:
