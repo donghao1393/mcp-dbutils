@@ -1,18 +1,29 @@
 databases:
+  # SQLite configuration examples
   dev-db:
     type: sqlite
     path: /path/to/dev.db
     password: 
-  
+
+  # PostgreSQL configuration examples
+  # Standard configuration
   test-db:
-    type: sqlite
-    path: /path/to/test.db
+    type: postgres
+    host: postgres.example.com
+    port: 5432
+    dbname: test_db
+    user: test_user
     password: test_pass
 
+  # JDBC URL configuration
+  # Note: When using JDBC URL in code, provide credentials separately:
+  # PostgresConfig.from_jdbc_url(
+  #   "jdbc:postgresql://prod.example.com:5432/prod_db",
+  #   user="prod_user",
+  #   password="your@special#password"
+  # )
   prod-db:
     type: postgres
-    host: prod.example.com
-    port: 5432
-    dbname: prod_db
+    jdbc_url: jdbc:postgresql://postgres.example.com:5432/prod-db
     user: prod_user
     password: prod_pass
