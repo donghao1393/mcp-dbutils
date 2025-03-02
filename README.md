@@ -143,16 +143,31 @@ databases:
     user: postgres            # Credentials must be provided separately
     password: secret          # Not included in JDBC URL for security
 
-  # SQLite example (when using Docker)
+  # SQLite standard configuration
   my_sqlite:
     type: sqlite
-    path: /app/sqlite.db       # Mapped path inside container
+    path: /app/sqlite.db       # Database file path
     password: optional_password # optional
+
+  # SQLite with JDBC URL configuration
+  my_sqlite_jdbc:
+    type: sqlite
+    jdbc_url: jdbc:sqlite:/app/data.db?mode=ro&cache=shared  # Supports query parameters
+    password: optional_password    # Provided separately for security
 ```
 
-The configuration supports two formats for PostgreSQL:
+The configuration supports JDBC URL format for both PostgreSQL and SQLite:
+
+PostgreSQL:
 1. Standard configuration with individual parameters
-2. JDBC URL configuration with separate credentials (recommended for better compatibility)
+2. JDBC URL configuration with separate credentials
+
+SQLite:
+1. Standard configuration with path parameter
+2. JDBC URL configuration with query parameters support:
+   - mode=ro: Read-only mode
+   - cache=shared: Shared cache mode
+   - Other SQLite URI parameters
 
 ### Debug Mode
 Set environment variable `MCP_DEBUG=1` to enable debug mode for detailed logging output.

@@ -127,16 +127,31 @@ databases:
     user: postgres            # 认证信息必须单独提供
     password: secret          # 出于安全考虑，不包含在JDBC URL中
 
-  # SQLite配置示例（使用Docker）
+  # SQLite标准配置
   my_sqlite:
     type: sqlite
-    path: /app/sqlite.db       # 容器内的映射路径
+    path: /app/sqlite.db       # 数据库文件路径
     password: optional_password # 可选
+
+  # SQLite JDBC URL配置
+  my_sqlite_jdbc:
+    type: sqlite
+    jdbc_url: jdbc:sqlite:/app/data.db?mode=ro&cache=shared  # 支持查询参数
+    password: optional_password    # 出于安全考虑单独提供
 ```
 
-PostgreSQL配置支持两种格式：
+PostgreSQL和SQLite都支持JDBC URL配置格式：
+
+PostgreSQL配置支持：
 1. 标准配置：使用独立的参数配置
-2. JDBC URL配置：使用JDBC URL并单独提供认证信息（推荐，兼容性更好）
+2. JDBC URL配置：使用JDBC URL并单独提供认证信息
+
+SQLite配置支持：
+1. 标准配置：使用path参数指定数据库文件
+2. JDBC URL配置：支持以下查询参数：
+   - mode=ro：只读模式
+   - cache=shared：共享缓存模式
+   - 其他SQLite URI参数
 
 ### 调试模式
 设置环境变量 `MCP_DEBUG=1` 启用调试模式，可以看到详细的日志输出。
