@@ -1,9 +1,20 @@
 databases:
   # SQLite configuration examples
+  # SQLite with standard configuration
   dev-db:
     type: sqlite
     path: /path/to/dev.db
     password: 
+
+  # SQLite with JDBC URL configuration
+  # jdbc:sqlite: URL supports query parameters:
+  # - mode=ro: Read-only mode
+  # - cache=shared: Shared cache mode
+  # Note: Password must be provided separately
+  prod-sqlite:
+    type: sqlite
+    jdbc_url: jdbc:sqlite:/path/to/prod.db?mode=ro
+    password: optional_password    # Provided separately for security
 
   # PostgreSQL configuration examples
   # Standard configuration
