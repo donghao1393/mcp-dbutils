@@ -5,7 +5,8 @@ import yaml
 import anyio
 import mcp.types as types
 from mcp import ClientSession
-from mcp_dbutils.base import DatabaseServer, ConfigurationError
+from mcp.rpc import Error as McpError
+from mcp_dbutils.base import DatabaseServer
 from mcp_dbutils.log import create_logger
 
 # 创建测试用的 logger
@@ -100,18 +101,14 @@ async def test_list_tables_tool_errors(postgres_db, mcp_config):
                 await client.initialize()
 
                 # Test missing database parameter
-                try:
+                with pytest.raises(McpError) as exc_info:
                     await client.call_tool("list_tables", {})
-                    pytest.fail("Expected error was not raised")
-                except Exception as e:
-                    assert "Database configuration name must be specified" in str(e)
+                assert "Database configuration name must be specified" in str(exc_info.value)
 
                 # Test invalid database name
-                try:
+                with pytest.raises(McpError) as exc_info:
                     await client.call_tool("list_tables", {"database": "nonexistent_db"})
-                    pytest.fail("Expected error was not raised")
-                except Exception as e:
-                    assert "Database configuration not found" in str(e)
+                assert "Database configuration not found" in str(exc_info.value)
 
         finally:
             # Cleanup
