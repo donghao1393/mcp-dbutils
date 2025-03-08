@@ -220,29 +220,55 @@ class DatabaseServer:
                         },
                         "required": ["database", "sql"]
                     }
+                ),
+                types.Tool(
+                    name="list_tables",
+                    description="List all available tables in the specified database",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            }
+                        },
+                        "required": ["database"]
+                    }
                 )
             ]
 
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
-            if name != "query":
-                raise ConfigurationError(f"Unknown tool: {name}")
-
             if "database" not in arguments:
                 raise ConfigurationError("Database configuration name must be specified")
 
-            sql = arguments.get("sql", "").strip()
-            if not sql:
-                raise ConfigurationError("SQL query cannot be empty")
-
-            # Only allow SELECT statements
-            if not sql.lower().startswith("select"):
-                raise ConfigurationError("Only SELECT queries are supported for security reasons")
-
             database = arguments["database"]
-            async with self.get_handler(database) as handler:
-                result = await handler.execute_query(sql)
-                return [types.TextContent(type="text", text=result)]
+
+            if name == "list_tables":
+                async with self.get_handler(database) as handler:
+                    tables = await handler.get_tables()
+                    formatted_tables = "\n".join([
+                        f"Table: {table.name}\n" +
+                        f"URI: {table.uri}\n" +
+                        (f"Description: {table.description}\n" if table.description else "") +
+                        "---"
+                        for table in tables
+                    ])
+                    return [types.TextContent(type="text", text=formatted_tables)]
+            elif name == "query":
+                sql = arguments.get("sql", "").strip()
+                if not sql:
+                    raise ConfigurationError("SQL query cannot be empty")
+
+                # Only allow SELECT statements
+                if not sql.lower().startswith("select"):
+                    raise ConfigurationError("Only SELECT queries are supported for security reasons")
+
+                async with self.get_handler(database) as handler:
+                    result = await handler.execute_query(sql)
+                    return [types.TextContent(type="text", text=result)]
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
 
     async def run(self):
         """Run server"""
