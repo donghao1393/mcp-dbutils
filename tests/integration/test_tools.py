@@ -4,7 +4,8 @@ import tempfile
 import yaml
 import anyio
 import mcp.types as types
-from mcp import ClientSession, McpError
+from mcp import ClientSession
+from mcp.shared.exceptions import McpError
 from mcp_dbutils.base import DatabaseServer
 from mcp_dbutils.log import create_logger
 
