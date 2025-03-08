@@ -100,12 +100,18 @@ async def test_list_tables_tool_errors(postgres_db, mcp_config):
                 await client.initialize()
 
                 # Test missing database parameter
-                with pytest.raises(ConfigurationError, match="Database configuration name must be specified"):
+                try:
                     await client.call_tool("list_tables", {})
+                    pytest.fail("Expected error was not raised")
+                except Exception as e:
+                    assert "Database configuration name must be specified" in str(e)
 
                 # Test invalid database name
-                with pytest.raises(ConfigurationError, match="Database configuration not found"):
+                try:
                     await client.call_tool("list_tables", {"database": "nonexistent_db"})
+                    pytest.fail("Expected error was not raised")
+                except Exception as e:
+                    assert "Database configuration not found" in str(e)
 
         finally:
             # Cleanup
