@@ -8,7 +8,7 @@ import anyio
 import mcp.types as types
 from mcp import ClientSession
 import mcp.server.stdio
-from mcp_dbutils.base import DatabaseServer
+from mcp_dbutils.base import ConnectionServer
 from mcp_dbutils.log import create_logger
 
 # 创建测试用的 logger
@@ -20,7 +20,7 @@ async def test_prompts_capability(sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         # Get initialization options and verify prompts capability
         init_options = server.server.create_initialization_options()
@@ -33,7 +33,7 @@ async def test_list_prompts(sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams with proper types
         # Client -> Server stream (server receives messages and exceptions)
