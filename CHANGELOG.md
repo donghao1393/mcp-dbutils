@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v0.7.0 (2025-03-09)
+
+### Documentation
+
+- Update README with list_tables tool information
+  ([`f3a2592`](https://github.com/donghao1393/mcp-dbutils/commit/f3a259200bbf18aaebbf6d4511a18d35246f5044))
+
+### Features
+
+- Add database type prefix to list_tables tool response
+  ([#10](https://github.com/donghao1393/mcp-dbutils/pull/10),
+  [`e32ce1f`](https://github.com/donghao1393/mcp-dbutils/commit/e32ce1f2502f24d111643d7233f0fdd420238bd7))
+
+添加数据库类型前缀到list_tables工具的返回结果中，使LLM能够知道当前操作的数据库类型， 便于后续操作。格式与错误信息保持一致，使用[数据库类型]前缀。
+
+Fixes #9
+
+
 ## v0.6.0 (2025-03-08)
 
 ### Documentation
