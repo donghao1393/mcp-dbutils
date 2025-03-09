@@ -6,7 +6,7 @@ import yaml
 import time
 import json
 from datetime import datetime
-from mcp_dbutils.base import ConnectionServer, ConnectionError
+from mcp_dbutils.base import ConnectionServer, ConnectionHandlerError
 from mcp_dbutils.stats import ResourceStats
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_get_performance_stats(sqlite_db, mcp_config):
             # Intentionally cause an error
             try:
                 await handler.execute_query("SELECT * FROM nonexistent")
-            except ConnectionError:
+            except ConnectionHandlerError:
                 pass
             
             # Get performance stats directly from handler
@@ -111,7 +111,7 @@ async def test_get_performance_stats(sqlite_db, mcp_config):
             
             # Verify error tracking
             assert handler.stats.error_count == 1
-            assert "ConnectionError" in handler.stats.error_types
+            assert "ConnectionHandlerError" in handler.stats.error_types
 
 @pytest.mark.asyncio
 async def test_query_analysis(sqlite_db, mcp_config):

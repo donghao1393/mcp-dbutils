@@ -3,7 +3,7 @@
 import pytest
 import tempfile
 import yaml
-from mcp_dbutils.base import ConnectionServer, ConnectionError
+from mcp_dbutils.base import ConnectionServer, ConnectionHandlerError
 
 @pytest.mark.asyncio
 async def test_sqlite_monitoring(sqlite_db, mcp_config):
@@ -29,11 +29,11 @@ async def test_sqlite_monitoring(sqlite_db, mcp_config):
             # Test error recording
             try:
                 await handler.execute_query("SELECT * FROM nonexistent")
-            except ConnectionError:
+            except ConnectionHandlerError:
                 pass
 
             assert stats.error_count == 1
-            assert "ConnectionError" in stats.error_types
+            assert "ConnectionHandlerError" in stats.error_types
 
         # After context exit, connection should be closed
         assert stats.active_connections == 0
@@ -62,11 +62,11 @@ async def test_postgres_monitoring(postgres_db, mcp_config):
             # Test error recording
             try:
                 await handler.execute_query("SELECT * FROM nonexistent")
-            except ConnectionError:
+            except ConnectionHandlerError:
                 pass
 
             assert stats.error_count == 1
-            assert "ConnectionError" in stats.error_types
+            assert "ConnectionHandlerError" in stats.error_types
 
             # Test stats serialization
             stats_dict = stats.to_dict()
