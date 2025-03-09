@@ -117,16 +117,53 @@ class DatabaseHandler(ABC):
         pass
 
     @abstractmethod
+    async def get_table_stats(self, table_name: str) -> str:
+        """Get table statistics information
+
+        Args:
+            table_name: Name of the table to get statistics for
+
+        Returns:
+            Formatted statistics information including row count, size, etc.
+        """
+        pass
+
+    @abstractmethod
+    async def get_table_constraints(self, table_name: str) -> str:
+        """Get constraint information for table
+
+        Args:
+            table_name: Name of the table to get constraints for
+
+        Returns:
+            Formatted constraint information including primary keys, foreign keys, etc.
+        """
+        pass
+
+    @abstractmethod
+    async def explain_query(self, sql: str) -> str:
+        """Get query execution plan
+
+        Args:
+            sql: SQL query to explain
+
+        Returns:
+            Formatted query execution plan with cost estimates
+        """
+        pass
+
+    @abstractmethod
     async def cleanup(self):
         """Cleanup resources"""
         pass
 
-    async def execute_tool_query(self, tool_name: str, table_name: str) -> str:
-        """Execute a tool query on a table and return formatted result
+    async def execute_tool_query(self, tool_name: str, table_name: str = "", sql: str = "") -> str:
+        """Execute a tool query and return formatted result
 
         Args:
             tool_name: Name of the tool to execute
-            table_name: Name of the table to query
+            table_name: Name of the table to query (for table-related tools)
+            sql: SQL query (for query-related tools)
 
         Returns:
             Formatted query result
@@ -140,6 +177,14 @@ class DatabaseHandler(ABC):
                 result = await self.get_table_ddl(table_name)
             elif tool_name == "dbutils-list-indexes":
                 result = await self.get_table_indexes(table_name)
+            elif tool_name == "dbutils-get-stats":
+                result = await self.get_table_stats(table_name)
+            elif tool_name == "dbutils-list-constraints":
+                result = await self.get_table_constraints(table_name)
+            elif tool_name == "dbutils-explain-query":
+                if not sql:
+                    raise ValueError("SQL query required for explain-query tool")
+                result = await self.explain_query(sql)
             else:
                 raise ValueError(f"Unknown tool: {tool_name}")
                 
@@ -355,6 +400,60 @@ class DatabaseServer:
                         },
                         "required": ["database", "table"]
                     }
+                ),
+                types.Tool(
+                    name="dbutils-get-stats",
+                    description="Get table statistics like row count and size",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "table": {
+                                "type": "string",
+                                "description": "Table name to get statistics for"
+                            }
+                        },
+                        "required": ["database", "table"]
+                    }
+                ),
+                types.Tool(
+                    name="dbutils-list-constraints",
+                    description="List all constraints (primary key, foreign keys, etc) on the table",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "table": {
+                                "type": "string",
+                                "description": "Table name to list constraints for"
+                            }
+                        },
+                        "required": ["database", "table"]
+                    }
+                ),
+                types.Tool(
+                    name="dbutils-explain-query",
+                    description="Get execution plan for a SQL query",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "sql": {
+                                "type": "string",
+                                "description": "SQL query to explain"
+                            }
+                        },
+                        "required": ["database", "sql"]
+                    }
                 )
             ]
 
@@ -393,13 +492,22 @@ class DatabaseServer:
                 async with self.get_handler(database) as handler:
                     result = await handler.execute_query(sql)
                     return [types.TextContent(type="text", text=result)]
-            elif name in ["dbutils-describe-table", "dbutils-get-ddl", "dbutils-list-indexes"]:
+            elif name in ["dbutils-describe-table", "dbutils-get-ddl", "dbutils-list-indexes",
+                         "dbutils-get-stats", "dbutils-list-constraints"]:
                 table = arguments.get("table", "").strip()
                 if not table:
                     raise ConfigurationError("Table name cannot be empty")
                 
                 async with self.get_handler(database) as handler:
-                    result = await handler.execute_tool_query(name, table)
+                    result = await handler.execute_tool_query(name, table_name=table)
+                    return [types.TextContent(type="text", text=result)]
+            elif name == "dbutils-explain-query":
+                sql = arguments.get("sql", "").strip()
+                if not sql:
+                    raise ConfigurationError("SQL query cannot be empty")
+                
+                async with self.get_handler(database) as handler:
+                    result = await handler.execute_tool_query(name, sql=sql)
                     return [types.TextContent(type="text", text=result)]
             else:
                 raise ConfigurationError(f"Unknown tool: {name}")

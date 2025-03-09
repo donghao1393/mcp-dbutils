@@ -390,6 +390,197 @@ class PostgresHandler(DatabaseHandler):
             if conn:
                 conn.close()
 
+    async def get_table_stats(self, table_name: str) -> str:
+        """Get table statistics information"""
+        conn = None
+        try:
+            conn_params = self.config.get_connection_params()
+            conn = psycopg2.connect(**conn_params)
+            with conn.cursor() as cur:
+                # Get table statistics
+                cur.execute("""
+                    SELECT 
+                        c.reltuples::bigint as row_estimate,
+                        pg_size_pretty(pg_total_relation_size(c.oid)) as total_size,
+                        pg_size_pretty(pg_table_size(c.oid)) as table_size,
+                        pg_size_pretty(pg_indexes_size(c.oid)) as index_size,
+                        age(c.relfrozenxid) as xid_age,
+                        c.relhasindex as has_indexes,
+                        c.relpages::bigint as pages,
+                        c.relallvisible::bigint as visible_pages
+                    FROM pg_class c
+                    JOIN pg_namespace n ON n.oid = c.relnamespace
+                    WHERE c.relname = %s AND n.nspname = 'public'
+                """, (table_name,))
+                stats = cur.fetchone()
+
+                if not stats:
+                    return f"No statistics found for table {table_name}"
+
+                # Get column statistics
+                cur.execute("""
+                    SELECT
+                        a.attname as column_name,
+                        s.null_frac * 100 as null_percent,
+                        s.n_distinct as distinct_values,
+                        pg_column_size(a.attname::text) as approx_width
+                    FROM pg_stats s
+                    JOIN pg_attribute a ON a.attrelid = %s::regclass 
+                        AND a.attnum > 0 
+                        AND a.attname = s.attname
+                    WHERE s.schemaname = 'public'
+                    AND s.tablename = %s
+                    ORDER BY a.attnum;
+                """, (table_name, table_name))
+                column_stats = cur.fetchall()
+
+                # Format the output
+                output = [
+                    f"Table Statistics for {table_name}:",
+                    f"  Estimated Row Count: {stats[0]:,}",
+                    f"  Total Size: {stats[1]}",
+                    f"  Table Size: {stats[2]}",
+                    f"  Index Size: {stats[3]}",
+                    f"  Transaction ID Age: {stats[4]:,}",
+                    f"  Has Indexes: {stats[5]}",
+                    f"  Total Pages: {stats[6]:,}",
+                    f"  Visible Pages: {stats[7]:,}\n",
+                    "Column Statistics:"
+                ]
+
+                for col in column_stats:
+                    col_info = [
+                        f"  {col[0]}:",
+                        f"    Null Values: {col[1]:.1f}%",
+                        f"    Distinct Values: {col[2] if col[2] >= 0 else 'Unknown'}",
+                        f"    Average Width: {col[3]}"
+                    ]
+                    output.extend(col_info)
+                    output.append("")  # Empty line between columns
+
+                return "\n".join(output)
+
+        except psycopg2.Error as e:
+            error_msg = f"Failed to get table statistics: [Code: {e.pgcode}] {e.pgerror or str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_table_constraints(self, table_name: str) -> str:
+        """Get constraint information for table"""
+        conn = None
+        try:
+            conn_params = self.config.get_connection_params()
+            conn = psycopg2.connect(**conn_params)
+            with conn.cursor() as cur:
+                # Get all constraints
+                cur.execute("""
+                    SELECT
+                        con.conname as constraint_name,
+                        con.contype as constraint_type,
+                        pg_get_constraintdef(con.oid) as definition,
+                        CASE con.contype
+                            WHEN 'p' THEN 'Primary Key'
+                            WHEN 'f' THEN 'Foreign Key'
+                            WHEN 'u' THEN 'Unique'
+                            WHEN 'c' THEN 'Check'
+                            WHEN 't' THEN 'Trigger'
+                            ELSE 'Unknown'
+                        END as type_desc,
+                        con.condeferrable as is_deferrable,
+                        con.condeferred as is_deferred,
+                        obj_description(con.oid, 'pg_constraint') as comment
+                    FROM pg_constraint con
+                    JOIN pg_class rel ON rel.oid = con.conrelid
+                    JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+                    WHERE rel.relname = %s
+                    ORDER BY con.contype, con.conname
+                """, (table_name,))
+                constraints = cur.fetchall()
+
+                if not constraints:
+                    return f"No constraints found on table {table_name}"
+
+                # Format constraints by type
+                output = [f"Constraints for {table_name}:"]
+                current_type = None
+
+                for con in constraints:
+                    if current_type != con[3]:
+                        current_type = con[3]
+                        output.append(f"\n{current_type} Constraints:")
+
+                    output.extend([
+                        f"  {con[0]}:",
+                        f"    Definition: {con[2]}"
+                    ])
+
+                    if con[4]:  # is_deferrable
+                        output.append(f"    Deferrable: {'Deferred' if con[5] else 'Immediate'}")
+                    
+                    if con[6]:  # comment
+                        output.append(f"    Comment: {con[6]}")
+                    
+                    output.append("")  # Empty line between constraints
+
+                return "\n".join(output)
+
+        except psycopg2.Error as e:
+            error_msg = f"Failed to get constraint information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+        finally:
+            if conn:
+                conn.close()
+
+    async def explain_query(self, sql: str) -> str:
+        """Get query execution plan"""
+        conn = None
+        try:
+            conn_params = self.config.get_connection_params()
+            conn = psycopg2.connect(**conn_params)
+            with conn.cursor() as cur:
+                # Get both regular and analyze explain plans
+                # Get EXPLAIN output (without execution)
+                cur.execute("""
+                    EXPLAIN (FORMAT TEXT, VERBOSE, COSTS)
+                    {}
+                """.format(sql))
+                regular_plan = cur.fetchall()
+
+                # Get EXPLAIN ANALYZE output (with actual execution)
+                cur.execute("""
+                    EXPLAIN (ANALYZE, FORMAT TEXT, VERBOSE, COSTS, TIMING)
+                    {}
+                """.format(sql))
+                analyze_plan = cur.fetchall()
+
+                output = [
+                    "Query Execution Plan:",
+                    "==================",
+                    "\nEstimated Plan:",
+                    "----------------"
+                ]
+                output.extend(line[0] for line in regular_plan)
+                
+                output.extend([
+                    "\nActual Plan (ANALYZE):",
+                    "----------------------"
+                ])
+                output.extend(line[0] for line in analyze_plan)
+
+                return "\n".join(output)
+
+        except psycopg2.Error as e:
+            error_msg = f"Failed to explain query: [Code: {e.pgcode}] {e.pgerror or str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+        finally:
+            if conn:
+                conn.close()
+
     async def cleanup(self):
         """Cleanup resources"""
         # Log final stats before cleanup

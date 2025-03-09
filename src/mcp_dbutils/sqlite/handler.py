@@ -1,8 +1,8 @@
 """SQLite database handler implementation"""
 
 import sqlite3
-from pathlib import Path
-from contextlib import closing
+import json
+from typing import Any
 import mcp.types as types
 
 from ..base import DatabaseHandler, DatabaseError
@@ -24,29 +24,13 @@ class SqliteHandler(DatabaseHandler):
         super().__init__(config_path, database, debug)
         self.config = SqliteConfig.from_yaml(config_path, database)
 
-        # Ensure database directory exists
-        db_file = Path(self.config.absolute_path)
-        db_file.parent.mkdir(parents=True, exist_ok=True)
-
-        # No connection test during initialization
-        self.log("debug", f"Configuring database: {self.config.get_masked_connection_info()}")
-
-    def _get_connection(self):
-        """Get database connection"""
-        connection_params = self.config.get_connection_params()
-        conn = sqlite3.connect(**connection_params)
-        conn.row_factory = sqlite3.Row
-        return conn
-
     async def get_tables(self) -> list[types.Resource]:
         """Get all table resources"""
         try:
-            with closing(self._get_connection()) as conn:
-                cursor = conn.execute(
-                    "SELECT name FROM sqlite_master WHERE type='table'"
-                )
-                tables = cursor.fetchall()
-
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = cur.fetchall()
                 return [
                     types.Resource(
                         uri=f"sqlite://{self.database}/{table[0]}/schema",
@@ -56,73 +40,59 @@ class SqliteHandler(DatabaseHandler):
                 ]
         except sqlite3.Error as e:
             error_msg = f"Failed to get table list: {str(e)}"
-            self.log("error", error_msg)
-            raise
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
 
     async def get_schema(self, table_name: str) -> str:
         """Get table schema information"""
         try:
-            with closing(self._get_connection()) as conn:
-                # Get table structure
-                cursor = conn.execute(f"PRAGMA table_info({table_name})")
-                columns = cursor.fetchall()
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                cur.execute(f"PRAGMA table_info({table_name})")
+                columns = cur.fetchall()
 
-                # Get index information
-                cursor = conn.execute(f"PRAGMA index_list({table_name})")
-                indexes = cursor.fetchall()
+                cur.execute(f"PRAGMA index_list({table_name})")
+                indexes = cur.fetchall()
 
-                schema_info = {
+                return str({
                     'columns': [{
-                        'name': col['name'],
-                        'type': col['type'],
-                        'nullable': not col['notnull'],
-                        'primary_key': bool(col['pk'])
+                        'name': col[1],
+                        'type': col[2],
+                        'nullable': not col[3],
+                        'default': col[4],
+                        'pk': bool(col[5])
                     } for col in columns],
                     'indexes': [{
-                        'name': idx['name'],
-                        'unique': bool(idx['unique'])
+                        'name': idx[1],
+                        'unique': bool(idx[2])
                     } for idx in indexes]
-                }
-
-                return str(schema_info)
+                })
         except sqlite3.Error as e:
             error_msg = f"Failed to read table schema: {str(e)}"
-            self.log("error", error_msg)
-            raise
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
 
     async def _execute_query(self, sql: str) -> str:
         """Execute SQL query"""
-        # Check for non-SELECT queries
-        sql_lower = sql.lower().strip()
-        if not sql_lower.startswith('select'):
-            error_msg = "cannot execute DELETE statement"
-            if sql_lower.startswith('delete'):
-                error_msg = "cannot execute DELETE statement"
-            elif sql_lower.startswith('update'):
-                error_msg = "cannot execute UPDATE statement"
-            elif sql_lower.startswith('insert'):
-                error_msg = "cannot execute INSERT statement"
-            raise DatabaseError(error_msg)
-
         try:
-            with closing(self._get_connection()) as conn:
+            with sqlite3.connect(self.config.path) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
                 self.log("debug", f"Executing query: {sql}")
-                cursor = conn.execute(sql)
-                results = cursor.fetchall()
-
-                columns = [desc[0] for desc in cursor.description]
-                formatted_results = [dict(zip(columns, row)) for row in results]
+                
+                cur.execute(sql)
+                results = cur.fetchall()
+                rows = [dict(row) for row in results]
 
                 result_text = str({
                     'type': self.db_type,
-                    'columns': columns,
-                    'rows': formatted_results,
-                    'row_count': len(results)
+                    'columns': list(rows[0].keys()) if rows else [],
+                    'rows': rows,
+                    'row_count': len(rows)
                 })
 
-                self.log("debug", f"Query completed, returned {len(results)} rows")
+                self.log("debug", f"Query completed, returned {len(rows)} rows")
                 return result_text
-
         except sqlite3.Error as e:
             error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
             raise DatabaseError(error_msg)
@@ -130,45 +100,30 @@ class SqliteHandler(DatabaseHandler):
     async def get_table_description(self, table_name: str) -> str:
         """Get detailed table description"""
         try:
-            with closing(self._get_connection()) as conn:
-                # 获取表结构
-                cursor = conn.execute(f"PRAGMA table_info({table_name})")
-                columns = cursor.fetchall()
-
-                # 获取表的外键信息
-                cursor = conn.execute(f"PRAGMA foreign_key_list({table_name})")
-                foreign_keys = cursor.fetchall()
-
-                # 格式化输出
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                # 获取表信息
+                cur.execute(f"PRAGMA table_info({table_name})")
+                columns = cur.fetchall()
+                
+                # SQLite不支持表级注释，但我们可以获取表的详细信息
                 description = [
                     f"Table: {table_name}\n",
                     "Columns:"
                 ]
-
+                
                 for col in columns:
                     col_info = [
-                        f"  {col['name']} ({col['type']})",
-                        f"    Nullable: {not col['notnull']}",
-                        f"    Default: {col['dflt_value'] or 'None'}",
-                        f"    Primary Key: {bool(col['pk'])}"
+                        f"  {col[1]} ({col[2]})",
+                        f"    Nullable: {'No' if col[3] else 'Yes'}",
+                        f"    Default: {col[4] or 'None'}",
+                        f"    Primary Key: {'Yes' if col[5] else 'No'}"
                     ]
                     description.extend(col_info)
-                    description.append("")
-
-                if foreign_keys:
-                    description.append("Foreign Keys:")
-                    for fk in foreign_keys:
-                        fk_info = [
-                            f"  Column: {fk['from']}",
-                            f"    References: {fk['table']}.{fk['to']}",
-                            f"    On Delete: {fk['on_delete']}",
-                            f"    On Update: {fk['on_update']}"
-                        ]
-                        description.extend(fk_info)
-                        description.append("")
-
+                    description.append("")  # Empty line between columns
+                
                 return "\n".join(description)
-
+                
         except sqlite3.Error as e:
             error_msg = f"Failed to get table description: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -177,29 +132,30 @@ class SqliteHandler(DatabaseHandler):
     async def get_table_ddl(self, table_name: str) -> str:
         """Get DDL statement for creating table"""
         try:
-            with closing(self._get_connection()) as conn:
-                # 获取建表语句
-                cursor = conn.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
-                result = cursor.fetchone()
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                # SQLite provides the complete CREATE statement
+                cur.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+                result = cur.fetchone()
                 
                 if not result:
-                    raise DatabaseError(f"Table {table_name} not found")
+                    return f"Table {table_name} not found"
                 
-                ddl = [result[0]]
+                ddl = result[0]
                 
-                # 获取创建索引的语句
-                cursor = conn.execute(
-                    "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL",
-                    (table_name,)
-                )
-                indexes = cursor.fetchall()
+                # Get indexes
+                cur.execute(f"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=?", (table_name,))
+                indexes = cur.fetchall()
                 
+                # Add index definitions
                 if indexes:
-                    ddl.append("")  # 空行分隔
-                    ddl.extend(idx[0] for idx in indexes)
+                    ddl = ddl + "\n\n-- Indexes:"
+                    for idx in indexes:
+                        if idx[0]:  # Some internal indexes might have NULL sql
+                            ddl = ddl + "\n" + idx[0] + ";"
+                            
+                return ddl
                 
-                return "\n".join(ddl)
-
         except sqlite3.Error as e:
             error_msg = f"Failed to get table DDL: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -208,42 +164,250 @@ class SqliteHandler(DatabaseHandler):
     async def get_table_indexes(self, table_name: str) -> str:
         """Get index information for table"""
         try:
-            with closing(self._get_connection()) as conn:
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
                 # 获取索引列表
-                cursor = conn.execute(f"PRAGMA index_list({table_name})")
-                indexes = cursor.fetchall()
-
+                cur.execute(f"PRAGMA index_list({table_name})")
+                indexes = cur.fetchall()
+                
                 if not indexes:
                     return f"No indexes found on table {table_name}"
-
-                formatted_indexes = []
+                
+                formatted_indexes = [f"Indexes for {table_name}:"]
                 
                 for idx in indexes:
-                    index_info = [
-                        f"Index: {idx['name']}",
-                        f"Type: {'UNIQUE' if idx['unique'] else 'INDEX'}"
+                    # 获取索引详细信息
+                    cur.execute(f"PRAGMA index_info({idx[1]})")
+                    index_info = cur.fetchall()
+                    
+                    # 获取索引的SQL定义
+                    cur.execute("SELECT sql FROM sqlite_master WHERE type='index' AND name=?", (idx[1],))
+                    sql = cur.fetchone()
+                    
+                    index_details = [
+                        f"\nIndex: {idx[1]}",
+                        f"Type: {'UNIQUE' if idx[2] else 'INDEX'}",
+                        "Columns:"
                     ]
                     
-                    # 获取索引列信息
-                    cursor = conn.execute(f"PRAGMA index_info({idx['name']})")
-                    columns = cursor.fetchall()
-                    
-                    if columns:
-                        index_info.append("Columns:")
-                        for col in columns:
-                            index_info.append(f"  - {col['name']}")
-                    
-                    formatted_indexes.extend(index_info)
-                    formatted_indexes.append("")  # 空行分隔索引
+                    for col in index_info:
+                        index_details.append(f"  - {col[2]}")
+                        
+                    if sql and sql[0]:
+                        index_details.extend([
+                            "Definition:",
+                            f"  {sql[0]}"
+                        ])
+                        
+                    formatted_indexes.extend(index_details)
                 
                 return "\n".join(formatted_indexes)
-
+                
         except sqlite3.Error as e:
             error_msg = f"Failed to get index information: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise DatabaseError(error_msg)
 
+    async def get_table_stats(self, table_name: str) -> str:
+        """Get table statistics information"""
+        try:
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                
+                # Get basic table information
+                cur.execute(f"PRAGMA table_info({table_name})")
+                columns = cur.fetchall()
+                
+                # Count rows
+                cur.execute(f"SELECT COUNT(*) FROM {table_name}")
+                row_count = cur.fetchone()[0]
+                
+                # Get index information
+                cur.execute(f"PRAGMA index_list({table_name})")
+                indexes = cur.fetchall()
+                
+                # Get page count and size
+                cur.execute(f"PRAGMA page_count")
+                page_count = cur.fetchone()[0]
+                cur.execute(f"PRAGMA page_size")
+                page_size = cur.fetchone()[0]
+                
+                # Calculate total size
+                total_size = page_count * page_size
+                
+                # Format size in human readable format
+                def format_size(size):
+                    for unit in ['B', 'KB', 'MB', 'GB']:
+                        if size < 1024:
+                            return f"{size:.2f} {unit}"
+                        size /= 1024
+                    return f"{size:.2f} TB"
+                
+                # Get column statistics
+                column_stats = []
+                for col in columns:
+                    col_name = col[1]
+                    # Get null count
+                    cur.execute(f"SELECT COUNT(*) FROM {table_name} WHERE {col_name} IS NULL")
+                    null_count = cur.fetchone()[0]
+                    # Get distinct value count
+                    cur.execute(f"SELECT COUNT(DISTINCT {col_name}) FROM {table_name}")
+                    distinct_count = cur.fetchone()[0]
+                    
+                    column_stats.append({
+                        'name': col_name,
+                        'type': col[2],
+                        'null_count': null_count,
+                        'null_percent': (null_count / row_count * 100) if row_count > 0 else 0,
+                        'distinct_count': distinct_count
+                    })
+                
+                # Format output
+                output = [
+                    f"Table Statistics for {table_name}:",
+                    f"  Row Count: {row_count:,}",
+                    f"  Total Size: {format_size(total_size)}",
+                    f"  Page Count: {page_count:,}",
+                    f"  Page Size: {format_size(page_size)}",
+                    f"  Index Count: {len(indexes)}\n",
+                    "Column Statistics:"
+                ]
+                
+                for stat in column_stats:
+                    col_info = [
+                        f"  {stat['name']} ({stat['type']}):",
+                        f"    Null Values: {stat['null_count']:,} ({stat['null_percent']:.1f}%)",
+                        f"    Distinct Values: {stat['distinct_count']:,}"
+                    ]
+                    output.extend(col_info)
+                    output.append("")  # Empty line between columns
+                
+                return "\n".join(output)
+
+        except sqlite3.Error as e:
+            error_msg = f"Failed to get table statistics: {str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+
+    async def get_table_constraints(self, table_name: str) -> str:
+        """Get constraint information for table"""
+        try:
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                
+                # Get table info (includes PRIMARY KEY)
+                cur.execute(f"PRAGMA table_info({table_name})")
+                columns = cur.fetchall()
+                
+                # Get foreign keys
+                cur.execute(f"PRAGMA foreign_key_list({table_name})")
+                foreign_keys = cur.fetchall()
+                
+                # Get indexes (for UNIQUE constraints)
+                cur.execute(f"PRAGMA index_list({table_name})")
+                indexes = cur.fetchall()
+                
+                output = [f"Constraints for {table_name}:"]
+                
+                # Primary Key constraints
+                pk_columns = [col[1] for col in columns if col[5]]  # col[5] is pk flag
+                if pk_columns:
+                    output.extend([
+                        "\nPrimary Key Constraints:",
+                        f"  PRIMARY KEY ({', '.join(pk_columns)})"
+                    ])
+                
+                # Foreign Key constraints
+                if foreign_keys:
+                    output.append("\nForeign Key Constraints:")
+                    current_fk = None
+                    fk_columns = []
+                    
+                    for fk in foreign_keys:
+                        # SQLite foreign_key_list format:
+                        # id, seq, table, from, to, on_update, on_delete, match
+                        if current_fk != fk[0]:
+                            if fk_columns:
+                                output.append(f"    ({', '.join(fk_columns)})")
+                            current_fk = fk[0]
+                            fk_columns = []
+                            output.append(f"  FOREIGN KEY:")
+                            output.append(f"    Referenced Table: {fk[2]}")
+                        fk_columns.append(f"{fk[3]} -> {fk[2]}.{fk[4]}")
+                        if fk[5]:  # on_update
+                            output.append(f"    ON UPDATE: {fk[5]}")
+                        if fk[6]:  # on_delete
+                            output.append(f"    ON DELETE: {fk[6]}")
+                    
+                    if fk_columns:
+                        output.append(f"    ({', '.join(fk_columns)})")
+                
+                # Unique constraints (from indexes)
+                unique_indexes = [idx for idx in indexes if idx[2]]  # idx[2] is unique flag
+                if unique_indexes:
+                    output.append("\nUnique Constraints:")
+                    for idx in unique_indexes:
+                        # Get columns in the unique index
+                        cur.execute(f"PRAGMA index_info({idx[1]})")
+                        index_info = cur.fetchall()
+                        columns = [info[2] for info in index_info]  # info[2] is column name
+                        output.append(f"  UNIQUE ({', '.join(columns)})")
+                
+                # Check constraints
+                # Note: SQLite doesn't provide direct access to CHECK constraints through PRAGMA
+                # We need to parse the table creation SQL
+                cur.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+                create_sql = cur.fetchone()[0]
+                if "CHECK" in create_sql.upper():
+                    output.append("\nCheck Constraints:")
+                    output.append("  See table DDL for CHECK constraints")
+                
+                return "\n".join(output)
+
+        except sqlite3.Error as e:
+            error_msg = f"Failed to get constraint information: {str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+
+    async def explain_query(self, sql: str) -> str:
+        """Get query execution plan"""
+        try:
+            with sqlite3.connect(self.config.path) as conn:
+                cur = conn.cursor()
+                
+                # Get EXPLAIN output
+                cur.execute(f"EXPLAIN QUERY PLAN {sql}")
+                plan = cur.fetchall()
+                
+                # Format the output
+                output = [
+                    "Query Execution Plan:",
+                    "==================\n",
+                    "Details:",
+                    "--------"
+                ]
+                
+                for step in plan:
+                    # EXPLAIN QUERY PLAN format:
+                    # id | parent | notused | detail
+                    indent = "  " * (step[0] - step[1] if step[1] >= 0 else step[0])
+                    output.append(f"{indent}{step[3]}")
+                
+                # Add query statistics
+                output.extend([
+                    "\nNote: SQLite's EXPLAIN QUERY PLAN provides a high-level overview.",
+                    "For detailed execution statistics, consider using EXPLAIN (not QUERY PLAN)",
+                    "which shows the virtual machine instructions."
+                ])
+                
+                return "\n".join(output)
+
+        except sqlite3.Error as e:
+            error_msg = f"Failed to explain query: {str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+
     async def cleanup(self):
         """Cleanup resources"""
-        # Log final stats before cleanup
+        # Log final stats
         self.log("info", f"Final SQLite handler stats: {self.stats.to_dict()}")
