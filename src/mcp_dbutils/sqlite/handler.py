@@ -1,14 +1,14 @@
-"""SQLite database handler implementation"""
+"""SQLite connection handler implementation"""
 
 import sqlite3
 import json
 from typing import Any
 import mcp.types as types
 
-from ..base import DatabaseHandler, DatabaseError
+from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import SqliteConfig
 
-class SqliteHandler(DatabaseHandler):
+class SQLiteHandler(ConnectionHandler):
     @property
     def db_type(self) -> str:
         return 'sqlite'
@@ -41,7 +41,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to get table list: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def get_schema(self, table_name: str) -> str:
         """Get table schema information"""
@@ -70,14 +70,14 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to read table schema: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def _execute_query(self, sql: str) -> str:
         """Execute SQL query"""
         try:
             # Only allow SELECT statements
             if not sql.strip().upper().startswith("SELECT"):
-                raise DatabaseError("cannot execute DELETE statement")
+                raise ConnectionHandlerError("cannot execute DELETE statement")
             
             with sqlite3.connect(self.config.path) as conn:
                 conn.row_factory = sqlite3.Row
@@ -99,7 +99,7 @@ class SqliteHandler(DatabaseHandler):
                 return result_text
         except sqlite3.Error as e:
             error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def get_table_description(self, table_name: str) -> str:
         """Get detailed table description"""
@@ -131,7 +131,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to get table description: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def get_table_ddl(self, table_name: str) -> str:
         """Get DDL statement for creating table"""
@@ -163,7 +163,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to get table DDL: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def get_table_indexes(self, table_name: str) -> str:
         """Get index information for table"""
@@ -210,7 +210,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to get index information: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def get_table_stats(self, table_name: str) -> str:
         """Get table statistics information"""
@@ -291,7 +291,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to get table statistics: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def get_table_constraints(self, table_name: str) -> str:
         """Get constraint information for table"""
@@ -371,7 +371,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to get constraint information: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def explain_query(self, sql: str) -> str:
         """Get query execution plan"""
@@ -409,7 +409,7 @@ class SqliteHandler(DatabaseHandler):
         except sqlite3.Error as e:
             error_msg = f"Failed to explain query: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
 
     async def cleanup(self):
         """Cleanup resources"""
