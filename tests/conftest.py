@@ -82,7 +82,7 @@ async def sqlite_db() -> AsyncGenerator[Dict[str, str], None]:
     with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
         db_path = Path(tmp.name)
 
-        # Create test database and data
+        # Create test database file and data
         async with aiosqlite.connect(db_path) as db:
             await db.execute("""
                 CREATE TABLE products (

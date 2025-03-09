@@ -56,7 +56,7 @@ class ConnectionHandler(ABC):
 
     @abstractmethod
     async def get_tables(self) -> list[types.Resource]:
-        """Get list of table resources from database"""
+        """Get list of table resources from database connection"""
         pass
 
     @abstractmethod
@@ -323,7 +323,7 @@ class ConnectionServer:
             return [
                 types.Tool(
                     name="dbutils-run-query",
-                    description="Execute read-only SQL query on database",
+                    description="Execute read-only SQL query on database connection",
                     inputSchema={
                         "type": "object",
                         "properties": {
@@ -341,7 +341,7 @@ class ConnectionServer:
                 ),
                 types.Tool(
                     name="dbutils-list-tables",
-                    description="List all available tables in the specified database",
+                    description="List all available tables in the specified database connection",
                     inputSchema={
                         "type": "object",
                         "properties": {
