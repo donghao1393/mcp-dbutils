@@ -214,7 +214,7 @@ class PostgreSQLHandler(ConnectionHandler):
                     description.extend(col_info)
                     description.append("")  # Empty line between columns
                 
-                return "\n".join(formatted_indexes)
+                return "\n".join(description)
                 
         except psycopg2.Error as e:
             error_msg = f"Failed to get index information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
