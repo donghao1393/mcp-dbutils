@@ -1,7 +1,7 @@
 import pytest
 import tempfile
 import yaml
-from mcp_dbutils.base import DatabaseServer, ConfigurationError, DatabaseError
+from mcp_dbutils.base import ConnectionServer, ConfigurationError, ConnectionHandlerError
 from mcp_dbutils.log import create_logger
 
 # 创建测试用的 logger
@@ -15,7 +15,7 @@ async def test_list_tables(postgres_db, mcp_config):
         logger("debug", f"PostgreSQL config: {config_data}")
         yaml.dump(config_data, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_pg") as handler:
             tables = await handler.get_tables()
             table_names = [table.name.replace(" schema", "") for table in tables]
@@ -37,7 +37,7 @@ async def test_execute_query(postgres_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_pg") as handler:
                 # Simple SELECT
                 result_str = await handler.execute_query("SELECT name FROM users ORDER BY name")
@@ -60,9 +60,9 @@ async def test_non_select_query(postgres_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_pg") as handler:
-            with pytest.raises(DatabaseError, match="cannot execute DELETE in a read-only transaction"):
+            with pytest.raises(ConnectionHandlerError, match="cannot execute DELETE in a read-only transaction"):
                 await handler.execute_query("DELETE FROM users")
 
 @pytest.mark.asyncio
@@ -71,9 +71,9 @@ async def test_invalid_query(postgres_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_pg") as handler:
-            with pytest.raises(DatabaseError):
+            with pytest.raises(ConnectionHandlerError):
                 await handler.execute_query("SELECT * FROM nonexistent_table")
 
 @pytest.mark.asyncio
@@ -82,6 +82,6 @@ async def test_connection_cleanup(postgres_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_pg") as handler:
             await handler.get_tables()
