@@ -204,8 +204,8 @@ class DatabaseServer:
         async def handle_list_tools() -> list[types.Tool]:
             return [
                 types.Tool(
-                    name="query",
-                    description="Execute read-only SQL query",
+                    name="dbutils-run-query",
+                    description="Execute read-only SQL query on database",
                     inputSchema={
                         "type": "object",
                         "properties": {
@@ -222,7 +222,7 @@ class DatabaseServer:
                     }
                 ),
                 types.Tool(
-                    name="list_tables",
+                    name="dbutils-list-tables",
                     description="List all available tables in the specified database",
                     inputSchema={
                         "type": "object",
@@ -244,7 +244,7 @@ class DatabaseServer:
 
             database = arguments["database"]
 
-            if name == "list_tables":
+            if name == "dbutils-list-tables":
                 async with self.get_handler(database) as handler:
                     tables = await handler.get_tables()
                     if not tables:
@@ -260,7 +260,7 @@ class DatabaseServer:
                     ])
                     # 添加数据库类型前缀
                     return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{formatted_tables}")]
-            elif name == "query":
+            elif name == "dbutils-run-query":
                 sql = arguments.get("sql", "").strip()
                 if not sql:
                     raise ConfigurationError("SQL query cannot be empty")

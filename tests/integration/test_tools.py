@@ -43,11 +43,11 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
                 # List available tools
                 response = await client.list_tools()
                 tool_names = [tool.name for tool in response.tools]
-                assert "list_tables" in tool_names
-                assert "query" in tool_names
+                assert "dbutils-list-tables" in tool_names
+                assert "dbutils-run-query" in tool_names
 
                 # Test list_tables tool with PostgreSQL
-                result = await client.call_tool("list_tables", {"database": "test_pg"})
+                result = await client.call_tool("dbutils-list-tables", {"database": "test_pg"})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 # 检查数据库类型前缀
@@ -55,7 +55,7 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
                 assert "users" in result.content[0].text
 
                 # Test list_tables tool with SQLite
-                result = await client.call_tool("list_tables", {"database": "test_sqlite"})
+                result = await client.call_tool("dbutils-list-tables", {"database": "test_sqlite"})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 # 检查数据库类型前缀
