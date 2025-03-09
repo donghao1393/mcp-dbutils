@@ -310,6 +310,19 @@ Get query execution plan with cost estimates.
   * sql: SQL query to explain
 - Returns: Formatted execution plan
 
+#### dbutils-get-performance
+Get database performance statistics.
+- Parameters:
+  * database: Database configuration name
+- Returns: Detailed performance statistics including query times, query types, error rates, and resource usage
+
+#### dbutils-analyze-query
+Analyze a SQL query for performance and provide optimization suggestions.
+- Parameters:
+  * database: Database configuration name
+  * sql: SQL query to analyze
+- Returns: Query analysis with execution plan, timing information, and optimization suggestions
+
 ### DatabaseHandler
 Abstract base class defining interfaces:
 - get_tables(): Get table resource list

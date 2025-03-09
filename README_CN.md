@@ -294,6 +294,19 @@ except Exception as e:
   * sql: 要分析的SQL查询
 - 返回：格式化的执行计划
 
+#### dbutils-get-performance
+获取数据库性能统计信息。
+- 参数：
+  * database: 数据库配置名称
+- 返回：详细的性能统计信息，包括查询时间、查询类型、错误率和资源使用情况
+
+#### dbutils-analyze-query
+分析SQL查询的性能并提供优化建议。
+- 参数：
+  * database: 数据库配置名称
+  * sql: 要分析的SQL查询
+- 返回：查询分析结果，包括执行计划、时间信息和优化建议
+
 ### DatabaseHandler
 抽象基类，定义接口:
 - get_tables(): 获取表资源列表
