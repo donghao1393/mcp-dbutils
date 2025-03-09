@@ -81,9 +81,76 @@ class DatabaseHandler(ABC):
             raise
 
     @abstractmethod
+    async def get_table_description(self, table_name: str) -> str:
+        """Get detailed table description including columns, types, and comments
+
+        Args:
+            table_name: Name of the table to describe
+
+        Returns:
+            Formatted table description
+        """
+        pass
+
+    @abstractmethod
+    async def get_table_ddl(self, table_name: str) -> str:
+        """Get DDL statement for table including columns, constraints and indexes
+
+        Args:
+            table_name: Name of the table to get DDL for
+
+        Returns:
+            DDL statement as string
+        """
+        pass
+
+    @abstractmethod
+    async def get_table_indexes(self, table_name: str) -> str:
+        """Get index information for table
+
+        Args:
+            table_name: Name of the table to get indexes for
+
+        Returns:
+            Formatted index information
+        """
+        pass
+
+    @abstractmethod
     async def cleanup(self):
         """Cleanup resources"""
         pass
+
+    async def execute_tool_query(self, tool_name: str, table_name: str) -> str:
+        """Execute a tool query on a table and return formatted result
+
+        Args:
+            tool_name: Name of the tool to execute
+            table_name: Name of the table to query
+
+        Returns:
+            Formatted query result
+        """
+        try:
+            self.stats.record_query()
+            
+            if tool_name == "dbutils-describe-table":
+                result = await self.get_table_description(table_name)
+            elif tool_name == "dbutils-get-ddl":
+                result = await self.get_table_ddl(table_name)
+            elif tool_name == "dbutils-list-indexes":
+                result = await self.get_table_indexes(table_name)
+            else:
+                raise ValueError(f"Unknown tool: {tool_name}")
+                
+            self.stats.update_memory_usage(result)
+            self.log("info", f"Resource stats: {json.dumps(self.stats.to_dict())}")
+            return f"[{self.db_type}]\n{result}"
+            
+        except Exception as e:
+            self.stats.record_error(e.__class__.__name__)
+            self.log("error", f"Tool error - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
+            raise
 
 class DatabaseServer:
     """Unified database server class"""
@@ -234,6 +301,60 @@ class DatabaseServer:
                         },
                         "required": ["database"]
                     }
+                ),
+                types.Tool(
+                    name="dbutils-describe-table",
+                    description="Get detailed information about a table's structure",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "table": {
+                                "type": "string",
+                                "description": "Table name to describe"
+                            }
+                        },
+                        "required": ["database", "table"]
+                    }
+                ),
+                types.Tool(
+                    name="dbutils-get-ddl",
+                    description="Get DDL statement for creating the table",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "table": {
+                                "type": "string",
+                                "description": "Table name to get DDL for"
+                            }
+                        },
+                        "required": ["database", "table"]
+                    }
+                ),
+                types.Tool(
+                    name="dbutils-list-indexes",
+                    description="List all indexes on the specified table",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "table": {
+                                "type": "string",
+                                "description": "Table name to list indexes for"
+                            }
+                        },
+                        "required": ["database", "table"]
+                    }
                 )
             ]
 
@@ -271,6 +392,14 @@ class DatabaseServer:
 
                 async with self.get_handler(database) as handler:
                     result = await handler.execute_query(sql)
+                    return [types.TextContent(type="text", text=result)]
+            elif name in ["dbutils-describe-table", "dbutils-get-ddl", "dbutils-list-indexes"]:
+                table = arguments.get("table", "").strip()
+                if not table:
+                    raise ConfigurationError("Table name cannot be empty")
+                
+                async with self.get_handler(database) as handler:
+                    result = await handler.execute_tool_query(name, table)
                     return [types.TextContent(type="text", text=result)]
             else:
                 raise ConfigurationError(f"Unknown tool: {name}")

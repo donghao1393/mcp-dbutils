@@ -127,6 +127,122 @@ class SqliteHandler(DatabaseHandler):
             error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
             raise DatabaseError(error_msg)
 
+    async def get_table_description(self, table_name: str) -> str:
+        """Get detailed table description"""
+        try:
+            with closing(self._get_connection()) as conn:
+                # 获取表结构
+                cursor = conn.execute(f"PRAGMA table_info({table_name})")
+                columns = cursor.fetchall()
+
+                # 获取表的外键信息
+                cursor = conn.execute(f"PRAGMA foreign_key_list({table_name})")
+                foreign_keys = cursor.fetchall()
+
+                # 格式化输出
+                description = [
+                    f"Table: {table_name}\n",
+                    "Columns:"
+                ]
+
+                for col in columns:
+                    col_info = [
+                        f"  {col['name']} ({col['type']})",
+                        f"    Nullable: {not col['notnull']}",
+                        f"    Default: {col['dflt_value'] or 'None'}",
+                        f"    Primary Key: {bool(col['pk'])}"
+                    ]
+                    description.extend(col_info)
+                    description.append("")
+
+                if foreign_keys:
+                    description.append("Foreign Keys:")
+                    for fk in foreign_keys:
+                        fk_info = [
+                            f"  Column: {fk['from']}",
+                            f"    References: {fk['table']}.{fk['to']}",
+                            f"    On Delete: {fk['on_delete']}",
+                            f"    On Update: {fk['on_update']}"
+                        ]
+                        description.extend(fk_info)
+                        description.append("")
+
+                return "\n".join(description)
+
+        except sqlite3.Error as e:
+            error_msg = f"Failed to get table description: {str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+
+    async def get_table_ddl(self, table_name: str) -> str:
+        """Get DDL statement for creating table"""
+        try:
+            with closing(self._get_connection()) as conn:
+                # 获取建表语句
+                cursor = conn.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+                result = cursor.fetchone()
+                
+                if not result:
+                    raise DatabaseError(f"Table {table_name} not found")
+                
+                ddl = [result[0]]
+                
+                # 获取创建索引的语句
+                cursor = conn.execute(
+                    "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL",
+                    (table_name,)
+                )
+                indexes = cursor.fetchall()
+                
+                if indexes:
+                    ddl.append("")  # 空行分隔
+                    ddl.extend(idx[0] for idx in indexes)
+                
+                return "\n".join(ddl)
+
+        except sqlite3.Error as e:
+            error_msg = f"Failed to get table DDL: {str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+
+    async def get_table_indexes(self, table_name: str) -> str:
+        """Get index information for table"""
+        try:
+            with closing(self._get_connection()) as conn:
+                # 获取索引列表
+                cursor = conn.execute(f"PRAGMA index_list({table_name})")
+                indexes = cursor.fetchall()
+
+                if not indexes:
+                    return f"No indexes found on table {table_name}"
+
+                formatted_indexes = []
+                
+                for idx in indexes:
+                    index_info = [
+                        f"Index: {idx['name']}",
+                        f"Type: {'UNIQUE' if idx['unique'] else 'INDEX'}"
+                    ]
+                    
+                    # 获取索引列信息
+                    cursor = conn.execute(f"PRAGMA index_info({idx['name']})")
+                    columns = cursor.fetchall()
+                    
+                    if columns:
+                        index_info.append("Columns:")
+                        for col in columns:
+                            index_info.append(f"  - {col['name']}")
+                    
+                    formatted_indexes.extend(index_info)
+                    formatted_indexes.append("")  # 空行分隔索引
+                
+                return "\n".join(formatted_indexes)
+
+        except sqlite3.Error as e:
+            error_msg = f"Failed to get index information: {str(e)}"
+            self.stats.record_error(e.__class__.__name__)
+            raise DatabaseError(error_msg)
+
     async def cleanup(self):
         """Cleanup resources"""
         # Log final stats before cleanup
