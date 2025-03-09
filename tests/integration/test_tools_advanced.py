@@ -16,7 +16,7 @@ logger = create_logger("test-tools-advanced", True)  # debug=True 以显示所�
 
 @pytest.mark.asyncio
 async def test_get_stats_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the dbutils-get-stats tool with both PostgreSQL and SQLite databases"""
+    """Test the dbutils-get-stats tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
@@ -78,7 +78,7 @@ async def test_get_stats_tool(postgres_db, sqlite_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_list_constraints_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the dbutils-list-constraints tool with both PostgreSQL and SQLite databases"""
+    """Test the dbutils-list-constraints tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
@@ -135,7 +135,7 @@ async def test_list_constraints_tool(postgres_db, sqlite_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_explain_query_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the dbutils-explain-query tool with both PostgreSQL and SQLite databases"""
+    """Test the dbutils-explain-query tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()

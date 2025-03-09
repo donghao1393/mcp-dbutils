@@ -40,10 +40,7 @@ class ConnectionConfig(ABC):
             config = yaml.safe_load(f)
 
         if not config or 'connections' not in config:
-            if 'databases' in config:
-                raise ValueError("Configuration format has changed: Please rename 'databases' section to 'connections'")
-            else:
-                raise ValueError("Configuration file must contain 'connections' section")
+            raise ValueError("Configuration file must contain 'connections' section")
 
         # Validate type field in each database configuration
         connections = config['connections']

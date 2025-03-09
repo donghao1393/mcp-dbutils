@@ -14,7 +14,7 @@ logger = create_logger("test-tools", True)  # debug=True 以显示所有日志
 
 @pytest.mark.asyncio
 async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the list_tables tool with both PostgreSQL and SQLite databases"""
+    """Test the list_tables tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
@@ -78,7 +78,7 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_describe_table_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the dbutils-describe-table tool with both PostgreSQL and SQLite databases"""
+    """Test the dbutils-describe-table tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
@@ -143,7 +143,7 @@ async def test_describe_table_tool(postgres_db, sqlite_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_get_ddl_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the dbutils-get-ddl tool with both PostgreSQL and SQLite databases"""
+    """Test the dbutils-get-ddl tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
@@ -206,7 +206,7 @@ async def test_get_ddl_tool(postgres_db, sqlite_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_list_indexes_tool(postgres_db, sqlite_db, mcp_config):
-    """Test the dbutils-list-indexes tool with both PostgreSQL and SQLite databases"""
+    """Test the dbutils-list-indexes tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()

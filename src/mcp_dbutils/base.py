@@ -253,10 +253,7 @@ class ConnectionServer:
         with open(self.config_path, 'r') as f:
             config = yaml.safe_load(f)
             if not config or 'connections' not in config:
-                if 'databases' in config:
-                    raise ConfigurationError("Configuration format has changed: Please rename 'databases' section to 'connections'")
-                else:
-                    raise ConfigurationError("Configuration file must contain 'connections' section")
+                raise ConfigurationError("Configuration file must contain 'connections' section")
             if connection not in config['connections']:
                 available_connections = list(config['connections'].keys())
                 raise ConfigurationError(f"Connection not found: {connection}. Available connections: {available_connections}")
