@@ -247,6 +247,10 @@ class DatabaseServer:
             if name == "list_tables":
                 async with self.get_handler(database) as handler:
                     tables = await handler.get_tables()
+                    if not tables:
+                        # 空表列表的情况也返回数据库类型
+                        return [types.TextContent(type="text", text=f"[{handler.db_type}] No tables found")]
+                    
                     formatted_tables = "\n".join([
                         f"Table: {table.name}\n" +
                         f"URI: {table.uri}\n" +
@@ -254,7 +258,8 @@ class DatabaseServer:
                         "---"
                         for table in tables
                     ])
-                    return [types.TextContent(type="text", text=formatted_tables)]
+                    # 添加数据库类型前缀
+                    return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{formatted_tables}")]
             elif name == "query":
                 sql = arguments.get("sql", "").strip()
                 if not sql:

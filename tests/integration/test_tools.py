@@ -50,12 +50,16 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
                 result = await client.call_tool("list_tables", {"database": "test_pg"})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
+                # 检查数据库类型前缀
+                assert "[postgres]" in result.content[0].text
                 assert "users" in result.content[0].text
 
                 # Test list_tables tool with SQLite
                 result = await client.call_tool("list_tables", {"database": "test_sqlite"})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
+                # 检查数据库类型前缀
+                assert "[sqlite]" in result.content[0].text
                 assert "products" in result.content[0].text
 
         finally:
