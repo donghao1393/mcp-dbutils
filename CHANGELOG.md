@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.8.0 (2025-03-09)
+
+### Features
+
+- Unify tool names with dbutils prefix ([#11](https://github.com/donghao1393/mcp-dbutils/pull/11),
+  [`30ebbc2`](https://github.com/donghao1393/mcp-dbutils/commit/30ebbc251be55f7d18fc9873021151b82c3f0fde))
+
+给工具名称添加dbutils前缀，使所有工具名称规范统一： - query -> dbutils-run-query - list_tables -> dbutils-list-tables
+
+让工具名称更清晰地表明是属于dbutils的工具，避免与其他MCP服务的工具冲突。
+
+Fixes #11
+
+
 ## v0.7.0 (2025-03-09)
 
 ### Documentation
