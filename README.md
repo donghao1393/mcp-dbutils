@@ -126,7 +126,7 @@ Add to Claude configuration:
 The project requires a YAML configuration file, specified via the `--config` parameter. Configuration example:
 
 ```yaml
-databases:
+connections:
   # Standard PostgreSQL configuration example
   my_postgres:
     type: postgres
@@ -235,7 +235,7 @@ The abstraction layer design is the core architectural concept in MCP Database U
 
 ### Basic Query
 ```python
-# Access through database name
+# Access through connection name
 async with server.get_handler("my_postgres") as handler:
     # Execute SQL query
     result = await handler.execute_query("SELECT * FROM users")
@@ -253,7 +253,7 @@ schema = await handler.get_schema("users")
 ### Error Handling
 ```python
 try:
-    async with server.get_handler("my_db") as handler:
+    async with server.get_handler("my_connection") as handler:
         result = await handler.execute_query("SELECT * FROM users")
 except ValueError as e:
     print(f"Configuration error: {e}")
@@ -279,47 +279,47 @@ Core server class providing:
 #### dbutils-list-tables
 Lists all tables in the specified database.
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
 - Returns: Text content with a list of table names
 
 #### dbutils-run-query
 Executes a SQL query on the specified database.
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
   * sql: SQL query to execute (SELECT only)
 - Returns: Query results in a formatted text
 
 #### dbutils-get-stats
 Get table statistics information.
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
   * table: Table name
 - Returns: Statistics including row count, size, column stats
 
 #### dbutils-list-constraints
 List table constraints (primary key, foreign keys, etc).
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
   * table: Table name
 - Returns: Detailed constraint information
 
 #### dbutils-explain-query
 Get query execution plan with cost estimates.
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
   * sql: SQL query to explain
 - Returns: Formatted execution plan
 
 #### dbutils-get-performance
 Get database performance statistics.
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
 - Returns: Detailed performance statistics including query times, query types, error rates, and resource usage
 
 #### dbutils-analyze-query
 Analyze a SQL query for performance and provide optimization suggestions.
 - Parameters:
-  * database: Database configuration name
+  * connection: Database connection name
   * sql: SQL query to analyze
 - Returns: Query analysis with execution plan, timing information, and optimization suggestions
 

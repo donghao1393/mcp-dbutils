@@ -1,4 +1,4 @@
-databases:
+connections:
   # SQLite configuration examples
   # SQLite with standard configuration
   dev-db:

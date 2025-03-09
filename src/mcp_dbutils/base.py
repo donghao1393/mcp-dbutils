@@ -34,18 +34,19 @@ pkg_meta = metadata("mcp-dbutils")
 class DatabaseHandler(ABC):
     """Abstract base class defining common interface for database handlers"""
 
-    def __init__(self, config_path: str, database: str, debug: bool = False):
+    def __init__(self, config_path: str, connection: str, debug: bool = False):
         """Initialize database handler
 
         Args:
             config_path: Path to configuration file
-            database: Database configuration name
+            connection: Database connection name
             debug: Enable debug mode
         """
         self.config_path = config_path
-        self.database = database
+        self.connection = connection
+        self.database = connection  # Keep for backward compatibility
         self.debug = debug
-        self.log = create_logger(f"{pkg_meta['Name']}.handler.{database}", debug)
+        self.log = create_logger(f"{pkg_meta['Name']}.handler.{connection}", debug)
         self.stats = ResourceStats()
 
     @property
@@ -238,13 +239,13 @@ class DatabaseServer:
                 raise
 
     @asynccontextmanager
-    async def get_handler(self, database: str) -> AsyncContextManager[DatabaseHandler]:
+    async def get_handler(self, connection: str) -> AsyncContextManager[DatabaseHandler]:
         """Get database handler
 
-        Get appropriate database handler based on configuration name
+        Get appropriate database handler based on connection name
 
         Args:
-            database: Database configuration name
+            connection: Database connection name
 
         Returns:
             AsyncContextManager[DatabaseHandler]: Context manager for database handler
@@ -252,13 +253,16 @@ class DatabaseServer:
         # Read configuration file to determine database type
         with open(self.config_path, 'r') as f:
             config = yaml.safe_load(f)
-            if not config or 'databases' not in config:
-                raise ConfigurationError("Configuration file must contain 'databases' section")
-            if database not in config['databases']:
-                available_dbs = list(config['databases'].keys())
-                raise ConfigurationError(f"Database configuration not found: {database}. Available configurations: {available_dbs}")
+            if not config or 'connections' not in config:
+                if 'databases' in config:
+                    raise ConfigurationError("Configuration format has changed: Please rename 'databases' section to 'connections'")
+                else:
+                    raise ConfigurationError("Configuration file must contain 'connections' section")
+            if connection not in config['connections']:
+                available_connections = list(config['connections'].keys())
+                raise ConfigurationError(f"Database connection not found: {connection}. Available connections: {available_connections}")
 
-            db_config = config['databases'][database]
+            db_config = config['connections'][connection]
 
             handler = None
             try:
@@ -269,15 +273,15 @@ class DatabaseServer:
                 self.logger("debug", f"Creating handler for database type: {db_type}")
                 if db_type == 'sqlite':
                     from .sqlite.handler import SqliteHandler
-                    handler = SqliteHandler(self.config_path, database, self.debug)
+                    handler = SqliteHandler(self.config_path, connection, self.debug)
                 elif db_type == 'postgres':
                     from .postgres.handler import PostgresHandler
-                    handler = PostgresHandler(self.config_path, database, self.debug)
+                    handler = PostgresHandler(self.config_path, connection, self.debug)
                 else:
                     raise ConfigurationError(f"Unsupported database type: {db_type}")
 
                 handler.stats.record_connection_start()
-                self.logger("debug", f"Handler created successfully for {database}")
+                self.logger("debug", f"Handler created successfully for {connection}")
                 self.logger("info", f"Resource stats: {json.dumps(handler.stats.to_dict())}")
                 yield handler
             except yaml.YAMLError as e:
@@ -286,7 +290,7 @@ class DatabaseServer:
                 raise ConfigurationError(f"Failed to import handler for {db_type}: {str(e)}")
             finally:
                 if handler:
-                    self.logger("debug", f"Cleaning up handler for {database}")
+                    self.logger("debug", f"Cleaning up handler for {connection}")
                     handler.stats.record_connection_end()
                     self.logger("info", f"Final resource stats: {json.dumps(handler.stats.to_dict())}")
                     await handler.cleanup()
@@ -295,27 +299,27 @@ class DatabaseServer:
         """Setup MCP handlers"""
         @self.server.list_resources()
         async def handle_list_resources(arguments: dict | None = None) -> list[types.Resource]:
-            if not arguments or 'database' not in arguments:
-                # Return empty list when no database specified
+            if not arguments or 'connection' not in arguments:
+                # Return empty list when no connection specified
                 return []
 
-            database = arguments['database']
-            async with self.get_handler(database) as handler:
+            connection = arguments['connection']
+            async with self.get_handler(connection) as handler:
                 return await handler.get_tables()
 
         @self.server.read_resource()
         async def handle_read_resource(uri: str, arguments: dict | None = None) -> str:
-            if not arguments or 'database' not in arguments:
-                raise ConfigurationError("Database configuration name must be specified")
+            if not arguments or 'connection' not in arguments:
+                raise ConfigurationError("Database connection name must be specified")
 
             parts = uri.split('/')
             if len(parts) < 3:
                 raise ConfigurationError("Invalid resource URI format")
 
-            database = arguments['database']
+            connection = arguments['connection']
             table_name = parts[-2]  # URI format: xxx/table_name/schema
 
-            async with self.get_handler(database) as handler:
+            async with self.get_handler(connection) as handler:
                 return await handler.get_schema(table_name)
 
         @self.server.list_tools()
@@ -327,16 +331,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "sql": {
                                 "type": "string",
                                 "description": "SQL query (SELECT only)"
                             }
                         },
-                        "required": ["database", "sql"]
+                        "required": ["connection", "sql"]
                     }
                 ),
                 types.Tool(
@@ -345,12 +349,12 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             }
                         },
-                        "required": ["database"]
+                        "required": ["connection"]
                     }
                 ),
                 types.Tool(
@@ -359,16 +363,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "table": {
                                 "type": "string",
                                 "description": "Table name to describe"
                             }
                         },
-                        "required": ["database", "table"]
+                        "required": ["connection", "table"]
                     }
                 ),
                 types.Tool(
@@ -377,16 +381,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "table": {
                                 "type": "string",
                                 "description": "Table name to get DDL for"
                             }
                         },
-                        "required": ["database", "table"]
+                        "required": ["connection", "table"]
                     }
                 ),
                 types.Tool(
@@ -395,16 +399,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "table": {
                                 "type": "string",
                                 "description": "Table name to list indexes for"
                             }
                         },
-                        "required": ["database", "table"]
+                        "required": ["connection", "table"]
                     }
                 ),
                 types.Tool(
@@ -413,16 +417,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "table": {
                                 "type": "string",
                                 "description": "Table name to get statistics for"
                             }
                         },
-                        "required": ["database", "table"]
+                        "required": ["connection", "table"]
                     }
                 ),
                 types.Tool(
@@ -431,16 +435,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "table": {
                                 "type": "string",
                                 "description": "Table name to list constraints for"
                             }
                         },
-                        "required": ["database", "table"]
+                        "required": ["connection", "table"]
                     }
                 ),
                 types.Tool(
@@ -449,16 +453,16 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "sql": {
                                 "type": "string",
                                 "description": "SQL query to explain"
                             }
                         },
-                        "required": ["database", "sql"]
+                        "required": ["connection", "sql"]
                     }
                 ),
                 types.Tool(
@@ -467,12 +471,12 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             }
                         },
-                        "required": ["database"]
+                        "required": ["connection"]
                     }
                 ),
                 types.Tool(
@@ -481,29 +485,33 @@ class DatabaseServer:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "database": {
+                            "connection": {
                                 "type": "string",
-                                "description": "Database configuration name"
+                                "description": "Database connection name"
                             },
                             "sql": {
                                 "type": "string",
                                 "description": "SQL query to analyze"
                             }
                         },
-                        "required": ["database", "sql"]
+                        "required": ["connection", "sql"]
                     }
                 )
             ]
 
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
-            if "database" not in arguments:
-                raise ConfigurationError("Database configuration name must be specified")
-
-            database = arguments["database"]
+            if "connection" not in arguments:
+                if "database" in arguments:
+                    # For backward compatibility
+                    connection = arguments["database"]
+                else:
+                    raise ConfigurationError("Database connection name must be specified")
+            else:
+                connection = arguments["connection"]
 
             if name == "dbutils-list-tables":
-                async with self.get_handler(database) as handler:
+                async with self.get_handler(connection) as handler:
                     tables = await handler.get_tables()
                     if not tables:
                         # 空表列表的情况也返回数据库类型
@@ -527,7 +535,7 @@ class DatabaseServer:
                 if not sql.lower().startswith("select"):
                     raise ConfigurationError("Only SELECT queries are supported for security reasons")
 
-                async with self.get_handler(database) as handler:
+                async with self.get_handler(connection) as handler:
                     result = await handler.execute_query(sql)
                     return [types.TextContent(type="text", text=result)]
             elif name in ["dbutils-describe-table", "dbutils-get-ddl", "dbutils-list-indexes",
@@ -536,7 +544,7 @@ class DatabaseServer:
                 if not table:
                     raise ConfigurationError("Table name cannot be empty")
                 
-                async with self.get_handler(database) as handler:
+                async with self.get_handler(connection) as handler:
                     result = await handler.execute_tool_query(name, table_name=table)
                     return [types.TextContent(type="text", text=result)]
             elif name == "dbutils-explain-query":
@@ -544,11 +552,11 @@ class DatabaseServer:
                 if not sql:
                     raise ConfigurationError("SQL query cannot be empty")
                 
-                async with self.get_handler(database) as handler:
+                async with self.get_handler(connection) as handler:
                     result = await handler.execute_tool_query(name, sql=sql)
                     return [types.TextContent(type="text", text=result)]
             elif name == "dbutils-get-performance":
-                async with self.get_handler(database) as handler:
+                async with self.get_handler(connection) as handler:
                     performance_stats = handler.stats.get_performance_stats()
                     return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{performance_stats}")]
             elif name == "dbutils-analyze-query":
@@ -556,7 +564,7 @@ class DatabaseServer:
                 if not sql:
                     raise ConfigurationError("SQL query cannot be empty")
                 
-                async with self.get_handler(database) as handler:
+                async with self.get_handler(connection) as handler:
                     # First get the execution plan
                     explain_result = await handler.explain_query(sql)
                     

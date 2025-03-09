@@ -110,7 +110,7 @@ docker run -i --rm \
 项目运行需要一个YAML格式的配置文件，通过 `--config` 参数指定路径。配置示例：
 
 ```yaml
-databases:
+connections:
   # PostgreSQL标准配置示例
   my_postgres:
     type: postgres
@@ -219,7 +219,7 @@ graph TD
 
 ### 基本查询
 ```python
-# 通过数据库名称访问
+# 通过连接名称访问
 async with server.get_handler("my_postgres") as handler:
     # 执行SQL查询
     result = await handler.execute_query("SELECT * FROM users")
@@ -237,7 +237,7 @@ schema = await handler.get_schema("users")
 ### 错误处理
 ```python
 try:
-    async with server.get_handler("my_db") as handler:
+    async with server.get_handler("my_connection") as handler:
         result = await handler.execute_query("SELECT * FROM users")
 except ValueError as e:
     print(f"配置错误: {e}")
@@ -263,47 +263,47 @@ except Exception as e:
 #### dbutils-list-tables
 列出指定数据库中的所有表。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
 - 返回：包含表名列表的文本内容
 
 #### dbutils-run-query
 在指定数据库上执行SQL查询。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
   * sql: 要执行的SQL查询（仅支持SELECT）
 - 返回：格式化的查询结果文本
 
 #### dbutils-get-stats
 获取表的统计信息。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
   * table: 表名
 - 返回：包括行数、大小、列统计等信息
 
 #### dbutils-list-constraints
 列出表的约束信息（主键、外键等）。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
   * table: 表名
 - 返回：详细的约束信息
 
 #### dbutils-explain-query
 获取查询的执行计划和成本估算。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
   * sql: 要分析的SQL查询
 - 返回：格式化的执行计划
 
 #### dbutils-get-performance
 获取数据库性能统计信息。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
 - 返回：详细的性能统计信息，包括查询时间、查询类型、错误率和资源使用情况
 
 #### dbutils-analyze-query
 分析SQL查询的性能并提供优化建议。
 - 参数：
-  * database: 数据库配置名称
+  * connection: 数据库连接名称
   * sql: 要分析的SQL查询
 - 返回：查询分析结果，包括执行计划、时间信息和优化建议
 
