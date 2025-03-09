@@ -1,6 +1,6 @@
 """SQLite module"""
 
-from .handler import SqliteHandler
-from .config import SqliteConfig
+from .handler import SQLiteHandler
+from .config import SQLiteConfig
 
-__all__ = ['SqliteHandler', 'SqliteConfig']
+__all__ = ['SQLiteHandler', 'SQLiteConfig']

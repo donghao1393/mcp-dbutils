@@ -271,11 +271,11 @@ class ConnectionServer:
                 db_type = db_config['type']
                 self.logger("debug", f"Creating handler for database type: {db_type}")
                 if db_type == 'sqlite':
-                    from .sqlite.handler import SqliteHandler
-                    handler = SqliteHandler(self.config_path, connection, self.debug)
+                    from .sqlite.handler import SQLiteHandler
+                    handler = SQLiteHandler(self.config_path, connection, self.debug)
                 elif db_type == 'postgres':
-                    from .postgres.handler import PostgresHandler
-                    handler = PostgresHandler(self.config_path, connection, self.debug)
+                    from .postgres.handler import PostgreSQLHandler
+                    handler = PostgreSQLHandler(self.config_path, connection, self.debug)
                 else:
                     raise ConfigurationError(f"Unsupported database type: {db_type}")
 

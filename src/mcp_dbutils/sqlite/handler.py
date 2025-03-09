@@ -6,7 +6,7 @@ from typing import Any
 import mcp.types as types
 
 from ..base import ConnectionHandler, ConnectionHandlerError
-from .config import SqliteConfig
+from .config import SQLiteConfig
 
 class SQLiteHandler(ConnectionHandler):
     @property
@@ -22,7 +22,7 @@ class SQLiteHandler(ConnectionHandler):
             debug: Enable debug mode
         """
         super().__init__(config_path, connection, debug)
-        self.config = SqliteConfig.from_yaml(config_path, connection)
+        self.config = SQLiteConfig.from_yaml(config_path, connection)
 
     async def get_tables(self) -> list[types.Resource]:
         """Get all table resources"""
