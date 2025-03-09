@@ -4,10 +4,10 @@ import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 import mcp.types as types
 
-from ..base import DatabaseHandler, DatabaseError
+from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import PostgresConfig
 
-class PostgresHandler(DatabaseHandler):
+class PostgresHandler(ConnectionHandler):
     @property
     def db_type(self) -> str:
         return 'postgres'
@@ -54,9 +54,9 @@ class PostgresHandler(DatabaseHandler):
                     ) for table in tables
                 ]
         except psycopg2.Error as e:
-            error_msg = f"Failed to get table list: [Code: {e.pgcode}] {e.pgerror or str(e)}"
+            error_msg = f"Failed to get constraint information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -109,7 +109,7 @@ class PostgresHandler(DatabaseHandler):
         except psycopg2.Error as e:
             error_msg = f"Failed to read table schema: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -144,7 +144,7 @@ class PostgresHandler(DatabaseHandler):
                     cur.execute("ROLLBACK")
         except psycopg2.Error as e:
             error_msg = f"[{self.db_type}] Query execution failed: [Code: {e.pgcode}] {e.pgerror or str(e)}"
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -214,12 +214,12 @@ class PostgresHandler(DatabaseHandler):
                     description.extend(col_info)
                     description.append("")  # Empty line between columns
                 
-                return "\n".join(description)
+                return "\n".join(formatted_indexes)
                 
         except psycopg2.Error as e:
-            error_msg = f"Failed to get table description: [Code: {e.pgcode}] {e.pgerror or str(e)}"
+            error_msg = f"Failed to get index information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -316,7 +316,7 @@ class PostgresHandler(DatabaseHandler):
         except psycopg2.Error as e:
             error_msg = f"Failed to get table DDL: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -385,7 +385,7 @@ class PostgresHandler(DatabaseHandler):
         except psycopg2.Error as e:
             error_msg = f"Failed to get index information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -463,7 +463,7 @@ class PostgresHandler(DatabaseHandler):
         except psycopg2.Error as e:
             error_msg = f"Failed to get table statistics: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -530,7 +530,7 @@ class PostgresHandler(DatabaseHandler):
         except psycopg2.Error as e:
             error_msg = f"Failed to get constraint information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
@@ -576,7 +576,7 @@ class PostgresHandler(DatabaseHandler):
         except psycopg2.Error as e:
             error_msg = f"Failed to explain query: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
-            raise DatabaseError(error_msg)
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
