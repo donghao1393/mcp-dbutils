@@ -17,6 +17,8 @@ from typing import Any, List, Optional, AsyncContextManager
 from contextlib import asynccontextmanager
 import json
 import yaml
+import time
+from datetime import datetime
 from importlib.metadata import metadata
 from mcp.server import Server, NotificationOptions
 import mcp.server.stdio
@@ -68,16 +70,20 @@ class DatabaseHandler(ABC):
         pass
 
     async def execute_query(self, sql: str) -> str:
-        """Execute SQL query"""
+        """Execute SQL query with performance tracking"""
+        start_time = datetime.now()
         try:
             self.stats.record_query()
             result = await self._execute_query(sql)
+            duration = (datetime.now() - start_time).total_seconds()
+            self.stats.record_query_duration(sql, duration)
             self.stats.update_memory_usage(result)
-            self.log("info", f"Resource stats: {json.dumps(self.stats.to_dict())}")
+            self.log("info", f"Query executed in {duration*1000:.2f}ms. Resource stats: {json.dumps(self.stats.to_dict())}")
             return result
         except Exception as e:
+            duration = (datetime.now() - start_time).total_seconds()
             self.stats.record_error(e.__class__.__name__)
-            self.log("error", f"Query error - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
+            self.log("error", f"Query error after {duration*1000:.2f}ms - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
             raise
 
     @abstractmethod
@@ -454,6 +460,38 @@ class DatabaseServer:
                         },
                         "required": ["database", "sql"]
                     }
+                ),
+                types.Tool(
+                    name="dbutils-get-performance",
+                    description="Get database performance statistics",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            }
+                        },
+                        "required": ["database"]
+                    }
+                ),
+                types.Tool(
+                    name="dbutils-analyze-query",
+                    description="Analyze a SQL query for performance",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                                "description": "Database configuration name"
+                            },
+                            "sql": {
+                                "type": "string",
+                                "description": "SQL query to analyze"
+                            }
+                        },
+                        "required": ["database", "sql"]
+                    }
                 )
             ]
 
@@ -509,6 +547,56 @@ class DatabaseServer:
                 async with self.get_handler(database) as handler:
                     result = await handler.execute_tool_query(name, sql=sql)
                     return [types.TextContent(type="text", text=result)]
+            elif name == "dbutils-get-performance":
+                async with self.get_handler(database) as handler:
+                    performance_stats = handler.stats.get_performance_stats()
+                    return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{performance_stats}")]
+            elif name == "dbutils-analyze-query":
+                sql = arguments.get("sql", "").strip()
+                if not sql:
+                    raise ConfigurationError("SQL query cannot be empty")
+                
+                async with self.get_handler(database) as handler:
+                    # First get the execution plan
+                    explain_result = await handler.explain_query(sql)
+                    
+                    # Then execute the actual query to measure performance
+                    start_time = datetime.now()
+                    if sql.lower().startswith("select"):
+                        try:
+                            await handler.execute_query(sql)
+                        except Exception as e:
+                            # If query fails, we still provide the execution plan
+                            self.logger("error", f"Query execution failed during analysis: {str(e)}")
+                    duration = (datetime.now() - start_time).total_seconds()
+                    
+                    # Combine analysis results
+                    analysis = [
+                        f"[{handler.db_type}] Query Analysis",
+                        f"SQL: {sql}",
+                        f"",
+                        f"Execution Time: {duration*1000:.2f}ms",
+                        f"",
+                        f"Execution Plan:",
+                        explain_result
+                    ]
+                    
+                    # Add optimization suggestions based on execution plan and timing
+                    suggestions = []
+                    if "seq scan" in explain_result.lower() and duration > 0.1:
+                        suggestions.append("- Consider adding an index to avoid sequential scan")
+                    if "hash join" in explain_result.lower() and duration > 0.5:
+                        suggestions.append("- Consider optimizing join conditions")
+                    if duration > 0.5:  # 500ms
+                        suggestions.append("- Query is slow, consider optimizing or adding caching")
+                    if "temporary" in explain_result.lower():
+                        suggestions.append("- Query creates temporary tables, consider restructuring")
+                    
+                    if suggestions:
+                        analysis.append("\nOptimization Suggestions:")
+                        analysis.extend(suggestions)
+                        
+                    return [types.TextContent(type="text", text="\n".join(analysis))]
             else:
                 raise ConfigurationError(f"Unknown tool: {name}")
 
