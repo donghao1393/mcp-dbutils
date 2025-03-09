@@ -22,7 +22,7 @@ def test_parse_jdbc_url():
         parse_jdbc_url("postgresql://localhost:5432/testdb")
 
     # Test missing database name
-    with pytest.raises(ValueError, match="Database name must be specified"):
+    with pytest.raises(ValueError, match="PostgreSQL database name must be specified"):
         parse_jdbc_url("jdbc:postgresql://localhost:5432")
 
 def test_from_jdbc_url():
@@ -85,7 +85,7 @@ def test_required_fields_validation(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    with pytest.raises(ValueError, match="User must be specified"):
+    with pytest.raises(ValueError, match="User must be specified in connection"):
         PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing password
@@ -95,7 +95,7 @@ def test_required_fields_validation(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    with pytest.raises(ValueError, match="Password must be specified"):
+    with pytest.raises(ValueError, match="Password must be specified in connection"):
         PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing host
@@ -105,7 +105,7 @@ def test_required_fields_validation(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    with pytest.raises(ValueError, match="Host must be specified"):
+    with pytest.raises(ValueError, match="Host must be specified in connection"):
         PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing port
@@ -115,7 +115,7 @@ def test_required_fields_validation(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    with pytest.raises(ValueError, match="Port must be specified"):
+    with pytest.raises(ValueError, match="Port must be specified in connection"):
         PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing database name
@@ -125,5 +125,5 @@ def test_required_fields_validation(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    with pytest.raises(ValueError, match="Database name must be specified"):
+    with pytest.raises(ValueError, match="PostgreSQL database name must be specified"):
         PostgreSQLConfig.from_yaml(str(config_file), "test_db")

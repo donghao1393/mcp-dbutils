@@ -30,7 +30,7 @@ def test_parse_jdbc_url():
         parse_jdbc_url("sqlite:/path/to/test.db")
 
     # Test missing path
-    with pytest.raises(ValueError, match="Database path must be specified"):
+    with pytest.raises(ValueError, match="SQLite file path must be specified"):
         parse_jdbc_url("jdbc:sqlite:")
 
 def test_from_jdbc_url():
