@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Any, Optional, Literal
 from urllib.parse import urlparse, parse_qs
-from ..config import DatabaseConfig
+from ..config import ConnectionConfig
 
 def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     """Parse JDBC URL into connection parameters
@@ -48,14 +48,14 @@ def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     }
 
 @dataclass
-class SqliteConfig(DatabaseConfig):
+class SQLiteConfig(ConnectionConfig):
     path: str
     password: Optional[str] = None
     uri: bool = True  # Enable URI mode to support parameters like password
     type: Literal['sqlite'] = 'sqlite'
 
     @classmethod
-    def from_jdbc_url(cls, jdbc_url: str, password: Optional[str] = None) -> 'SqliteConfig':
+    def from_jdbc_url(cls, jdbc_url: str, password: Optional[str] = None) -> 'SQLiteConfig':
         """Create configuration from JDBC URL
 
         Args:
@@ -63,7 +63,7 @@ class SqliteConfig(DatabaseConfig):
             password: Optional password for database encryption
 
         Returns:
-            SqliteConfig instance
+            SQLiteConfig instance
 
         Raises:
             ValueError: If URL format is invalid
@@ -109,7 +109,7 @@ class SqliteConfig(DatabaseConfig):
         return info
 
     @classmethod
-    def from_yaml(cls, yaml_path: str, db_name: str, **kwargs) -> 'SqliteConfig':
+    def from_yaml(cls, yaml_path: str, db_name: str, **kwargs) -> 'SQLiteConfig':
         """Create SQLite configuration from YAML
 
         Args:

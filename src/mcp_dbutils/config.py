@@ -7,14 +7,14 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, Literal
 from pathlib import Path
 
-# Supported database types
-DBType = Literal['sqlite', 'postgres']
+# Supported connection types
+ConnectionType = Literal['sqlite', 'postgres']
 
-class DatabaseConfig(ABC):
-    """Base class for database configuration"""
+class ConnectionConfig(ABC):
+    """Base class for connection configuration"""
 
     debug: bool = False
-    type: DBType  # Database type
+    type: ConnectionType  # Connection type
 
     @abstractmethod
     def get_connection_params(self) -> Dict[str, Any]:
