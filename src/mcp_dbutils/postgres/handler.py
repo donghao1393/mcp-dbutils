@@ -5,9 +5,9 @@ from psycopg2.pool import SimpleConnectionPool
 import mcp.types as types
 
 from ..base import ConnectionHandler, ConnectionHandlerError
-from .config import PostgresConfig
+from .config import PostgreSQLConfig
 
-class PostgresHandler(ConnectionHandler):
+class PostgreSQLHandler(ConnectionHandler):
     @property
     def db_type(self) -> str:
         return 'postgres'
@@ -21,7 +21,7 @@ class PostgresHandler(ConnectionHandler):
             debug: Enable debug mode
         """
         super().__init__(config_path, connection, debug)
-        self.config = PostgresConfig.from_yaml(config_path, connection)
+        self.config = PostgreSQLConfig.from_yaml(config_path, connection)
 
         # No connection pool creation during initialization
         masked_params = self.config.get_masked_connection_info()

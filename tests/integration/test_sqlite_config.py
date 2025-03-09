@@ -3,7 +3,7 @@ import pytest
 import tempfile
 import yaml
 from pathlib import Path
-from mcp_dbutils.sqlite.config import SqliteConfig, parse_jdbc_url
+from mcp_dbutils.sqlite.config import SQLiteConfig, parse_jdbc_url
 
 def test_parse_jdbc_url():
     """Test JDBC URL parsing"""
@@ -34,9 +34,9 @@ def test_parse_jdbc_url():
         parse_jdbc_url("jdbc:sqlite:")
 
 def test_from_jdbc_url():
-    """Test SqliteConfig creation from JDBC URL"""
+    """Test SQLiteConfig creation from JDBC URL"""
     url = "jdbc:sqlite:/path/to/test.db"
-    config = SqliteConfig.from_jdbc_url(url)
+    config = SQLiteConfig.from_jdbc_url(url)
     
     assert str(Path(config.path)) == str(Path("/path/to/test.db"))
     assert config.password is None
@@ -44,12 +44,12 @@ def test_from_jdbc_url():
     assert config.type == "sqlite"
 
     # Test with password
-    config = SqliteConfig.from_jdbc_url(url, password="test_pass")
+    config = SQLiteConfig.from_jdbc_url(url, password="test_pass")
     assert config.password == "test_pass"
     assert config.uri is True
 
 def test_from_yaml_with_jdbc_url(tmp_path):
-    """Test SqliteConfig creation from YAML with JDBC URL"""
+    """Test SQLiteConfig creation from YAML with JDBC URL"""
     config_data = {
         "connections": {
             "test_db": {
@@ -64,7 +64,7 @@ def test_from_yaml_with_jdbc_url(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    config = SqliteConfig.from_yaml(str(config_file), "test_db")
+    config = SQLiteConfig.from_yaml(str(config_file), "test_db")
     assert str(Path(config.path)) == str(Path("/path/to/test.db"))
     assert config.password == "test_pass"
     assert config.uri is True
@@ -86,7 +86,7 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="missing required 'type' field"):
-        SqliteConfig.from_yaml(str(config_file), "test_db")
+        SQLiteConfig.from_yaml(str(config_file), "test_db")
 
     # Wrong type
     config_data["connections"]["test_db"]["type"] = "postgres"
@@ -95,7 +95,7 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="Configuration is not SQLite type"):
-        SqliteConfig.from_yaml(str(config_file), "test_db")
+        SQLiteConfig.from_yaml(str(config_file), "test_db")
 
     # Standard config (non-JDBC) missing path
     config_data["connections"]["test_db"] = {
@@ -106,4 +106,4 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="must include 'path' field"):
-        SqliteConfig.from_yaml(str(config_file), "test_db")
+        SQLiteConfig.from_yaml(str(config_file), "test_db")

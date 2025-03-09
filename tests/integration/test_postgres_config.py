@@ -2,7 +2,7 @@
 import pytest
 import tempfile
 import yaml
-from mcp_dbutils.postgres.config import PostgresConfig, parse_jdbc_url
+from mcp_dbutils.postgres.config import PostgreSQLConfig, parse_jdbc_url
 
 def test_parse_jdbc_url():
     """Test JDBC URL parsing"""
@@ -26,9 +26,9 @@ def test_parse_jdbc_url():
         parse_jdbc_url("jdbc:postgresql://localhost:5432")
 
 def test_from_jdbc_url():
-    """Test PostgresConfig creation from JDBC URL"""
+    """Test PostgreSQLConfig creation from JDBC URL"""
     url = "jdbc:postgresql://localhost:5432/testdb"
-    config = PostgresConfig.from_jdbc_url(
+    config = PostgreSQLConfig.from_jdbc_url(
         url, 
         user="test_user",
         password="test_pass"
@@ -42,7 +42,7 @@ def test_from_jdbc_url():
     assert config.type == "postgres"
 
 def test_from_yaml_with_jdbc_url(tmp_path):
-    """Test PostgresConfig creation from YAML with JDBC URL"""
+    """Test PostgreSQLConfig creation from YAML with JDBC URL"""
     config_data = {
         "connections": {
             "test_db": {
@@ -58,7 +58,7 @@ def test_from_yaml_with_jdbc_url(tmp_path):
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
 
-    config = PostgresConfig.from_yaml(str(config_file), "test_db")
+    config = PostgreSQLConfig.from_yaml(str(config_file), "test_db")
     assert config.dbname == "testdb"
     assert config.host == "localhost"
     assert config.port == "5432"
@@ -86,7 +86,7 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="User must be specified"):
-        PostgresConfig.from_yaml(str(config_file), "test_db")
+        PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing password
     config_data["connections"]["test_db"]["user"] = "test_user"
@@ -96,7 +96,7 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="Password must be specified"):
-        PostgresConfig.from_yaml(str(config_file), "test_db")
+        PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing host
     config_data["connections"]["test_db"]["password"] = "test_pass"
@@ -106,7 +106,7 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="Host must be specified"):
-        PostgresConfig.from_yaml(str(config_file), "test_db")
+        PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing port
     config_data["connections"]["test_db"]["host"] = "localhost"
@@ -116,7 +116,7 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="Port must be specified"):
-        PostgresConfig.from_yaml(str(config_file), "test_db")
+        PostgreSQLConfig.from_yaml(str(config_file), "test_db")
 
     # Missing database name
     config_data["connections"]["test_db"]["port"] = 5432
@@ -126,4 +126,4 @@ def test_required_fields_validation(tmp_path):
         yaml.dump(config_data, f)
 
     with pytest.raises(ValueError, match="Database name must be specified"):
-        PostgresConfig.from_yaml(str(config_file), "test_db")
+        PostgreSQLConfig.from_yaml(str(config_file), "test_db")
