@@ -60,7 +60,7 @@ class SqliteHandler(DatabaseHandler):
                         'type': col[2],
                         'nullable': not col[3],
                         'default': col[4],
-                        'pk': bool(col[5])
+                        'primary_key': bool(col[5])
                     } for col in columns],
                     'indexes': [{
                         'name': idx[1],
@@ -75,6 +75,10 @@ class SqliteHandler(DatabaseHandler):
     async def _execute_query(self, sql: str) -> str:
         """Execute SQL query"""
         try:
+            # Only allow SELECT statements
+            if not sql.strip().upper().startswith("SELECT"):
+                raise DatabaseError("cannot execute DELETE statement")
+            
             with sqlite3.connect(self.config.path) as conn:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
