@@ -12,16 +12,16 @@ class PostgresHandler(DatabaseHandler):
     def db_type(self) -> str:
         return 'postgres'
 
-    def __init__(self, config_path: str, database: str, debug: bool = False):
+    def __init__(self, config_path: str, connection: str, debug: bool = False):
         """Initialize PostgreSQL handler
 
         Args:
             config_path: Path to configuration file
-            database: Database configuration name
+            connection: Database connection name
             debug: Enable debug mode
         """
-        super().__init__(config_path, database, debug)
-        self.config = PostgresConfig.from_yaml(config_path, database)
+        super().__init__(config_path, connection, debug)
+        self.config = PostgresConfig.from_yaml(config_path, connection)
 
         # No connection pool creation during initialization
         masked_params = self.config.get_masked_connection_info()
@@ -47,7 +47,7 @@ class PostgresHandler(DatabaseHandler):
                 tables = cur.fetchall()
                 return [
                     types.Resource(
-                        uri=f"postgres://{self.database}/{table[0]}/schema",
+                        uri=f"postgres://{self.connection}/{table[0]}/schema",
                         name=f"{table[0]} schema",
                         description=table[1] if table[1] else None,
                         mimeType="application/json"

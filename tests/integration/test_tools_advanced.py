@@ -48,7 +48,7 @@ async def test_get_stats_tool(postgres_db, sqlite_db, mcp_config):
                 assert "dbutils-get-stats" in tool_names
 
                 # Test PostgreSQL stats
-                pg_args = {"database": "test_pg", "table": "users"}
+                pg_args = {"connection": "test_pg", "table": "users"}
                 result = await client.call_tool("dbutils-get-stats", pg_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -56,7 +56,7 @@ async def test_get_stats_tool(postgres_db, sqlite_db, mcp_config):
                 assert "Table Statistics for users" in result.content[0].text
 
                 # Test SQLite stats
-                sqlite_args = {"database": "test_sqlite", "table": "products"}
+                sqlite_args = {"connection": "test_sqlite", "table": "products"}
                 result = await client.call_tool("dbutils-get-stats", sqlite_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -106,7 +106,7 @@ async def test_list_constraints_tool(postgres_db, sqlite_db, mcp_config):
                 assert "dbutils-list-constraints" in tool_names
 
                 # Test PostgreSQL constraints
-                pg_args = {"database": "test_pg", "table": "users"}
+                pg_args = {"connection": "test_pg", "table": "users"}
                 result = await client.call_tool("dbutils-list-constraints", pg_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -114,7 +114,7 @@ async def test_list_constraints_tool(postgres_db, sqlite_db, mcp_config):
                 assert "Constraints for users" in result.content[0].text
 
                 # Test SQLite constraints
-                sqlite_args = {"database": "test_sqlite", "table": "products"}
+                sqlite_args = {"connection": "test_sqlite", "table": "products"}
                 result = await client.call_tool("dbutils-list-constraints", sqlite_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -164,7 +164,7 @@ async def test_explain_query_tool(postgres_db, sqlite_db, mcp_config):
 
                 # Test PostgreSQL explain
                 pg_args = {
-                    "database": "test_pg",
+                    "connection": "test_pg",
                     "sql": "SELECT * FROM users WHERE id > 0"
                 }
                 result = await client.call_tool("dbutils-explain-query", pg_args)
@@ -175,7 +175,7 @@ async def test_explain_query_tool(postgres_db, sqlite_db, mcp_config):
 
                 # Test SQLite explain
                 sqlite_args = {
-                    "database": "test_sqlite",
+                    "connection": "test_sqlite",
                     "sql": "SELECT * FROM products WHERE id > 0"
                 }
                 result = await client.call_tool("dbutils-explain-query", sqlite_args)

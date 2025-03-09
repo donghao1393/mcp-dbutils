@@ -13,16 +13,16 @@ class SqliteHandler(DatabaseHandler):
     def db_type(self) -> str:
         return 'sqlite'
 
-    def __init__(self, config_path: str, database: str, debug: bool = False):
+    def __init__(self, config_path: str, connection: str, debug: bool = False):
         """Initialize SQLite handler
 
         Args:
             config_path: Path to configuration file
-            database: Database configuration name
+            connection: Database connection name
             debug: Enable debug mode
         """
-        super().__init__(config_path, database, debug)
-        self.config = SqliteConfig.from_yaml(config_path, database)
+        super().__init__(config_path, connection, debug)
+        self.config = SqliteConfig.from_yaml(config_path, connection)
 
     async def get_tables(self) -> list[types.Resource]:
         """Get all table resources"""
@@ -33,7 +33,7 @@ class SqliteHandler(DatabaseHandler):
                 tables = cur.fetchall()
                 return [
                     types.Resource(
-                        uri=f"sqlite://{self.database}/{table[0]}/schema",
+                        uri=f"sqlite://{self.connection}/{table[0]}/schema",
                         name=f"{table[0]} schema",
                         mimeType="application/json"
                     ) for table in tables

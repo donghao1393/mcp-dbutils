@@ -44,7 +44,6 @@ class DatabaseHandler(ABC):
         """
         self.config_path = config_path
         self.connection = connection
-        self.database = connection  # Keep for backward compatibility
         self.debug = debug
         self.log = create_logger(f"{pkg_meta['Name']}.handler.{connection}", debug)
         self.stats = ResourceStats()
@@ -502,13 +501,9 @@ class DatabaseServer:
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             if "connection" not in arguments:
-                if "database" in arguments:
-                    # For backward compatibility
-                    connection = arguments["database"]
-                else:
-                    raise ConfigurationError("Database connection name must be specified")
-            else:
-                connection = arguments["connection"]
+                raise ConfigurationError("Connection name must be specified")
+            
+            connection = arguments["connection"]
 
             if name == "dbutils-list-tables":
                 async with self.get_handler(connection) as handler:
