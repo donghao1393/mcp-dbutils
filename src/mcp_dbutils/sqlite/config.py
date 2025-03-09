@@ -10,7 +10,7 @@ def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     """Parse JDBC URL into connection parameters
 
     Args:
-        jdbc_url: JDBC URL (e.g. jdbc:sqlite:file:/path/to/database.db or jdbc:sqlite:/path/to/database.db)
+        jdbc_url: JDBC URL (e.g. jdbc:sqlite:file:/path/to/sqlite.db or jdbc:sqlite:/path/to/sqlite.db)
 
     Returns:
         Dictionary of connection parameters
@@ -59,7 +59,7 @@ class SQLiteConfig(ConnectionConfig):
         """Create configuration from JDBC URL
 
         Args:
-            jdbc_url: JDBC URL (e.g. jdbc:sqlite:file:/path/to/database.db)
+            jdbc_url: JDBC URL (e.g. jdbc:sqlite:file:/path/to/sqlite.db)
             password: Optional password for database encryption
 
         Returns:
