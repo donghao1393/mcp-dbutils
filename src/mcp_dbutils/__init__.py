@@ -1,4 +1,4 @@
-"""MCP Database Utilities Service"""
+"""MCP Connection Utilities Service"""
 
 import asyncio
 import argparse
@@ -9,7 +9,7 @@ import yaml
 from importlib.metadata import metadata
 
 from .log import create_logger
-from .base import DatabaseServer
+from .base import ConnectionServer
 
 # 获取包信息
 pkg_meta = metadata("mcp-dbutils")
@@ -19,7 +19,7 @@ log = create_logger(pkg_meta["Name"])
 
 async def run_server():
     """服务器运行逻辑"""
-    parser = argparse.ArgumentParser(description='MCP Database Server')
+    parser = argparse.ArgumentParser(description='MCP Connection Server')
     parser.add_argument('--config', required=True, help='YAML配置文件路径')
     parser.add_argument('--local-host', help='本地主机地址')
 
@@ -32,7 +32,7 @@ async def run_server():
     global log
     log = create_logger(pkg_meta["Name"], debug)
 
-    log("info", f"MCP Database Utilities Service v{pkg_meta['Version']}")
+    log("info", f"MCP Connection Utilities Service v{pkg_meta['Version']}")
     if debug:
         log("debug", "Debug模式已开启")
 
@@ -40,11 +40,11 @@ async def run_server():
     try:
         with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
-            if not config or 'databases' not in config:
-                log("error", "配置文件必须包含 databases 配置")
+            if not config or 'connections' not in config:
+                log("error", "配置文件必须包含 connections 配置")
                 sys.exit(1)
-            if not config['databases']:
-                log("error", "配置文件必须包含至少一个数据库配置")
+            if not config['connections']:
+                log("error", "配置文件必须包含至少一个连接配置")
                 sys.exit(1)
     except Exception as e:
         log("error", f"读取配置文件失败: {str(e)}")
@@ -52,7 +52,7 @@ async def run_server():
 
     # 创建并运行服务器
     try:
-        server = DatabaseServer(args.config, debug)
+        server = ConnectionServer(args.config, debug)
         await server.run()
     except KeyboardInterrupt:
         log("info", "服务器已停止")

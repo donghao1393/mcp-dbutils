@@ -6,7 +6,7 @@ import anyio
 import mcp.types as types
 from mcp import ClientSession
 from mcp.shared.exceptions import McpError
-from mcp_dbutils.base import DatabaseServer
+from mcp_dbutils.base import ConnectionServer
 from mcp_dbutils.log import create_logger
 
 # 创建测试用的 logger
@@ -18,7 +18,7 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams
         client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
@@ -82,7 +82,7 @@ async def test_describe_table_tool(postgres_db, sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams
         client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
@@ -147,7 +147,7 @@ async def test_get_ddl_tool(postgres_db, sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams
         client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
@@ -210,7 +210,7 @@ async def test_list_indexes_tool(postgres_db, sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams
         client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
