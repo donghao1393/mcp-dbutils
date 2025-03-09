@@ -44,7 +44,7 @@ def test_from_jdbc_url():
 def test_from_yaml_with_jdbc_url(tmp_path):
     """Test PostgresConfig creation from YAML with JDBC URL"""
     config_data = {
-        "databases": {
+        "connections": {
             "test_db": {
                 "type": "postgres",
                 "jdbc_url": "jdbc:postgresql://localhost:5432/testdb",
@@ -70,7 +70,7 @@ def test_required_fields_validation(tmp_path):
     """Test validation of required configuration fields"""
     # Missing user
     config_data = {
-        "databases": {
+        "connections": {
             "test_db": {
                 "type": "postgres",
                 "host": "localhost",
@@ -89,8 +89,8 @@ def test_required_fields_validation(tmp_path):
         PostgresConfig.from_yaml(str(config_file), "test_db")
 
     # Missing password
-    config_data["databases"]["test_db"]["user"] = "test_user"
-    del config_data["databases"]["test_db"]["password"]
+    config_data["connections"]["test_db"]["user"] = "test_user"
+    del config_data["connections"]["test_db"]["password"]
     
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
@@ -99,8 +99,8 @@ def test_required_fields_validation(tmp_path):
         PostgresConfig.from_yaml(str(config_file), "test_db")
 
     # Missing host
-    config_data["databases"]["test_db"]["password"] = "test_pass"
-    del config_data["databases"]["test_db"]["host"]
+    config_data["connections"]["test_db"]["password"] = "test_pass"
+    del config_data["connections"]["test_db"]["host"]
     
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
@@ -109,8 +109,8 @@ def test_required_fields_validation(tmp_path):
         PostgresConfig.from_yaml(str(config_file), "test_db")
 
     # Missing port
-    config_data["databases"]["test_db"]["host"] = "localhost"
-    del config_data["databases"]["test_db"]["port"]
+    config_data["connections"]["test_db"]["host"] = "localhost"
+    del config_data["connections"]["test_db"]["port"]
     
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
@@ -119,8 +119,8 @@ def test_required_fields_validation(tmp_path):
         PostgresConfig.from_yaml(str(config_file), "test_db")
 
     # Missing database name
-    config_data["databases"]["test_db"]["port"] = 5432
-    del config_data["databases"]["test_db"]["dbname"]
+    config_data["connections"]["test_db"]["port"] = 5432
+    del config_data["connections"]["test_db"]["dbname"]
     
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)

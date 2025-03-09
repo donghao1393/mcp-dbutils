@@ -51,7 +51,7 @@ def test_from_jdbc_url():
 def test_from_yaml_with_jdbc_url(tmp_path):
     """Test SqliteConfig creation from YAML with JDBC URL"""
     config_data = {
-        "databases": {
+        "connections": {
             "test_db": {
                 "type": "sqlite",
                 "jdbc_url": "jdbc:sqlite:/path/to/test.db",
@@ -74,7 +74,7 @@ def test_required_fields_validation(tmp_path):
     """Test validation of required configuration fields"""
     # Missing type
     config_data = {
-        "databases": {
+        "connections": {
             "test_db": {
                 "jdbc_url": "jdbc:sqlite:/path/to/test.db"
             }
@@ -89,7 +89,7 @@ def test_required_fields_validation(tmp_path):
         SqliteConfig.from_yaml(str(config_file), "test_db")
 
     # Wrong type
-    config_data["databases"]["test_db"]["type"] = "postgres"
+    config_data["connections"]["test_db"]["type"] = "postgres"
     
     with open(config_file, "w") as f:
         yaml.dump(config_data, f)
@@ -98,7 +98,7 @@ def test_required_fields_validation(tmp_path):
         SqliteConfig.from_yaml(str(config_file), "test_db")
 
     # Standard config (non-JDBC) missing path
-    config_data["databases"]["test_db"] = {
+    config_data["connections"]["test_db"] = {
         "type": "sqlite"
     }
     

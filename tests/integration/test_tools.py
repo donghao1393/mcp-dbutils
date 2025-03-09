@@ -47,7 +47,7 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
                 assert "dbutils-run-query" in tool_names
 
                 # Test list_tables tool with PostgreSQL
-                result = await client.call_tool("dbutils-list-tables", {"database": "test_pg"})
+                result = await client.call_tool("dbutils-list-tables", {"connection": "test_pg"})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 # 检查数据库类型前缀
@@ -55,7 +55,7 @@ async def test_list_tables_tool(postgres_db, sqlite_db, mcp_config):
                 assert "users" in result.content[0].text
 
                 # Test list_tables tool with SQLite
-                result = await client.call_tool("dbutils-list-tables", {"database": "test_sqlite"})
+                result = await client.call_tool("dbutils-list-tables", {"connection": "test_sqlite"})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 # 检查数据库类型前缀
@@ -110,7 +110,7 @@ async def test_describe_table_tool(postgres_db, sqlite_db, mcp_config):
                 assert "dbutils-describe-table" in tool_names
 
                 # Test PostgreSQL describe-table
-                pg_args = {"database": "test_pg", "table": "users"}
+                pg_args = {"connection": "test_pg", "table": "users"}
                 result = await client.call_tool("dbutils-describe-table", pg_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -119,7 +119,7 @@ async def test_describe_table_tool(postgres_db, sqlite_db, mcp_config):
                 assert "Columns:" in result.content[0].text
 
                 # Test SQLite describe-table
-                sqlite_args = {"database": "test_sqlite", "table": "products"}
+                sqlite_args = {"connection": "test_sqlite", "table": "products"}
                 result = await client.call_tool("dbutils-describe-table", sqlite_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -175,7 +175,7 @@ async def test_get_ddl_tool(postgres_db, sqlite_db, mcp_config):
                 assert "dbutils-get-ddl" in tool_names
 
                 # Test PostgreSQL get-ddl
-                pg_args = {"database": "test_pg", "table": "users"}
+                pg_args = {"connection": "test_pg", "table": "users"}
                 result = await client.call_tool("dbutils-get-ddl", pg_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -183,7 +183,7 @@ async def test_get_ddl_tool(postgres_db, sqlite_db, mcp_config):
                 assert "CREATE TABLE users" in result.content[0].text
 
                 # Test SQLite get-ddl
-                sqlite_args = {"database": "test_sqlite", "table": "products"}
+                sqlite_args = {"connection": "test_sqlite", "table": "products"}
                 result = await client.call_tool("dbutils-get-ddl", sqlite_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
@@ -238,14 +238,14 @@ async def test_list_indexes_tool(postgres_db, sqlite_db, mcp_config):
                 assert "dbutils-list-indexes" in tool_names
 
                 # Test PostgreSQL list-indexes
-                pg_args = {"database": "test_pg", "table": "users"}
+                pg_args = {"connection": "test_pg", "table": "users"}
                 result = await client.call_tool("dbutils-list-indexes", pg_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 assert "[postgres]" in result.content[0].text
 
                 # Test SQLite list-indexes
-                sqlite_args = {"database": "test_sqlite", "table": "products"}
+                sqlite_args = {"connection": "test_sqlite", "table": "products"}
                 result = await client.call_tool("dbutils-list-indexes", sqlite_args)
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"

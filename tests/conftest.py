@@ -116,7 +116,7 @@ async def mcp_config(postgres_db, sqlite_db) -> Dict:
     Generate MCP server configuration for testing.
     """
     return {
-        "databases": {
+        "connections": {
             "test_pg": postgres_db,
             "test_sqlite": sqlite_db
         }
