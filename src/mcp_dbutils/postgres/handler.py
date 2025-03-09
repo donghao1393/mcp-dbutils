@@ -1,4 +1,4 @@
-"""PostgreSQL database handler implementation"""
+"""PostgreSQL connection handler implementation"""
 
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
@@ -25,7 +25,7 @@ class PostgresHandler(DatabaseHandler):
 
         # No connection pool creation during initialization
         masked_params = self.config.get_masked_connection_info()
-        self.log("debug", f"Configuring database with parameters: {masked_params}")
+        self.log("debug", f"Configuring connection with parameters: {masked_params}")
         self.pool = None
 
     async def get_tables(self) -> list[types.Resource]:

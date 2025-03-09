@@ -32,9 +32,9 @@ class PostgresServer(DatabaseServer):
             self.log("info", "测试连接成功")
             # 创建连接池
             self.pool = SimpleConnectionPool(1, 5, **conn_params)
-            self.log("info", "数据库连接池创建成功")
+            self.log("info", "连接池创建成功")
         except psycopg2.Error as e:
-            self.log("error", f"数据库连接失败: [Code: {e.pgcode}] {e.pgerror or str(e)}")
+            self.log("error", f"连接失败: [Code: {e.pgcode}] {e.pgerror or str(e)}")
             raise
     async def list_resources(self) -> list[types.Resource]:
         """列出所有表资源"""
@@ -124,9 +124,9 @@ class PostgresServer(DatabaseServer):
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "database": {
+                        "connection": {
                             "type": "string",
-                            "description": "数据库配置名称（可选）"
+                            "description": "数据库连接名称（可选）"
                         },
                         "sql": {
                             "type": "string",
@@ -147,16 +147,16 @@ class PostgresServer(DatabaseServer):
         # 仅允许SELECT语句
         if not sql.lower().startswith("select"):
             raise ValueError("仅支持SELECT查询")
-        database = arguments.get("database")
+        connection = arguments.get("connection")
         use_pool = True
         conn = None
         try:
-            if database and self.config_path:
-                # 使用指定的数据库配置
-                config = PostgresConfig.from_yaml(self.config_path, database)
+            if connection and self.config_path:
+                # 使用指定的数据库连接
+                config = PostgresConfig.from_yaml(self.config_path, connection)
                 conn_params = config.get_connection_params()
                 masked_params = config.get_masked_connection_info()
-                self.log("info", f"使用配置 {database} 连接数据库: {masked_params}")
+                self.log("info", f"使用配置 {connection} 连接数据库: {masked_params}")
                 conn = psycopg2.connect(**conn_params)
                 use_pool = False
             else:
@@ -173,7 +173,7 @@ class PostgresServer(DatabaseServer):
                     formatted_results = [dict(zip(columns, row)) for row in results]
                     result_text = str({
                         'type': 'postgres',
-                        'config_name': database or 'default',
+                        'config_name': connection or 'default',
                         'query_result': {
                             'columns': columns,
                             'rows': formatted_results,
@@ -191,7 +191,7 @@ class PostgresServer(DatabaseServer):
                 error = f"查询执行失败: {str(e)}"
             error_msg = str({
                 'type': 'postgres',
-                'config_name': database or 'default',
+                'config_name': connection or 'default',
                 'error': error
             })
             self.log("error", error_msg)
@@ -205,5 +205,5 @@ class PostgresServer(DatabaseServer):
     async def cleanup(self):
         """清理资源"""
         if hasattr(self, 'pool'):
-            self.log("info", "关闭数据库连接池")
+            self.log("info", "关闭连接池")
             self.pool.closeall()
