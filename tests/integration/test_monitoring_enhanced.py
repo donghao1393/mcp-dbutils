@@ -6,7 +6,7 @@ import yaml
 import time
 import json
 from datetime import datetime
-from mcp_dbutils.base import DatabaseServer, DatabaseError
+from mcp_dbutils.base import ConnectionServer, ConnectionError
 from mcp_dbutils.stats import ResourceStats
 
 @pytest.mark.asyncio
@@ -49,7 +49,7 @@ async def test_query_duration_tracking(sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
 
         async with server.get_handler("test_sqlite") as handler:
             # Execute a query and check duration tracking
@@ -82,7 +82,7 @@ async def test_get_performance_stats(sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         
         # Execute some queries to generate stats
         async with server.get_handler("test_sqlite") as handler:
@@ -92,7 +92,7 @@ async def test_get_performance_stats(sqlite_db, mcp_config):
             # Intentionally cause an error
             try:
                 await handler.execute_query("SELECT * FROM nonexistent")
-            except DatabaseError:
+            except ConnectionError:
                 pass
             
             # Get performance stats directly from handler
@@ -111,7 +111,7 @@ async def test_get_performance_stats(sqlite_db, mcp_config):
             
             # Verify error tracking
             assert handler.stats.error_count == 1
-            assert "DatabaseError" in handler.stats.error_types
+            assert "ConnectionError" in handler.stats.error_types
 
 @pytest.mark.asyncio
 async def test_query_analysis(sqlite_db, mcp_config):
@@ -119,7 +119,7 @@ async def test_query_analysis(sqlite_db, mcp_config):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
-        server = DatabaseServer(config_path=tmp.name)
+        server = ConnectionServer(config_path=tmp.name)
         
         async with server.get_handler("test_sqlite") as handler:
             # Get execution plan
