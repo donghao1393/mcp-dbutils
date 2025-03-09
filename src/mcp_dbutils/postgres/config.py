@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Literal
 from urllib.parse import urlparse
-from ..config import DatabaseConfig
+from ..config import ConnectionConfig
 
 def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     """Parse JDBC URL into connection parameters
@@ -36,7 +36,7 @@ def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     return params
 
 @dataclass
-class PostgresConfig(DatabaseConfig):
+class PostgreSQLConfig(ConnectionConfig):
     dbname: str
     user: str
     password: str
@@ -46,7 +46,7 @@ class PostgresConfig(DatabaseConfig):
     type: Literal['postgres'] = 'postgres'
 
     @classmethod
-    def from_yaml(cls, yaml_path: str, db_name: str, local_host: Optional[str] = None) -> 'PostgresConfig':
+    def from_yaml(cls, yaml_path: str, db_name: str, local_host: Optional[str] = None) -> 'PostgreSQLConfig':
         """Create configuration from YAML file
 
         Args:
@@ -105,7 +105,7 @@ class PostgresConfig(DatabaseConfig):
 
     @classmethod
     def from_jdbc_url(cls, jdbc_url: str, user: str, password: str, 
-                     local_host: Optional[str] = None) -> 'PostgresConfig':
+                     local_host: Optional[str] = None) -> 'PostgreSQLConfig':
         """Create configuration from JDBC URL and credentials
         
         Args:
