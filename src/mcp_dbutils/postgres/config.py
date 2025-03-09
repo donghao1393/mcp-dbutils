@@ -31,7 +31,7 @@ def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     }
     
     if not params['dbname']:
-        raise ValueError("Database name must be specified in URL")
+        raise ValueError("PostgreSQL database name must be specified in URL")
         
     return params
 
@@ -51,27 +51,27 @@ class PostgreSQLConfig(ConnectionConfig):
 
         Args:
             yaml_path: Path to YAML configuration file
-            db_name: Database configuration name to use
+            db_name: Connection configuration name to use
             local_host: Optional local host address
         """
         configs = cls.load_yaml_config(yaml_path)
         if not db_name:
-            raise ValueError("Database name must be specified")
+            raise ValueError("Connection name must be specified")
         if db_name not in configs:
             available_dbs = list(configs.keys())
-            raise ValueError(f"Database configuration not found: {db_name}. Available configurations: {available_dbs}")
+            raise ValueError(f"Connection configuration not found: {db_name}. Available configurations: {available_dbs}")
 
         db_config = configs[db_name]
         if 'type' not in db_config:
-            raise ValueError("Database configuration must include 'type' field")
+            raise ValueError("Connection configuration must include 'type' field")
         if db_config['type'] != 'postgres':
             raise ValueError(f"Configuration is not PostgreSQL type: {db_config['type']}")
 
         # Check required credentials
         if not db_config.get('user'):
-            raise ValueError("User must be specified in database configuration")
+            raise ValueError("User must be specified in connection configuration")
         if not db_config.get('password'):
-            raise ValueError("Password must be specified in database configuration")
+            raise ValueError("Password must be specified in connection configuration")
 
         # Get connection parameters
         if 'jdbc_url' in db_config:
@@ -87,11 +87,11 @@ class PostgreSQLConfig(ConnectionConfig):
             )
         else:
             if not db_config.get('dbname'):
-                raise ValueError("Database name must be specified in configuration")
+                raise ValueError("PostgreSQL database name must be specified in configuration")
             if not db_config.get('host'):
-                raise ValueError("Host must be specified in configuration")
+                raise ValueError("Host must be specified in connection configuration")
             if not db_config.get('port'):
-                raise ValueError("Port must be specified in configuration")
+                raise ValueError("Port must be specified in connection configuration")
             config = cls(
                 dbname=db_config['dbname'],
                 user=db_config['user'],
@@ -110,8 +110,8 @@ class PostgreSQLConfig(ConnectionConfig):
         
         Args:
             jdbc_url: JDBC URL (jdbc:postgresql://host:port/dbname)
-            user: Username for database connection
-            password: Password for database connection
+            user: Username for connection
+            password: Password for connection
             local_host: Optional local host address
             
         Raises:
