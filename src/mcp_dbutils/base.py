@@ -1,14 +1,14 @@
-"""Database server base class"""
+"""Connection server base class"""
 
-class DatabaseError(Exception):
-    """Base exception for database errors"""
+class ConnectionHandlerError(Exception):
+    """Base exception for connection errors"""
     pass
 
-class ConfigurationError(DatabaseError):
+class ConfigurationError(ConnectionHandlerError):
     """Configuration related errors"""
     pass
 
-class ConnectionError(DatabaseError):
+class ConnectionError(ConnectionHandlerError):
     """Connection related errors"""
     pass
 
@@ -31,11 +31,11 @@ from .stats import ResourceStats
 # 获取包信息用于日志命名
 pkg_meta = metadata("mcp-dbutils")
 
-class DatabaseHandler(ABC):
-    """Abstract base class defining common interface for database handlers"""
+class ConnectionHandler(ABC):
+    """Abstract base class defining common interface for connection handlers"""
 
     def __init__(self, config_path: str, connection: str, debug: bool = False):
-        """Initialize database handler
+        """Initialize connection handler
 
         Args:
             config_path: Path to configuration file
@@ -203,11 +203,11 @@ class DatabaseHandler(ABC):
             self.log("error", f"Tool error - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
             raise
 
-class DatabaseServer:
-    """Unified database server class"""
+class ConnectionServer:
+    """Unified connection server class"""
 
     def __init__(self, config_path: str, debug: bool = False):
-        """Initialize database server
+        """Initialize connection server
 
         Args:
             config_path: Path to configuration file
@@ -238,16 +238,16 @@ class DatabaseServer:
                 raise
 
     @asynccontextmanager
-    async def get_handler(self, connection: str) -> AsyncContextManager[DatabaseHandler]:
-        """Get database handler
+    async def get_handler(self, connection: str) -> AsyncContextManager[ConnectionHandler]:
+        """Get connection handler
 
-        Get appropriate database handler based on connection name
+        Get appropriate connection handler based on connection name
 
         Args:
             connection: Database connection name
 
         Returns:
-            AsyncContextManager[DatabaseHandler]: Context manager for database handler
+            AsyncContextManager[ConnectionHandler]: Context manager for connection handler
         """
         # Read configuration file to determine database type
         with open(self.config_path, 'r') as f:
@@ -259,7 +259,7 @@ class DatabaseServer:
                     raise ConfigurationError("Configuration file must contain 'connections' section")
             if connection not in config['connections']:
                 available_connections = list(config['connections'].keys())
-                raise ConfigurationError(f"Database connection not found: {connection}. Available connections: {available_connections}")
+                raise ConfigurationError(f"Connection not found: {connection}. Available connections: {available_connections}")
 
             db_config = config['connections'][connection]
 
@@ -309,7 +309,7 @@ class DatabaseServer:
         @self.server.read_resource()
         async def handle_read_resource(uri: str, arguments: dict | None = None) -> str:
             if not arguments or 'connection' not in arguments:
-                raise ConfigurationError("Database connection name must be specified")
+                raise ConfigurationError("Connection name must be specified")
 
             parts = uri.split('/')
             if len(parts) < 3:
