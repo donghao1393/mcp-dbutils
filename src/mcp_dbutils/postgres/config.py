@@ -1,28 +1,35 @@
 """PostgreSQL configuration module"""
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Literal
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from ..config import ConnectionConfig
 
-def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
-    """Parse JDBC URL into connection parameters
+@dataclass
+class SSLConfig:
+    """SSL configuration for PostgreSQL connection"""
+    mode: Literal['disable', 'require', 'verify-ca', 'verify-full'] = 'disable'
+    cert: Optional[str] = None
+    key: Optional[str] = None
+    root: Optional[str] = None
+
+def parse_url(url: str) -> Dict[str, Any]:
+    """Parse PostgreSQL URL into connection parameters
     
     Args:
-        jdbc_url: JDBC URL (e.g. jdbc:postgresql://host:port/dbname)
+        url: URL (e.g. postgresql://host:port/dbname?sslmode=verify-full)
         
     Returns:
-        Dictionary of connection parameters
+        Dictionary of connection parameters including SSL settings
     """
-    if not jdbc_url.startswith('jdbc:postgresql://'):
-        raise ValueError("Invalid PostgreSQL JDBC URL format")
+    if not url.startswith('postgresql://'):
+        raise ValueError("Invalid PostgreSQL URL format")
     
-    # Remove jdbc: prefix and ensure no credentials in URL
-    url = jdbc_url[5:]
     if '@' in url:
-        raise ValueError("JDBC URL should not contain credentials. Please provide username and password separately.")
+        raise ValueError("URL should not contain credentials. Please provide username and password separately.")
     
-    # Parse URL
+    # Parse URL and query parameters
     parsed = urlparse(url)
+    query_params = parse_qs(parsed.query)
     
     params = {
         'host': parsed.hostname or 'localhost',
@@ -32,6 +39,24 @@ def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     
     if not params['dbname']:
         raise ValueError("PostgreSQL database name must be specified in URL")
+
+    # Parse SSL parameters if present
+    ssl_params = {}
+    if 'sslmode' in query_params:
+        mode = query_params['sslmode'][0]
+        if mode not in ['disable', 'require', 'verify-ca', 'verify-full']:
+            raise ValueError(f"Invalid sslmode: {mode}")
+        ssl_params['mode'] = mode
+        
+    if 'sslcert' in query_params:
+        ssl_params['cert'] = query_params['sslcert'][0]
+    if 'sslkey' in query_params:
+        ssl_params['key'] = query_params['sslkey'][0]
+    if 'sslrootcert' in query_params:
+        ssl_params['root'] = query_params['sslrootcert'][0]
+        
+    if ssl_params:
+        params['ssl'] = SSLConfig(**ssl_params)
         
     return params
 
@@ -44,6 +69,8 @@ class PostgreSQLConfig(ConnectionConfig):
     port: str = '5432'
     local_host: Optional[str] = None
     type: Literal['postgres'] = 'postgres'
+    url: Optional[str] = None
+    ssl: Optional[SSLConfig] = None
 
     @classmethod
     def from_yaml(cls, yaml_path: str, db_name: str, local_host: Optional[str] = None) -> 'PostgreSQLConfig':
@@ -74,9 +101,9 @@ class PostgreSQLConfig(ConnectionConfig):
             raise ValueError("Password must be specified in connection configuration")
 
         # Get connection parameters
-        if 'jdbc_url' in db_config:
-            # Parse JDBC URL for connection parameters
-            params = parse_jdbc_url(db_config['jdbc_url'])
+        if 'url' in db_config:
+            # Parse URL for connection parameters
+            params = parse_url(db_config['url'])
             config = cls(
                 dbname=params['dbname'],
                 user=db_config['user'],
@@ -84,6 +111,8 @@ class PostgreSQLConfig(ConnectionConfig):
                 host=params['host'],
                 port=params['port'],
                 local_host=local_host,
+                url=db_config['url'],
+                ssl=params.get('ssl')
             )
         else:
             if not db_config.get('dbname'):
@@ -92,6 +121,24 @@ class PostgreSQLConfig(ConnectionConfig):
                 raise ValueError("Host must be specified in connection configuration")
             if not db_config.get('port'):
                 raise ValueError("Port must be specified in connection configuration")
+            
+            # Parse SSL configuration if present
+            ssl_config = None
+            if 'ssl' in db_config:
+                ssl_params = db_config['ssl']
+                if not isinstance(ssl_params, dict):
+                    raise ValueError("SSL configuration must be a dictionary")
+                
+                if ssl_params.get('mode') not in [None, 'disable', 'require', 'verify-ca', 'verify-full']:
+                    raise ValueError(f"Invalid sslmode: {ssl_params.get('mode')}")
+                
+                ssl_config = SSLConfig(
+                    mode=ssl_params.get('mode', 'disable'),
+                    cert=ssl_params.get('cert'),
+                    key=ssl_params.get('key'),
+                    root=ssl_params.get('root')
+                )
+            
             config = cls(
                 dbname=db_config['dbname'],
                 user=db_config['user'],
@@ -99,17 +146,18 @@ class PostgreSQLConfig(ConnectionConfig):
                 host=db_config['host'],
                 port=str(db_config['port']),
                 local_host=local_host,
+                ssl=ssl_config
             )
         config.debug = cls.get_debug_mode()
         return config
 
     @classmethod
-    def from_jdbc_url(cls, jdbc_url: str, user: str, password: str, 
-                     local_host: Optional[str] = None) -> 'PostgreSQLConfig':
-        """Create configuration from JDBC URL and credentials
+    def from_url(cls, url: str, user: str, password: str, 
+                local_host: Optional[str] = None) -> 'PostgreSQLConfig':
+        """Create configuration from URL and credentials
         
         Args:
-            jdbc_url: JDBC URL (jdbc:postgresql://host:port/dbname)
+            url: URL (postgresql://host:port/dbname)
             user: Username for connection
             password: Password for connection
             local_host: Optional local host address
@@ -117,7 +165,7 @@ class PostgreSQLConfig(ConnectionConfig):
         Raises:
             ValueError: If URL format is invalid or required parameters are missing
         """
-        params = parse_jdbc_url(jdbc_url)
+        params = parse_url(url)
         
         config = cls(
             dbname=params['dbname'],
@@ -126,6 +174,8 @@ class PostgreSQLConfig(ConnectionConfig):
             host=params['host'],
             port=params['port'],
             local_host=local_host,
+            url=url,
+            ssl=params.get('ssl')
         )
         config.debug = cls.get_debug_mode()
         return config
@@ -139,6 +189,17 @@ class PostgreSQLConfig(ConnectionConfig):
             'host': self.local_host or self.host,
             'port': self.port
         }
+        
+        # Add SSL parameters if configured
+        if self.ssl:
+            params['sslmode'] = self.ssl.mode
+            if self.ssl.cert:
+                params['sslcert'] = self.ssl.cert
+            if self.ssl.key:
+                params['sslkey'] = self.ssl.key
+            if self.ssl.root:
+                params['sslrootcert'] = self.ssl.root
+                
         return {k: v for k, v in params.items() if v}
 
     def get_masked_connection_info(self) -> Dict[str, Any]:

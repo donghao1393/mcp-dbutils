@@ -1,20 +1,15 @@
 connections:
   # SQLite configuration examples
-  # SQLite with standard configuration
   dev-db:
     type: sqlite
     path: /path/to/dev.db
+    # Password is optional
     password: 
 
-  # SQLite with JDBC URL configuration
-  # jdbc:sqlite: URL supports query parameters:
-  # - mode=ro: Read-only mode
-  # - cache=shared: Shared cache mode
-  # Note: Password must be provided separately
   prod-sqlite:
     type: sqlite
-    jdbc_url: jdbc:sqlite:/path/to/prod.db?mode=ro
-    password: optional_password    # Provided separately for security
+    path: /path/to/prod.db
+    password: optional_password    # Optional
 
   # PostgreSQL configuration examples
   # Standard configuration
@@ -26,15 +21,24 @@ connections:
     user: test_user
     password: test_pass
 
-  # JDBC URL configuration
-  # Note: When using JDBC URL in code, provide credentials separately:
-  # PostgresConfig.from_jdbc_url(
-  #   "jdbc:postgresql://prod.example.com:5432/prod_db",
-  #   user="prod_user",
-  #   password="your@special#password"
-  # )
+  # URL configuration
+  # Use postgresql://host:port/dbname?sslmode=verify-full&sslcert=/path/to/cert.pem
   prod-db:
     type: postgres
-    jdbc_url: jdbc:postgresql://postgres.example.com:5432/prod-db
+    url: postgresql://postgres.example.com:5432/prod-db?sslmode=verify-full
     user: prod_user
     password: prod_pass
+    
+  # Full SSL configuration example
+  secure-db:
+    type: postgres
+    host: secure-db.example.com
+    port: 5432
+    dbname: secure_db
+    user: secure_user
+    password: secure_pass
+    ssl:
+      mode: verify-full
+      cert: /path/to/client-cert.pem
+      key: /path/to/client-key.pem
+      root: /path/to/ca.crt
