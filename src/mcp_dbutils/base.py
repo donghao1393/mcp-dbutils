@@ -251,6 +251,7 @@ class ConnectionServer:
             name=pkg_meta["Name"],
             version=pkg_meta["Version"]
         )
+        self._session = None
         self._setup_handlers()
         self._setup_prompts()
 
@@ -265,10 +266,14 @@ class ConnectionServer:
         self.logger(level, message)
         
         # MCP日志通知
-        self.server.session.send_log_message(
-            level=level,
-            data=message
-        )
+        if hasattr(self.server, 'session') and self.server.session:
+            try:
+                self.server.session.send_log_message(
+                    level=level,
+                    data=message
+                )
+            except Exception as e:
+                self.logger("error", f"Failed to send MCP log message: {str(e)}")
 
     def _setup_prompts(self):
         """Setup prompts handlers"""
@@ -322,7 +327,8 @@ class ConnectionServer:
                     raise ConfigurationError(f"Unsupported database type: {db_type}")
 
                 # Set session for MCP logging
-                handler._session = self.server.session
+                if hasattr(self.server, 'session'):
+                    handler._session = self.server.session
 
                 handler.stats.record_connection_start()
                 self.send_log(LOG_LEVEL_DEBUG, f"Handler created successfully for {connection}")
