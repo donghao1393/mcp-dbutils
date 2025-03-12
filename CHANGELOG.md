@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.10.0 (2025-03-12)
+
+### Features
+
+- Enhance database configuration with SSL support
+  ([#22](https://github.com/donghao1393/mcp-dbutils/pull/22),
+  [`4ea4d0b`](https://github.com/donghao1393/mcp-dbutils/commit/4ea4d0b5deb51b8e9202839bd7a8cd5f71463c88))
+
+* feat: enhance database configuration with SSL support
+
+- Replace jdbc_url with url for better clarity - Add dedicated SSL configuration support - Update
+  documentation and examples - Update test cases
+
+BREAKING CHANGE: Remove jdbc_url support as it was just added and not yet in production use
+
+* docs: update documentation for SSL support and URL configuration
+
+- Add SSL configuration examples - Update configuration format examples - Add configuration
+  documentation in both English and Chinese - Remove JDBC related content
+
+### Breaking Changes
+
+- Remove jdbc_url support as it was just added and not yet in production use
+
+
 ## v0.9.0 (2025-03-09)
 
 ### Documentation
