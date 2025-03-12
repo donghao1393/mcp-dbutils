@@ -10,6 +10,7 @@ from mcp.types import LoggingMessageNotification
 from mcp_dbutils.base import ConnectionHandler, ConnectionServer
 from mcp_dbutils.log import create_logger
 
+@pytest.mark.no_collect
 class TestConnectionHandler(ConnectionHandler):
     """Test implementation of ConnectionHandler"""
     
