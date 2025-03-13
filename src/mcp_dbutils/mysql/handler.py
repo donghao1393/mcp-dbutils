@@ -67,23 +67,23 @@ class MySQLHandler(ConnectionHandler):
                 # Get column information
                 cur.execute("""
                     SELECT 
-                        column_name,
-                        data_type,
-                        is_nullable,
-                        column_comment as description
+                        COLUMN_NAME as column_name,
+                        DATA_TYPE as data_type,
+                        IS_NULLABLE as is_nullable,
+                        COLUMN_COMMENT as description
                     FROM information_schema.columns
-                    WHERE table_schema = %s AND table_name = %s
-                    ORDER BY ordinal_position
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                    ORDER BY ORDINAL_POSITION
                 """, (self.config.database, table_name))
                 columns = cur.fetchall()
 
                 # Get constraint information
                 cur.execute("""
                     SELECT
-                        constraint_name,
-                        constraint_type
+                        CONSTRAINT_NAME as constraint_name,
+                        CONSTRAINT_TYPE as constraint_type
                     FROM information_schema.table_constraints
-                    WHERE table_schema = %s AND table_name = %s
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 constraints = cur.fetchall()
 
@@ -151,9 +151,9 @@ class MySQLHandler(ConnectionHandler):
                 # Get table information and comment
                 cur.execute("""
                     SELECT 
-                        table_comment
+                        TABLE_COMMENT as table_comment
                     FROM information_schema.tables 
-                    WHERE table_schema = %s AND table_name = %s
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 table_info = cur.fetchone()
                 table_comment = table_info['table_comment'] if table_info else None
@@ -161,17 +161,17 @@ class MySQLHandler(ConnectionHandler):
                 # Get column information
                 cur.execute("""
                     SELECT 
-                        column_name,
-                        data_type,
-                        column_default,
-                        is_nullable,
-                        character_maximum_length,
-                        numeric_precision,
-                        numeric_scale,
-                        column_comment
+                        COLUMN_NAME as column_name,
+                        DATA_TYPE as data_type,
+                        COLUMN_DEFAULT as column_default,
+                        IS_NULLABLE as is_nullable,
+                        CHARACTER_MAXIMUM_LENGTH as character_maximum_length,
+                        NUMERIC_PRECISION as numeric_precision,
+                        NUMERIC_SCALE as numeric_scale,
+                        COLUMN_COMMENT as column_comment
                     FROM information_schema.columns
-                    WHERE table_schema = %s AND table_name = %s
-                    ORDER BY ordinal_position
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                    ORDER BY ORDINAL_POSITION
                 """, (self.config.database, table_name))
                 columns = cur.fetchall()
 
@@ -243,14 +243,14 @@ class MySQLHandler(ConnectionHandler):
                 # Get index information
                 cur.execute("""
                     SELECT 
-                        index_name,
-                        column_name,
-                        non_unique,
-                        index_type,
-                        index_comment
+                        INDEX_NAME as index_name,
+                        COLUMN_NAME as column_name,
+                        NON_UNIQUE as non_unique,
+                        INDEX_TYPE as index_type,
+                        INDEX_COMMENT as index_comment
                     FROM information_schema.statistics
-                    WHERE table_schema = %s AND table_name = %s
-                    ORDER BY index_name, seq_in_index
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                    ORDER BY INDEX_NAME, SEQ_IN_INDEX
                 """, (self.config.database, table_name))
                 indexes = cur.fetchall()
 
@@ -302,13 +302,13 @@ class MySQLHandler(ConnectionHandler):
                 # Get table statistics
                 cur.execute("""
                     SELECT 
-                        table_rows,
-                        avg_row_length,
-                        data_length,
-                        index_length,
-                        data_free
+                        TABLE_ROWS as table_rows,
+                        AVG_ROW_LENGTH as avg_row_length,
+                        DATA_LENGTH as data_length,
+                        INDEX_LENGTH as index_length,
+                        DATA_FREE as data_free
                     FROM information_schema.tables
-                    WHERE table_schema = %s AND table_name = %s
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 stats = cur.fetchone()
 
@@ -318,12 +318,12 @@ class MySQLHandler(ConnectionHandler):
                 # Get column statistics
                 cur.execute("""
                     SELECT 
-                        column_name,
-                        data_type,
-                        column_type
+                        COLUMN_NAME as column_name,
+                        DATA_TYPE as data_type,
+                        COLUMN_TYPE as column_type
                     FROM information_schema.columns
-                    WHERE table_schema = %s AND table_name = %s
-                    ORDER BY ordinal_position
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                    ORDER BY ORDINAL_POSITION
                 """, (self.config.database, table_name))
                 columns = cur.fetchall()
 
@@ -367,19 +367,19 @@ class MySQLHandler(ConnectionHandler):
                 # Get constraint information
                 cur.execute("""
                     SELECT 
-                        constraint_name,
-                        constraint_type,
-                        column_name,
-                        referenced_table_name,
-                        referenced_column_name
+                        k.CONSTRAINT_NAME as constraint_name,
+                        t.CONSTRAINT_TYPE as constraint_type,
+                        k.COLUMN_NAME as column_name,
+                        k.REFERENCED_TABLE_NAME as referenced_table_name,
+                        k.REFERENCED_COLUMN_NAME as referenced_column_name
                     FROM information_schema.key_column_usage k
                     JOIN information_schema.table_constraints t 
-                        ON k.constraint_name = t.constraint_name
-                        AND k.table_schema = t.table_schema
-                        AND k.table_name = t.table_name
-                    WHERE k.table_schema = %s 
-                        AND k.table_name = %s
-                    ORDER BY constraint_type, constraint_name, ordinal_position
+                        ON k.CONSTRAINT_NAME = t.CONSTRAINT_NAME
+                        AND k.TABLE_SCHEMA = t.TABLE_SCHEMA
+                        AND k.TABLE_NAME = t.TABLE_NAME
+                    WHERE k.TABLE_SCHEMA = %s 
+                        AND k.TABLE_NAME = %s
+                    ORDER BY t.CONSTRAINT_TYPE, k.CONSTRAINT_NAME, k.ORDINAL_POSITION
                 """, (self.config.database, table_name))
                 constraints = cur.fetchall()
 
