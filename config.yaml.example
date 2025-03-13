@@ -1,42 +1,76 @@
 connections:
   # SQLite configuration examples
-  dev-db:
+  local-db:
     type: sqlite
     path: /path/to/dev.db
     # Password is optional
     password: 
 
-  prod-sqlite:
+  dev-sqlite:
     type: sqlite
     path: /path/to/prod.db
     password: optional_password    # Optional
 
+  # MySQL configuration examples
+  # Standard configuration
+  sandbox-mysql:
+    type: mysql
+    host: localhost
+    port: 3306
+    database: sandbox_db
+    user: sandbox_user
+    password: sandbox_pass
+    charset: utf8mb4
+
+  # URL configuration
+  # Use mysql://host:port/dbname?charset=utf8mb4&ssl-mode=verify_identity
+  integration-mysql:
+    type: mysql
+    url: mysql://mysql.example.com:3306/integration_db?charset=utf8mb4
+    user: integration_user
+    password: integration_pass
+    
+  # Full SSL configuration example
+  test-mysql:
+    type: mysql
+    host: test-mysql.example.com
+    port: 3306
+    database: test_db
+    user: test_user
+    password: test_pass
+    charset: utf8mb4
+    ssl:
+      mode: verify_identity
+      ca: /path/to/ca.pem
+      cert: /path/to/client-cert.pem
+      key: /path/to/client-key.pem
+
   # PostgreSQL configuration examples
   # Standard configuration
-  test-db:
+  demo-db:
     type: postgres
     host: postgres.example.com
     port: 5432
-    dbname: test_db
-    user: test_user
-    password: test_pass
+    dbname: demo_db
+    user: demo_user
+    password: demo_pass
 
   # URL configuration
   # Use postgresql://host:port/dbname?sslmode=verify-full&sslcert=/path/to/cert.pem
-  prod-db:
+  perf-db:
     type: postgres
-    url: postgresql://postgres.example.com:5432/prod-db?sslmode=verify-full
-    user: prod_user
-    password: prod_pass
+    url: postgresql://postgres.example.com:5432/perf-db?sslmode=verify-full
+    user: perf_user
+    password: perf_pass
     
   # Full SSL configuration example
-  secure-db:
+  security-db:
     type: postgres
-    host: secure-db.example.com
+    host: security-db.example.com
     port: 5432
-    dbname: secure_db
-    user: secure_user
-    password: secure_pass
+    dbname: security_db
+    user: security_user
+    password: security_pass
     ssl:
       mode: verify-full
       cert: /path/to/client-cert.pem
