@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 from testcontainers.mysql import MySqlContainer
+from testcontainers.core.waiting_utils import wait_for_logs
 from mcp_dbutils.base import ConnectionHandler
 
 class _TestConnectionHandler(ConnectionHandler):
@@ -54,26 +55,49 @@ TestConnectionHandler = _TestConnectionHandler
 @pytest.fixture(scope="session")
 def mysql_db():
     """Create a MySQL test database"""
-    with MySqlContainer("mysql:8.0") as mysql:
-        # 执行数据库初始化脚本
-        with mysql.get_connection() as connection:
-            with connection.cursor() as cursor:
-                # 创建测试表
-                cursor.execute("""
-                    CREATE TABLE users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        name VARCHAR(100) NOT NULL,
-                        email VARCHAR(100) NOT NULL
-                    )
-                """)
-                # 插入测试数据
-                cursor.execute("""
-                    INSERT INTO users (name, email) VALUES
-                    ('Alice', 'alice@test.com'),
-                    ('Bob', 'bob@test.com')
-                """)
-                connection.commit()
-        yield mysql
+    mysql_container = MySqlContainer("mysql:8.0")
+    mysql_container.with_env("MYSQL_DATABASE", "test_db")
+    mysql_container.with_env("MYSQL_USER", "test_user")
+    mysql_container.with_env("MYSQL_PASSWORD", "test_pass")
+    mysql_container.with_env("MYSQL_ROOT_PASSWORD", "root_pass")
+    
+    with mysql_container as mysql:
+        mysql.start()
+        
+        # 等待MySQL准备就绪
+        wait_for_logs(mysql, "ready for connections", timeout=30)
+        
+        # 使用mysql-connector-python建立连接
+        import mysql.connector as mysql_connector
+        conn = mysql_connector.connect(
+            host=mysql.get_container_host_ip(),
+            port=mysql.get_exposed_port(3306),
+            user="test_user",
+            password="test_pass",
+            database="test_db"
+        )
+        
+        try:
+            # 执行数据库初始化脚本
+            with conn.cursor() as cursor:
+                    # 创建测试表
+                    cursor.execute("""
+                        CREATE TABLE users (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(100) NOT NULL,
+                            email VARCHAR(100) NOT NULL
+                        )
+                    """)
+                    # 插入测试数据
+                    cursor.execute("""
+                        INSERT INTO users (name, email) VALUES
+                        ('Alice', 'alice@test.com'),
+                        ('Bob', 'bob@test.com')
+                    """)
+                    conn.commit()
+            yield mysql
+        finally:
+            conn.close()
 
 @pytest.fixture
 def mcp_config(mysql_db):
@@ -84,9 +108,9 @@ def mcp_config(mysql_db):
                 "type": "mysql",
                 "host": mysql_db.get_container_host_ip(),
                 "port": mysql_db.get_exposed_port(3306),
-                "database": mysql_db.MYSQL_DATABASE,
-                "user": mysql_db.MYSQL_USER,
-                "password": mysql_db.MYSQL_PASSWORD,
+                "database": "test_db",
+                "user": "test_user",
+                "password": "test_pass",
                 "charset": "utf8mb4"
             }
         }

@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, Literal
 from pathlib import Path
 
 # Supported connection types
-ConnectionType = Literal['sqlite', 'postgres']
+ConnectionType = Literal['sqlite', 'postgres', 'mysql']
 
 class ConnectionConfig(ABC):
     """Base class for connection configuration"""
@@ -48,7 +48,7 @@ class ConnectionConfig(ABC):
             if 'type' not in db_config:
                 raise ValueError(f"Database configuration {conn_name} missing required 'type' field")
             db_type = db_config['type']
-            if db_type not in ('sqlite', 'postgres'):
+            if db_type not in ('sqlite', 'postgres', 'mysql'):
                 raise ValueError(f"Invalid type value in database configuration {conn_name}: {db_type}")
 
         return connections
