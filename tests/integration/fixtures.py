@@ -1,11 +1,9 @@
 """Test fixtures and helper classes for integration tests"""
 
-import pytest
 from unittest.mock import MagicMock
 from mcp_dbutils.base import ConnectionHandler
 
-@pytest.mark.no_collect
-class TestConnectionHandler(ConnectionHandler):
+class _TestConnectionHandler(ConnectionHandler):
     """Test implementation of ConnectionHandler"""
     
     def __init__(self, *args, **kwargs):
@@ -47,3 +45,6 @@ class TestConnectionHandler(ConnectionHandler):
         
     async def cleanup(self):
         pass
+
+# Export the class with the public name
+TestConnectionHandler = _TestConnectionHandler
