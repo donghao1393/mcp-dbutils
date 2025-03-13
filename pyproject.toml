@@ -52,3 +52,6 @@ asyncio_default_fixture_loop_scope = "function"
 markers = [
     "no_collect: marks test classes that should not be collected as test cases"
 ]
+filterwarnings = [
+    "ignore::pytest.PytestCollectionWarning"
+]
