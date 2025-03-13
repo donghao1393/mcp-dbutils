@@ -323,6 +323,9 @@ class ConnectionServer:
                 elif db_type == 'postgres':
                     from .postgres.handler import PostgreSQLHandler
                     handler = PostgreSQLHandler(self.config_path, connection, self.debug)
+                elif db_type == 'mysql':
+                    from .mysql.handler import MySQLHandler
+                    handler = MySQLHandler(self.config_path, connection, self.debug)
                 else:
                     raise ConfigurationError(f"Unsupported database type: {db_type}")
 
