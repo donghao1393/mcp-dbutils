@@ -55,20 +55,20 @@ TestConnectionHandler = _TestConnectionHandler
 @pytest.fixture(scope="session")
 def mysql_db():
     """Create a MySQL test database"""
-    mysql_container = (MySqlContainer("mysql:8.0")
-        .with_env("MYSQL_DATABASE", "test_db")
-        .with_env("MYSQL_USER", "test_user")
-        .with_env("MYSQL_PASSWORD", "test_pass")
-        .with_env("MYSQL_ROOT_PASSWORD", "root_pass")
-        .with_env("MYSQL_ALLOW_EMPTY_PASSWORD", "no")
-        .with_env("MYSQL_RANDOM_ROOT_PASSWORD", "no")
+    # 使用构造函数参数而不是with_env方法
+    mysql_container = MySqlContainer(
+        "mysql:8.0",
+        username="test_user",
+        password="test_pass",
+        dbname="test_db",
+        root_password="root_pass"
     )
     
     with mysql_container as mysql:
         mysql.start()
         
-        # 等待MySQL准备就绪
-        wait_for_logs(mysql, "ready for connections", timeout=30)
+        # 使用内置的_connect方法等待MySQL完全准备就绪
+        mysql._connect()
         
         # 使用mysql-connector-python建立连接
         import mysql.connector as mysql_connector
