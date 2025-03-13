@@ -36,10 +36,10 @@ class MySQLHandler(ConnectionHandler):
             with conn.cursor(dictionary=True) as cur:
                 cur.execute("""
                     SELECT 
-                        table_name,
-                        table_comment as description
+                        TABLE_NAME as table_name,
+                        TABLE_COMMENT as description
                     FROM information_schema.tables
-                    WHERE table_schema = %s
+                    WHERE TABLE_SCHEMA = %s
                 """, (self.config.database,))
                 tables = cur.fetchall()
                 return [

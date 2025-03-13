@@ -64,7 +64,7 @@ async def test_non_select_query(mysql_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Transaction is read-only"):
+            with pytest.raises(ConnectionHandlerError, match="Cannot execute statement in a READ ONLY transaction"):
                 await handler.execute_query("DELETE FROM users")
 
 @pytest.mark.asyncio
