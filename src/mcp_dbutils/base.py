@@ -31,6 +31,9 @@ from .stats import ResourceStats
 # 获取包信息用于日志命名
 pkg_meta = metadata("mcp-dbutils")
 
+# 日志名称常量
+LOG_NAME = "dbutils"
+
 # MCP日志级别常量
 LOG_LEVEL_DEBUG = "debug"       # 0
 LOG_LEVEL_INFO = "info"        # 1
@@ -56,7 +59,7 @@ class ConnectionHandler(ABC):
         self.connection = connection
         self.debug = debug
         # 创建stderr日志记录器用于本地调试
-        self.log = create_logger(f"{pkg_meta['Name']}.handler.{connection}", debug)
+        self.log = create_logger(f"{LOG_NAME}.handler.{connection}", debug)
         self.stats = ResourceStats()
         self._session = None
 
@@ -246,9 +249,9 @@ class ConnectionServer:
         self.debug = debug
         # 获取包信息用于服务器配置
         pkg_meta = metadata("mcp-dbutils")
-        self.logger = create_logger(f"{pkg_meta['Name']}.server", debug)
+        self.logger = create_logger(f"{LOG_NAME}.server", debug)
         self.server = Server(
-            name=pkg_meta["Name"],
+            name=LOG_NAME,
             version=pkg_meta["Version"]
         )
         self._session = None

@@ -12,7 +12,7 @@ from ..log import create_logger
 from .config import SQLiteConfig
 
 # 获取包信息用于日志命名
-pkg_meta = metadata("mcp-dbutils")
+from ..base import LOG_NAME
 
 class SQLiteServer(ConnectionServer):
     def __init__(self, config: SQLiteConfig, config_path: Optional[str] = None):
@@ -24,7 +24,7 @@ class SQLiteServer(ConnectionServer):
         super().__init__(config_path, config.debug)
         self.config = config
         self.config_path = config_path
-        self.log = create_logger(f"{pkg_meta['Name']}.db.sqlite", config.debug)
+        self.log = create_logger(f"{LOG_NAME}.db.sqlite", config.debug)
 
         # 确保数据库目录存在
         db_file = Path(self.config.absolute_path)

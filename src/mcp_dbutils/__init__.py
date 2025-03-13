@@ -9,13 +9,13 @@ import yaml
 from importlib.metadata import metadata
 
 from .log import create_logger
-from .base import ConnectionServer
+from .base import ConnectionServer, LOG_NAME
 
 # 获取包信息
 pkg_meta = metadata("mcp-dbutils")
 
 # 创建全局logger
-log = create_logger(pkg_meta["Name"])
+log = create_logger(LOG_NAME)
 
 async def run_server():
     """服务器运行逻辑"""
@@ -30,7 +30,7 @@ async def run_server():
 
     # 更新logger的debug状态
     global log
-    log = create_logger(pkg_meta["Name"], debug)
+    log = create_logger(LOG_NAME, debug)
 
     log("info", f"MCP Connection Utilities Service v{pkg_meta['Version']}")
     if debug:

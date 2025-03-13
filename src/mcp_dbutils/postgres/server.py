@@ -9,7 +9,8 @@ from ..log import create_logger
 from .config import PostgreSQLConfig
 
 # 获取包信息用于日志命名
-pkg_meta = metadata("mcp-dbutils")
+from ..base import LOG_NAME
+
 class PostgreSQLServer(ConnectionServer):
     def __init__(self, config: PostgreSQLConfig, config_path: Optional[str] = None):
         """初始化PostgreSQL服务器
@@ -20,7 +21,7 @@ class PostgreSQLServer(ConnectionServer):
         super().__init__(config_path, config.debug)
         self.config = config
         self.config_path = config_path
-        self.log = create_logger(f"{pkg_meta['Name']}.db.postgres", config.debug)
+        self.log = create_logger(f"{LOG_NAME}.db.postgres", config.debug)
         # 创建连接池
         try:
             conn_params = config.get_connection_params()

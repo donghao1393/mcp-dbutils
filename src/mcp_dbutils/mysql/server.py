@@ -9,7 +9,7 @@ from ..log import create_logger
 from .config import MySQLConfig
 
 # 获取包信息用于日志命名
-pkg_meta = metadata("mcp-dbutils")
+from ..base import LOG_NAME
 
 class MySQLServer(ConnectionServer):
     def __init__(self, config: MySQLConfig, config_path: Optional[str] = None):
@@ -21,7 +21,7 @@ class MySQLServer(ConnectionServer):
         super().__init__(config_path, config.debug)
         self.config = config
         self.config_path = config_path
-        self.log = create_logger(f"{pkg_meta['Name']}.db.mysql", config.debug)
+        self.log = create_logger(f"{LOG_NAME}.db.mysql", config.debug)
         # 创建连接池
         try:
             conn_params = config.get_connection_params()
