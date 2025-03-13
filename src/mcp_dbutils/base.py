@@ -31,6 +31,16 @@ from .stats import ResourceStats
 # 获取包信息用于日志命名
 pkg_meta = metadata("mcp-dbutils")
 
+# MCP日志级别常量
+LOG_LEVEL_DEBUG = "debug"       # 0
+LOG_LEVEL_INFO = "info"        # 1
+LOG_LEVEL_NOTICE = "notice"    # 2
+LOG_LEVEL_WARNING = "warning"  # 3
+LOG_LEVEL_ERROR = "error"      # 4
+LOG_LEVEL_CRITICAL = "critical" # 5
+LOG_LEVEL_ALERT = "alert"      # 6
+LOG_LEVEL_EMERGENCY = "emergency" # 7
+
 class ConnectionHandler(ABC):
     """Abstract base class defining common interface for connection handlers"""
 
@@ -45,8 +55,27 @@ class ConnectionHandler(ABC):
         self.config_path = config_path
         self.connection = connection
         self.debug = debug
+        # 创建stderr日志记录器用于本地调试
         self.log = create_logger(f"{pkg_meta['Name']}.handler.{connection}", debug)
         self.stats = ResourceStats()
+        self._session = None
+
+    def send_log(self, level: str, message: str):
+        """通过MCP发送日志消息和写入stderr
+        
+        Args:
+            level: 日志级别 (debug/info/notice/warning/error/critical/alert/emergency)
+            message: 日志内容
+        """
+        # 本地stderr日志
+        self.log(level, message)
+        
+        # MCP日志通知
+        if self._session and hasattr(self._session, 'request_context'):
+            self._session.request_context.session.send_log_message(
+                level=level,
+                data=message
+            )
 
     @property
     @abstractmethod
@@ -78,12 +107,12 @@ class ConnectionHandler(ABC):
             duration = (datetime.now() - start_time).total_seconds()
             self.stats.record_query_duration(sql, duration)
             self.stats.update_memory_usage(result)
-            self.log("info", f"Query executed in {duration*1000:.2f}ms. Resource stats: {json.dumps(self.stats.to_dict())}")
+            self.send_log(LOG_LEVEL_INFO, f"Query executed in {duration*1000:.2f}ms. Resource stats: {json.dumps(self.stats.to_dict())}")
             return result
         except Exception as e:
             duration = (datetime.now() - start_time).total_seconds()
             self.stats.record_error(e.__class__.__name__)
-            self.log("error", f"Query error after {duration*1000:.2f}ms - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
+            self.send_log(LOG_LEVEL_ERROR, f"Query error after {duration*1000:.2f}ms - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
             raise
 
     @abstractmethod
@@ -195,12 +224,12 @@ class ConnectionHandler(ABC):
                 raise ValueError(f"Unknown tool: {tool_name}")
                 
             self.stats.update_memory_usage(result)
-            self.log("info", f"Resource stats: {json.dumps(self.stats.to_dict())}")
+            self.send_log(LOG_LEVEL_INFO, f"Resource stats: {json.dumps(self.stats.to_dict())}")
             return f"[{self.db_type}]\n{result}"
             
         except Exception as e:
             self.stats.record_error(e.__class__.__name__)
-            self.log("error", f"Tool error - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
+            self.send_log(LOG_LEVEL_ERROR, f"Tool error - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
             raise
 
 class ConnectionServer:
@@ -222,8 +251,29 @@ class ConnectionServer:
             name=pkg_meta["Name"],
             version=pkg_meta["Version"]
         )
+        self._session = None
         self._setup_handlers()
         self._setup_prompts()
+
+    def send_log(self, level: str, message: str):
+        """通过MCP发送日志消息和写入stderr
+        
+        Args:
+            level: 日志级别 (debug/info/notice/warning/error/critical/alert/emergency)
+            message: 日志内容
+        """
+        # 本地stderr日志
+        self.logger(level, message)
+        
+        # MCP日志通知
+        if hasattr(self.server, 'session') and self.server.session:
+            try:
+                self.server.session.send_log_message(
+                    level=level,
+                    data=message
+                )
+            except Exception as e:
+                self.logger("error", f"Failed to send MCP log message: {str(e)}")
 
     def _setup_prompts(self):
         """Setup prompts handlers"""
@@ -231,10 +281,10 @@ class ConnectionServer:
         async def handle_list_prompts() -> list[types.Prompt]:
             """Handle prompts/list request"""
             try:
-                self.logger("debug", "Handling list_prompts request")
+                self.send_log(LOG_LEVEL_DEBUG, "Handling list_prompts request")
                 return []
             except Exception as e:
-                self.logger("error", f"Error in list_prompts: {str(e)}")
+                self.send_log(LOG_LEVEL_ERROR, f"Error in list_prompts: {str(e)}")
                 raise
 
     @asynccontextmanager
@@ -266,7 +316,7 @@ class ConnectionServer:
                     raise ConfigurationError("Database configuration must include 'type' field")
 
                 db_type = db_config['type']
-                self.logger("debug", f"Creating handler for database type: {db_type}")
+                self.send_log(LOG_LEVEL_DEBUG, f"Creating handler for database type: {db_type}")
                 if db_type == 'sqlite':
                     from .sqlite.handler import SQLiteHandler
                     handler = SQLiteHandler(self.config_path, connection, self.debug)
@@ -276,9 +326,13 @@ class ConnectionServer:
                 else:
                     raise ConfigurationError(f"Unsupported database type: {db_type}")
 
+                # Set session for MCP logging
+                if hasattr(self.server, 'session'):
+                    handler._session = self.server.session
+
                 handler.stats.record_connection_start()
-                self.logger("debug", f"Handler created successfully for {connection}")
-                self.logger("info", f"Resource stats: {json.dumps(handler.stats.to_dict())}")
+                self.send_log(LOG_LEVEL_DEBUG, f"Handler created successfully for {connection}")
+                self.send_log(LOG_LEVEL_INFO, f"Resource stats: {json.dumps(handler.stats.to_dict())}")
                 yield handler
             except yaml.YAMLError as e:
                 raise ConfigurationError(f"Invalid YAML configuration: {str(e)}")
@@ -286,9 +340,9 @@ class ConnectionServer:
                 raise ConfigurationError(f"Failed to import handler for {db_type}: {str(e)}")
             finally:
                 if handler:
-                    self.logger("debug", f"Cleaning up handler for {connection}")
+                    self.send_log(LOG_LEVEL_DEBUG, f"Cleaning up handler for {connection}")
                     handler.stats.record_connection_end()
-                    self.logger("info", f"Final resource stats: {json.dumps(handler.stats.to_dict())}")
+                    self.send_log(LOG_LEVEL_INFO, f"Final resource stats: {json.dumps(handler.stats.to_dict())}")
                     await handler.cleanup()
 
     def _setup_handlers(self):
@@ -567,7 +621,7 @@ class ConnectionServer:
                             await handler.execute_query(sql)
                         except Exception as e:
                             # If query fails, we still provide the execution plan
-                            self.logger("error", f"Query execution failed during analysis: {str(e)}")
+                            self.send_log(LOG_LEVEL_ERROR, f"Query execution failed during analysis: {str(e)}")
                     duration = (datetime.now() - start_time).total_seconds()
                     
                     # Combine analysis results
