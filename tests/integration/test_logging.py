@@ -9,7 +9,7 @@ from mcp.types import LoggingMessageNotification
 
 from mcp_dbutils.base import ConnectionHandler, ConnectionServer
 from mcp_dbutils.log import create_logger
-from .conftest import TestConnectionHandler
+from tests.integration.conftest import TestConnectionHandler
 
 @pytest.mark.asyncio
 async def test_handler_logging():
