@@ -1,8 +1,10 @@
 """Test fixtures and helper classes for integration tests"""
 
+import pytest
 from unittest.mock import MagicMock
 from mcp_dbutils.base import ConnectionHandler
 
+@pytest.mark.no_collect
 class TestConnectionHandler(ConnectionHandler):
     """Test implementation of ConnectionHandler"""
     
