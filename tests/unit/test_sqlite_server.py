@@ -1,11 +1,11 @@
 """Unit tests for SQLite server implementation"""
 import json
+import sqlite3
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import mcp.types as types
 import pytest
-import sqlite3
 
 from mcp_dbutils.sqlite.config import SQLiteConfig
 from mcp_dbutils.sqlite.server import SQLiteServer
