@@ -22,15 +22,15 @@ class ResourceStats:
     # Error stats
     error_count: int = 0
     last_error_time: Optional[datetime] = None
-    error_types: dict[str, int] = None
+    error_types: Optional[dict[str, int]] = None
 
     # Resource stats
     estimated_memory: int = 0
     
     # Performance monitoring
-    query_durations: List[float] = None  # 查询执行时间列表 (秒)
-    query_types: dict[str, int] = None   # 查询类型统计 (SELECT, EXPLAIN等)
-    slow_queries: List[Tuple[str, float]] = None  # 慢查询记录 (SQL, 时间)
+    query_durations: Optional[List[float]] = None  # 查询执行时间列表 (秒)
+    query_types: Optional[dict[str, int]] = None   # 查询类型统计 (SELECT, EXPLAIN等)
+    slow_queries: Optional[List[Tuple[str, float]]] = None  # 慢查询记录 (SQL, 时间)
     peak_memory: int = 0  # 峰值内存使用
 
     def __post_init__(self):
