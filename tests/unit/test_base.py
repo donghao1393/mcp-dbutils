@@ -745,7 +745,7 @@ class TestConnectionServer:
         assert result == []
         
         # Test with exception
-        with patch.object(server, 'send_log') as mock_send_log:
-            with patch.object(server, '_handle_list_prompts', side_effect=Exception("Test exception")):
-                with pytest.raises(Exception, match="Test exception"):
-                    await server._handle_list_prompts()
+        with patch.object(server, 'send_log') as mock_send_log, \
+             patch.object(server, '_handle_list_prompts', side_effect=Exception("Test exception")), \
+             pytest.raises(Exception, match="Test exception"):
+            await server._handle_list_prompts()
