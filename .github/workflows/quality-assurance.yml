@@ -1,5 +1,12 @@
 name: Quality Assurance
 
+# 添加明确的权限声明
+permissions:
+  contents: read
+  pull-requests: write  # 允许创建PR评论
+  issues: write         # 允许创建issue评论
+  checks: write         # 允许更新检查状态
+
 on:
   push:
     branches: [ main ]
