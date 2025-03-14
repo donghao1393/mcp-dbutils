@@ -20,7 +20,7 @@ def create_logger(name: str, is_debug: bool = False) -> Callable:
         if level == "debug" and not is_debug:
             return
 
-        timestamp = datetime.utcnow().isoformat(timespec='milliseconds') + 'Z'
+        timestamp = datetime.now().astimezone().isoformat(timespec='milliseconds')
         log_message = f"{timestamp} [{name}] [{level}] {message}"
 
         # 输出到stderr

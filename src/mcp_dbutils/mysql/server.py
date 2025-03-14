@@ -201,10 +201,7 @@ class MySQLServer(ConnectionServer):
             return [types.TextContent(type="text", text=error_msg)]
         finally:
             if conn:
-                if isinstance(conn, PooledMySQLConnection):
-                    conn.close()  # 返回到连接池
-                else:
-                    conn.close()  # 关闭独立连接
+                conn.close()  # 关闭连接（连接池会自动处理）
 
     async def cleanup(self):
         """清理资源"""

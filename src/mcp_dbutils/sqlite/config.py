@@ -136,8 +136,7 @@ class SQLiteConfig(ConnectionConfig):
             params = parse_jdbc_url(db_config['jdbc_url'])
             config = cls(
                 path=params['path'],
-                password=db_config.get('password'),
-                uri=True
+                password=db_config.get('password')
             )
         else:
             if 'path' not in db_config:
