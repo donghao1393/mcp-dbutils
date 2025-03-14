@@ -1,4 +1,4 @@
-name: Tests
+name: Quality Assurance
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  pytest:
     runs-on: ubuntu-latest
 
     services:
@@ -82,3 +82,21 @@ jobs:
           message: "${{ steps.calc_coverage.outputs.percentage }}%"
           color: "${{ steps.calc_coverage.outputs.color }}"
           namedLogo: python
+
+  sonarcloud:
+    name: SonarCloud
+    needs: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
