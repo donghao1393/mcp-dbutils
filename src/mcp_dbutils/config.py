@@ -1,11 +1,10 @@
 """Common configuration utilities"""
 
 import os
-import yaml
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, Literal
-from pathlib import Path
+from typing import Any, Dict, Literal
+
+import yaml
 
 # Supported connection types
 ConnectionType = Literal['sqlite', 'postgres', 'mysql']

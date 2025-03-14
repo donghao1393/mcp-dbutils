@@ -1,8 +1,10 @@
 """Test PostgreSQL configuration functionality"""
+
 import pytest
-import tempfile
 import yaml
-from mcp_dbutils.postgres.config import PostgreSQLConfig, parse_url, SSLConfig
+
+from mcp_dbutils.postgres.config import PostgreSQLConfig, SSLConfig, parse_url
+
 
 def test_parse_url():
     """Test URL parsing"""

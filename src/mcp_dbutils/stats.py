@@ -1,10 +1,11 @@
 """Resource monitoring statistics module"""
 
+import statistics
+import sys
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, List, Tuple
-import sys
-import statistics
+from typing import List, Optional, Tuple
+
 
 @dataclass
 class ResourceStats:

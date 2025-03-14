@@ -1,9 +1,14 @@
 """Test MySQL integration"""
 
-import pytest
 import tempfile
+
+import pytest
 import yaml
-from mcp_dbutils.base import ConnectionServer, ConfigurationError, ConnectionHandlerError
+
+from mcp_dbutils.base import (
+    ConnectionHandlerError,
+    ConnectionServer,
+)
 from mcp_dbutils.log import create_logger
 
 # 创建测试用的 logger

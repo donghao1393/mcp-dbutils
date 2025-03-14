@@ -1,14 +1,11 @@
 """Test MCP logging functionality"""
 
-import pytest
-import asyncio
-import logging
-from unittest.mock import MagicMock, patch, call
-from mcp.server import Server
-from mcp.types import LoggingMessageNotification
+from unittest.mock import MagicMock, patch
 
-from mcp_dbutils.base import ConnectionHandler, ConnectionServer
-from mcp_dbutils.log import create_logger
+import pytest
+
+from mcp_dbutils.base import ConnectionServer
+
 from . import conftest
 
 TestConnectionHandler = conftest.TestConnectionHandler

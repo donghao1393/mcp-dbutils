@@ -1,18 +1,17 @@
 """SQLite MCP server implementation"""
 
 import sqlite3
-from pathlib import Path
 from contextlib import closing
-from typing import Optional, List
-import mcp.types as types
-from importlib.metadata import metadata
+from pathlib import Path
+from typing import Optional
 
-from ..base import ConnectionServer
+import mcp.types as types
+
+# 获取包信息用于日志命名
+from ..base import LOG_NAME, ConnectionServer
 from ..log import create_logger
 from .config import SQLiteConfig
 
-# 获取包信息用于日志命名
-from ..base import LOG_NAME
 
 class SQLiteServer(ConnectionServer):
     def __init__(self, config: SQLiteConfig, config_path: Optional[str] = None):

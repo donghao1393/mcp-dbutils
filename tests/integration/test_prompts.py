@@ -1,13 +1,14 @@
 """Integration tests for prompts functionality"""
 
 import asyncio
-import pytest
 import tempfile
-import yaml
+
 import anyio
 import mcp.types as types
+import pytest
+import yaml
 from mcp import ClientSession
-import mcp.server.stdio
+
 from mcp_dbutils.base import ConnectionServer
 from mcp_dbutils.log import create_logger
 

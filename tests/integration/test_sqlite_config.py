@@ -1,9 +1,11 @@
 """Test SQLite configuration functionality"""
-import pytest
-import tempfile
-import yaml
 from pathlib import Path
+
+import pytest
+import yaml
+
 from mcp_dbutils.sqlite.config import SQLiteConfig, parse_jdbc_url
+
 
 def test_parse_jdbc_url():
     """Test JDBC URL parsing"""

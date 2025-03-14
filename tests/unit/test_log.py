@@ -1,10 +1,13 @@
 """Test logging module"""
 
-import sys
 import io
-import pytest
+import sys
 from datetime import datetime
+
+import pytest
+
 from mcp_dbutils.log import create_logger
+
 
 def test_log_basic_output():
     """Test basic log output functionality"""

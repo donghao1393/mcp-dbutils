@@ -1,9 +1,12 @@
 """Integration tests for resource monitoring"""
 
-import pytest
 import tempfile
+
+import pytest
 import yaml
-from mcp_dbutils.base import ConnectionServer, ConnectionHandlerError
+
+from mcp_dbutils.base import ConnectionHandlerError, ConnectionServer
+
 
 @pytest.mark.asyncio
 async def test_sqlite_monitoring(sqlite_db, mcp_config):

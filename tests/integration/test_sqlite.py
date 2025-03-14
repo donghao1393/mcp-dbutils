@@ -1,8 +1,13 @@
-import pytest
 import tempfile
+
+import pytest
 import yaml
-from pathlib import Path
-from mcp_dbutils.base import ConnectionServer, ConfigurationError, ConnectionHandlerError
+
+from mcp_dbutils.base import (
+    ConnectionHandlerError,
+    ConnectionServer,
+)
+
 
 @pytest.mark.asyncio
 async def test_list_tables(sqlite_db, mcp_config):

@@ -1,11 +1,12 @@
 """Test MySQL configuration parsing"""
 
-import pytest
-import os
 import tempfile
+
+import pytest
 import yaml
-from mcp_dbutils.mysql.config import MySQLConfig, SSLConfig
-from mcp_dbutils.base import ConfigurationError
+
+from mcp_dbutils.mysql.config import MySQLConfig
+
 
 def test_basic_config():
     """Test basic MySQL configuration parsing"""

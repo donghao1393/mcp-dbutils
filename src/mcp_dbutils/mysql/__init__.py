@@ -1,6 +1,6 @@
 """MySQL module"""
 
-from .handler import MySQLHandler
 from .config import MySQLConfig
+from .handler import MySQLHandler
 
 __all__ = ['MySQLHandler', 'MySQLConfig']

@@ -1,13 +1,14 @@
 """Integration tests for enhanced monitoring features"""
 
-import pytest
 import tempfile
-import yaml
-import time
-import json
 from datetime import datetime
-from mcp_dbutils.base import ConnectionServer, ConnectionHandlerError
+
+import pytest
+import yaml
+
+from mcp_dbutils.base import ConnectionHandlerError, ConnectionServer
 from mcp_dbutils.stats import ResourceStats
+
 
 @pytest.mark.asyncio
 async def test_resource_stats_performance_tracking(sqlite_db, mcp_config):

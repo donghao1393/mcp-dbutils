@@ -1,12 +1,12 @@
 """SQLite connection handler implementation"""
 
 import sqlite3
-import json
-from typing import Any
+
 import mcp.types as types
 
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import SQLiteConfig
+
 
 class SQLiteHandler(ConnectionHandler):
     @property

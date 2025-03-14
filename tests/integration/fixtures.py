@@ -1,18 +1,20 @@
 """Test fixtures and helper classes for integration tests"""
 
-import pytest
 import tempfile
-import asyncio
 from pathlib import Path
+from typing import Dict
+from collections.abc import AsyncGenerator
+from unittest.mock import MagicMock
+from urllib.parse import urlparse
+
 import aiosqlite
 import psycopg2
-from unittest.mock import MagicMock
+import pytest
 from testcontainers.mysql import MySqlContainer
 from testcontainers.postgres import PostgresContainer
-from testcontainers.core.waiting_utils import wait_for_logs
+
 from mcp_dbutils.base import ConnectionHandler
-from typing import AsyncGenerator, Dict
-from urllib.parse import urlparse
+
 
 class _TestConnectionHandler(ConnectionHandler):
     """Test implementation of ConnectionHandler"""

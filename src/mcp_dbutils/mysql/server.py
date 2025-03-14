@@ -1,15 +1,15 @@
 """MySQL MCP server implementation"""
+from typing import Optional
+
+import mcp.types as types
 import mysql.connector
 from mysql.connector.pooling import MySQLConnectionPool, PooledMySQLConnection
-from typing import Optional, List
-import mcp.types as types
-from importlib.metadata import metadata
-from ..base import ConnectionServer
+
+# 获取包信息用于日志命名
+from ..base import LOG_NAME, ConnectionServer
 from ..log import create_logger
 from .config import MySQLConfig
 
-# 获取包信息用于日志命名
-from ..base import LOG_NAME
 
 class MySQLServer(ConnectionServer):
     def __init__(self, config: MySQLConfig, config_path: Optional[str] = None):

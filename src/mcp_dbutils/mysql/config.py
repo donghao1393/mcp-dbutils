@@ -1,8 +1,10 @@
 """MySQL configuration module"""
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, Literal
-from urllib.parse import urlparse, parse_qs
+from typing import Any, Dict, Literal, Optional
+from urllib.parse import parse_qs, urlparse
+
 from ..config import ConnectionConfig
+
 
 @dataclass
 class SSLConfig:

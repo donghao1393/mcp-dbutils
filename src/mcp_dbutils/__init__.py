@@ -1,15 +1,16 @@
 """MCP Connection Utilities Service"""
 
-import asyncio
 import argparse
+import asyncio
 import os
 import sys
-from pathlib import Path
-import yaml
 from importlib.metadata import metadata
+from pathlib import Path
 
+import yaml
+
+from .base import LOG_NAME, ConnectionServer
 from .log import create_logger
-from .base import ConnectionServer, LOG_NAME
 
 # 获取包信息
 pkg_meta = metadata("mcp-dbutils")

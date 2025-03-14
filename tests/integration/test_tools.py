@@ -1,11 +1,12 @@
 import asyncio
-import pytest
 import tempfile
-import yaml
+
 import anyio
 import mcp.types as types
+import pytest
+import yaml
 from mcp import ClientSession
-from mcp.shared.exceptions import McpError
+
 from mcp_dbutils.base import ConnectionServer
 from mcp_dbutils.log import create_logger
 

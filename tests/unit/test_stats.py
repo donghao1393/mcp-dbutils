@@ -1,8 +1,10 @@
 """Unit tests for resource monitoring functionality"""
 
-import pytest
 from datetime import datetime
+
+
 from mcp_dbutils.stats import ResourceStats
+
 
 def test_connection_tracking():
     """Test connection tracking functionality"""

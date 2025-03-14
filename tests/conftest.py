@@ -1,14 +1,14 @@
-import os
-import pytest
-from pytest_asyncio import fixture
-import asyncio
 import tempfile
 from pathlib import Path
+from typing import Dict
+from collections.abc import AsyncGenerator
+from urllib.parse import urlparse
+
 import aiosqlite
 import psycopg2
+import pytest
+from pytest_asyncio import fixture
 from testcontainers.postgres import PostgresContainer
-from typing import AsyncGenerator, Generator, Dict
-from urllib.parse import urlparse
 
 # Enable pytest-asyncio for testing
 pytest.register_assert_rewrite("tests")

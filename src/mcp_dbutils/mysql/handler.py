@@ -1,11 +1,11 @@
 """MySQL connection handler implementation"""
 
-import mysql.connector
-from mysql.connector.pooling import MySQLConnectionPool
 import mcp.types as types
+import mysql.connector
 
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import MySQLConfig
+
 
 class MySQLHandler(ConnectionHandler):
     @property

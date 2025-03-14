@@ -1,6 +1,6 @@
 """PostgreSQL module"""
 
-from .handler import PostgreSQLHandler
 from .config import PostgreSQLConfig
+from .handler import PostgreSQLHandler
 
 __all__ = ['PostgreSQLHandler', 'PostgreSQLConfig']

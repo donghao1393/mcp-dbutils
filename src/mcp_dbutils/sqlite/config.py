@@ -2,9 +2,11 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any, Optional, Literal
-from urllib.parse import urlparse, parse_qs
+from typing import Any, Dict, Literal, Optional
+from urllib.parse import parse_qs, urlparse
+
 from ..config import ConnectionConfig
+
 
 def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
     """Parse JDBC URL into connection parameters

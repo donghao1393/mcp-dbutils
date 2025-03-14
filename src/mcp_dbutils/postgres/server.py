@@ -1,15 +1,15 @@
 """PostgreSQL MCP server implementation"""
+from typing import Optional
+
+import mcp.types as types
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
-from typing import Optional, List
-import mcp.types as types
-from importlib.metadata import metadata
-from ..base import ConnectionServer
+
+# 获取包信息用于日志命名
+from ..base import LOG_NAME, ConnectionServer
 from ..log import create_logger
 from .config import PostgreSQLConfig
 
-# 获取包信息用于日志命名
-from ..base import LOG_NAME
 
 class PostgreSQLServer(ConnectionServer):
     def __init__(self, config: PostgreSQLConfig, config_path: Optional[str] = None):

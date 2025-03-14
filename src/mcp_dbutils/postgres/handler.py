@@ -1,11 +1,11 @@
 """PostgreSQL connection handler implementation"""
 
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
 import mcp.types as types
+import psycopg2
 
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import PostgreSQLConfig
+
 
 class PostgreSQLHandler(ConnectionHandler):
     @property
