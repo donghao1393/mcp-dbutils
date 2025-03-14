@@ -640,12 +640,12 @@ class ConnectionServer:
                     
                     # Combine analysis results
                     analysis = [
-                        f"[{handler.db_type}] Query Analysis",
-                        f"SQL: {sql}",
-                        f"",
-                        f"Execution Time: {duration*1000:.2f}ms",
-                        f"",
-                        f"Execution Plan:",
+                    f"[{handler.db_type}] Query Analysis",
+                    f"SQL: {sql}",
+                    "",
+                    f"Execution Time: {duration*1000:.2f}ms",
+                    "",
+                    "Execution Plan:",
                         explain_result
                     ]
                     
