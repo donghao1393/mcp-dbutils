@@ -127,8 +127,8 @@ class ResourceStats:
             Formatted string with performance statistics
         """
         stats = []
-        stats.append(f"Database Performance Statistics")
-        stats.append(f"-----------------------------")
+        stats.append("Database Performance Statistics")
+        stats.append("-----------------------------")
         stats.append(f"Query Count: {self.query_count}")
         
         # Query time statistics
@@ -138,14 +138,14 @@ class ResourceStats:
         
         # Query type distribution
         if self.query_types:
-            stats.append(f"Query Types:")
+            stats.append("Query Types:")
             for qtype, count in self.query_types.items():
                 percentage = (count / self.query_count) * 100 if self.query_count else 0
                 stats.append(f"  - {qtype}: {count} ({percentage:.1f}%)")
         
         # Slow queries
         if self.slow_queries:
-            stats.append(f"Slow Queries:")
+            stats.append("Slow Queries:")
             for sql, duration in self.slow_queries:
                 stats.append(f"  - {duration*1000:.2f}ms: {sql}...")
         
@@ -153,7 +153,7 @@ class ResourceStats:
         if self.error_count > 0:
             error_rate = (self.error_count / self.query_count) * 100 if self.query_count else 0
             stats.append(f"Error Rate: {error_rate:.2f}% ({self.error_count} errors)")
-            stats.append(f"Error Types:")
+            stats.append("Error Types:")
             for etype, count in self.error_types.items():
                 stats.append(f"  - {etype}: {count}")
         
