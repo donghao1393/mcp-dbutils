@@ -6,6 +6,9 @@ import mysql.connector
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import MySQLConfig
 
+# 常量定义
+COLUMNS_HEADER = "Columns:"
+
 
 class MySQLHandler(ConnectionHandler):
     @property
@@ -179,7 +182,7 @@ class MySQLHandler(ConnectionHandler):
                 description = [
                     f"Table: {table_name}",
                     f"Comment: {table_comment or 'No comment'}\n",
-                    "Columns:"
+                    COLUMNS_HEADER
                 ]
                 
                 for col in columns:
@@ -272,7 +275,7 @@ class MySQLHandler(ConnectionHandler):
                             f"Index: {idx['index_name']}",
                             f"Type: {'UNIQUE' if not idx['non_unique'] else 'INDEX'}",
                             f"Method: {idx['index_type']}",
-                            "Columns:",
+                            COLUMNS_HEADER,
                         ]
                         if idx['index_comment']:
                             index_info.insert(1, f"Comment: {idx['index_comment']}")
@@ -399,7 +402,7 @@ class MySQLHandler(ConnectionHandler):
                         current_constraint = con['constraint_name']
                         constraint_info = [
                             f"\n{con['constraint_type']} Constraint: {con['constraint_name']}",
-                            "Columns:"
+                            COLUMNS_HEADER
                         ]
                     
                     col_info = f"  - {con['column_name']}"
