@@ -1,5 +1,6 @@
 """SQLite MCP server implementation"""
 
+import json
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -49,20 +50,9 @@ class SQLiteServer(ConnectionServer):
 
     async def list_resources(self) -> list[types.Resource]:
         """列出所有表资源"""
-        conn = None
         try:
-            connection = arguments.get("connection")
-            if connection and self.config_path:
-                # 使用指定的数据库连接
-                config = SQLiteConfig.from_yaml(self.config_path, connection)
-                connection_params = config.get_connection_params()
-                masked_params = config.get_masked_connection_info()
-                self.log("info", f"使用配置 {connection} 连接: {masked_params}")
-                conn = sqlite3.connect(**connection_params)
-                conn.row_factory = sqlite3.Row
-            else:
-                # 使用默认连接
-                conn = self._get_connection()
+            # 使用默认连接
+            conn = self._get_connection()
 
             with closing(conn) as connection:
                 cursor = conn.execute(
@@ -108,7 +98,7 @@ class SQLiteServer(ConnectionServer):
                     } for idx in indexes]
                 }
 
-                return str(schema_info)
+                return json.dumps(schema_info)
         except sqlite3.Error as e:
             error_msg = f"读取表结构失败: {str(e)}"
             self.log("error", error_msg)
@@ -173,9 +163,11 @@ class SQLiteServer(ConnectionServer):
                 columns = [desc[0] for desc in cursor.description]
                 formatted_results = [dict(zip(columns, row)) for row in results]
 
-                result_text = str({
+                # 在测试环境中，connection可能是MagicMock对象，不能序列化为JSON
+                config_name = connection if isinstance(connection, str) else 'default'
+                result_text = json.dumps({
                     'type': 'sqlite',
-                    'config_name': connection or 'default',
+                    'config_name': config_name,
                     'query_result': {
                         'columns': columns,
                         'rows': formatted_results,
@@ -187,9 +179,11 @@ class SQLiteServer(ConnectionServer):
                 return [types.TextContent(type="text", text=result_text)]
 
         except sqlite3.Error as e:
-            error_msg = str({
+            # 在测试环境中，connection可能是MagicMock对象，不能序列化为JSON
+            config_name = connection if isinstance(connection, str) else 'default'
+            error_msg = json.dumps({
                 'type': 'sqlite',
-                'config_name': connection or 'default',
+                'config_name': config_name,
                 'error': f"查询执行失败: {str(e)}"
             })
             self.log("error", error_msg)
