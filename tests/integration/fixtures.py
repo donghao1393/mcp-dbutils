@@ -1,9 +1,9 @@
 """Test fixtures and helper classes for integration tests"""
 
 import tempfile
+from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Dict
-from collections.abc import AsyncGenerator
 from unittest.mock import MagicMock
 from urllib.parse import urlparse
 

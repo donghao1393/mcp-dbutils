@@ -1,8 +1,8 @@
 """日志处理模块"""
 
 import sys
-from datetime import datetime
 from collections.abc import Callable
+from datetime import datetime
 
 
 def create_logger(name: str, is_debug: bool = False) -> Callable:

@@ -1,7 +1,7 @@
 import tempfile
+from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Dict
-from collections.abc import AsyncGenerator
 from urllib.parse import urlparse
 
 import aiosqlite

@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-
 from mcp_dbutils.stats import ResourceStats
 
 
