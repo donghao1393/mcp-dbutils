@@ -2,7 +2,7 @@
 import json
 import os
 from contextlib import asynccontextmanager
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import mcp.types as types
 import pytest
@@ -251,8 +251,8 @@ class TestConnectionServer:
     @pytest.mark.asyncio
     async def test_get_handler_sqlite(self, server, mock_config_yaml):
         """Test get_handler for SQLite"""
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with patch('mcp_dbutils.sqlite.handler.SQLiteHandler') as mock_handler_class:
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             patch('mcp_dbutils.sqlite.handler.SQLiteHandler') as mock_handler_class:
                 mock_handler = MagicMock()
                 mock_handler.stats = MagicMock()
                 mock_handler.cleanup = AsyncMock()
@@ -268,8 +268,8 @@ class TestConnectionServer:
     @pytest.mark.asyncio
     async def test_get_handler_postgres(self, server, mock_config_yaml):
         """Test get_handler for PostgreSQL"""
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with patch('mcp_dbutils.postgres.handler.PostgreSQLHandler') as mock_handler_class:
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             patch('mcp_dbutils.postgres.handler.PostgreSQLHandler') as mock_handler_class:
                 mock_handler = MagicMock()
                 mock_handler.stats = MagicMock()
                 mock_handler.cleanup = AsyncMock()
@@ -285,8 +285,8 @@ class TestConnectionServer:
     @pytest.mark.asyncio
     async def test_get_handler_mysql(self, server, mock_config_yaml):
         """Test get_handler for MySQL"""
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with patch('mcp_dbutils.mysql.handler.MySQLHandler') as mock_handler_class:
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             patch('mcp_dbutils.mysql.handler.MySQLHandler') as mock_handler_class:
                 mock_handler = MagicMock()
                 mock_handler.stats = MagicMock()
                 mock_handler.cleanup = AsyncMock()
@@ -303,33 +303,33 @@ class TestConnectionServer:
     async def test_get_handler_errors(self, server, mock_config_yaml):
         """Test get_handler with various error conditions"""
         # Test invalid connection
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with pytest.raises(ConfigurationError, match="Connection not found"):
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             pytest.raises(ConfigurationError, match="Connection not found"):
                 async with server.get_handler("non_existent"):
                     pass
         
         # Test invalid database type
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with pytest.raises(ConfigurationError, match="Unsupported database type"):
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             pytest.raises(ConfigurationError, match="Unsupported database type"):
                 async with server.get_handler("test_invalid"):
                     pass
         
         # Test missing type
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with pytest.raises(ConfigurationError, match="must include 'type' field"):
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             pytest.raises(ConfigurationError, match="must include 'type' field"):
                 async with server.get_handler("test_missing_type"):
                     pass
         
         # Test invalid YAML
-        with patch('builtins.open', mock_open(read_data="invalid_yaml")):
-            with pytest.raises(ConfigurationError, match="Configuration file must contain 'connections' section"):
+        with patch('builtins.open', mock_open(read_data="invalid_yaml")), \
+             pytest.raises(ConfigurationError, match="Configuration file must contain 'connections' section"):
                 async with server.get_handler("test_sqlite"):
                     pass
         
         # Test import error
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with patch('mcp_dbutils.sqlite.handler.SQLiteHandler', side_effect=ImportError("Test import error")):
-                with pytest.raises(ConfigurationError, match="Failed to import handler"):
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             patch('mcp_dbutils.sqlite.handler.SQLiteHandler', side_effect=ImportError("Test import error")), \
+             pytest.raises(ConfigurationError, match="Failed to import handler"):
                     async with server.get_handler("test_sqlite"):
                         pass
     
@@ -524,8 +524,9 @@ class TestConnectionServer:
         
         # 打补丁替换server.get_handler
         with patch.object(server, 'get_handler', mock_get_handler):
-            # 导入datetime和LOG_LEVEL_ERROR
+            # 导入需要的模块
             from datetime import datetime
+
             from mcp_dbutils.base import LOG_LEVEL_ERROR
             
             # 创建一个模拟的handle_call_tool函数
