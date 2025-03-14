@@ -62,7 +62,7 @@ filterwarnings = [
 # Ruff配置
 [tool.ruff]
 # 目标Python版本
-target-version = "0.15.1"
+target-version = "py310"
 # 行长度限制
 line-length = 88
 # 排除的文件和目录
