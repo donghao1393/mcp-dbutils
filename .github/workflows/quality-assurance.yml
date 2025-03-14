@@ -108,3 +108,152 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           scanMetadataReportFile: .scannerwork/report-task.txt
+          
+      - name: SonarCloud PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_PROJECT_KEY: 'donghao1393_mcp-dbutils'
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // 读取质量门禁结果
+            let qualityGateStatus = 'Unknown';
+            try {
+              const reportTaskContent = fs.readFileSync('.scannerwork/report-task.txt', 'utf8');
+              const ceTaskIdMatch = reportTaskContent.match(/ceTaskId=(.+)/);
+              if (ceTaskIdMatch && ceTaskIdMatch[1]) {
+                const ceTaskId = ceTaskIdMatch[1];
+                
+                // 等待分析完成
+                let analysisComplete = false;
+                let retries = 0;
+                while (!analysisComplete && retries < 10) {
+                  const ceTaskResponse = await fetch(
+                    `https://sonarcloud.io/api/ce/task?id=${ceTaskId}`,
+                    { headers: { Authorization: `Bearer ${process.env.SONAR_TOKEN}` } }
+                  ).then(res => res.json());
+                  
+                  if (ceTaskResponse.task && ceTaskResponse.task.status === 'SUCCESS') {
+                    analysisComplete = true;
+                  } else {
+                    retries++;
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // 等待5秒
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error reading report task file:', error);
+            }
+            
+            // 获取SonarCloud分析结果
+            const projectKey = process.env.SONAR_PROJECT_KEY;
+            const sonarResponse = await fetch(
+              `https://sonarcloud.io/api/measures/component?component=${projectKey}&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density`,
+              { headers: { Authorization: `Bearer ${process.env.SONAR_TOKEN}` } }
+            ).then(res => res.json());
+            
+            // 解析结果
+            let coverage = 'N/A';
+            let bugs = 'N/A';
+            let vulnerabilities = 'N/A';
+            let codeSmells = 'N/A';
+            let duplication = 'N/A';
+            
+            if (sonarResponse && sonarResponse.component && sonarResponse.component.measures) {
+              const measures = sonarResponse.component.measures;
+              
+              for (const measure of measures) {
+                switch (measure.metric) {
+                  case 'coverage':
+                    coverage = `${parseFloat(measure.value).toFixed(2)}%`;
+                    break;
+                  case 'bugs':
+                    bugs = measure.value;
+                    break;
+                  case 'vulnerabilities':
+                    vulnerabilities = measure.value;
+                    break;
+                  case 'code_smells':
+                    codeSmells = measure.value;
+                    break;
+                  case 'duplicated_lines_density':
+                    duplication = `${parseFloat(measure.value).toFixed(2)}%`;
+                    break;
+                }
+              }
+            }
+            
+            // 获取质量门禁状态
+            const qualityGateResponse = await fetch(
+              `https://sonarcloud.io/api/qualitygates/project_status?projectKey=${projectKey}`,
+              { headers: { Authorization: `Bearer ${process.env.SONAR_TOKEN}` } }
+            ).then(res => res.json());
+            
+            if (qualityGateResponse && qualityGateResponse.projectStatus) {
+              qualityGateStatus = qualityGateResponse.projectStatus.status === 'OK' ? '✅ Passed' : '❌ Failed';
+            }
+            
+            // 计算总问题数
+            const totalIssues = parseInt(bugs || 0) + parseInt(vulnerabilities || 0) + parseInt(codeSmells || 0);
+            
+            // 生成评论内容
+            let recommendations = [];
+            if (parseInt(bugs) > 0) recommendations.push('- Fix identified bugs to improve code reliability');
+            if (parseInt(vulnerabilities) > 0) recommendations.push('- Address security vulnerabilities to enhance application security');
+            if (parseInt(codeSmells) > 5) recommendations.push('- Refactor code to reduce code smells and improve maintainability');
+            if (parseFloat(coverage) < 80) recommendations.push('- Increase test coverage to meet the 80% minimum requirement');
+            if (parseFloat(duplication) > 3) recommendations.push('- Reduce code duplication to improve maintainability');
+            
+            const comment = [
+              '## SonarCloud Analysis Results',
+              '',
+              '### Summary',
+              `- **Quality Gate**: ${qualityGateStatus}`,
+              `- **Coverage**: ${coverage}`,
+              `- **Total Issues**: ${totalIssues}`,
+              `- **Code Duplication**: ${duplication}`,
+              '',
+              '### Details',
+              `- **Code Smells**: ${codeSmells}`,
+              `- **Bugs**: ${bugs}`,
+              `- **Security Vulnerabilities**: ${vulnerabilities}`,
+              '',
+              '### Recommendations',
+              ...recommendations,
+              '',
+              `[View full report on SonarCloud](https://sonarcloud.io/dashboard?id=${projectKey})`
+            ].join('\n');
+            
+            // 发布或更新PR评论
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('SonarCloud Analysis Results')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment,
+              });
+              console.log('Updated existing SonarCloud comment');
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+              console.log('Created new SonarCloud comment');
+            }
