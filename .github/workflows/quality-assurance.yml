@@ -264,3 +264,161 @@ jobs:
               });
               console.log('Created new SonarCloud comment');
             }
+            
+      - name: Extract SonarCloud Issues
+        uses: actions/github-script@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: 'donghao1393_mcp-dbutils'
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // 获取SonarCloud问题
+            const projectKey = process.env.SONAR_PROJECT_KEY;
+            console.log(`获取项目 ${projectKey} 的SonarCloud问题...`);
+            
+            // 获取未解决的问题
+            const issuesResponse = await fetch(
+              `https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&resolved=false&ps=500`,
+              { headers: { Authorization: `Bearer ${process.env.SONAR_TOKEN}` } }
+            ).then(res => res.json());
+            
+            console.log(`找到 ${issuesResponse.issues ? issuesResponse.issues.length : 0} 个未解决的问题`);
+            
+            // 保存原始JSON
+            fs.writeFileSync('sonar_issues.json', JSON.stringify(issuesResponse, null, 2));
+            
+            // 格式化为AI友好的Markdown
+            let markdownContent = '# SonarCloud分析问题报告\n\n';
+            markdownContent += `[在SonarCloud中查看完整报告](https://sonarcloud.io/project/issues?id=${projectKey})\n\n`;
+            
+            // 添加问题摘要
+            if (issuesResponse.issues && issuesResponse.issues.length > 0) {
+              // 按严重性统计
+              const severityCounts = {};
+              // 按类型统计
+              const typeCounts = {};
+              
+              issuesResponse.issues.forEach(issue => {
+                severityCounts[issue.severity] = (severityCounts[issue.severity] || 0) + 1;
+                typeCounts[issue.type] = (typeCounts[issue.type] || 0) + 1;
+              });
+              
+              markdownContent += '## 问题摘要\n\n';
+              
+              markdownContent += '### 按严重性\n\n';
+              for (const [severity, count] of Object.entries(severityCounts)) {
+                let severityText = '';
+                switch (severity) {
+                  case 'BLOCKER': severityText = '阻断级'; break;
+                  case 'CRITICAL': severityText = '严重级'; break;
+                  case 'MAJOR': severityText = '主要级'; break;
+                  case 'MINOR': severityText = '次要级'; break;
+                  case 'INFO': severityText = '提示级'; break;
+                  default: severityText = severity;
+                }
+                markdownContent += `- ${severityText}: ${count}个问题\n`;
+              }
+              
+              markdownContent += '\n### 按类型\n\n';
+              for (const [type, count] of Object.entries(typeCounts)) {
+                let typeText = '';
+                switch (type) {
+                  case 'BUG': typeText = 'Bug'; break;
+                  case 'VULNERABILITY': typeText = '安全漏洞'; break;
+                  case 'CODE_SMELL': typeText = '代码异味'; break;
+                  default: typeText = type;
+                }
+                markdownContent += `- ${typeText}: ${count}个问题\n`;
+              }
+              
+              // 按文件分组问题
+              const issuesByFile = {};
+              issuesResponse.issues.forEach(issue => {
+                const component = issue.component.split(':').pop();
+                if (!issuesByFile[component]) {
+                  issuesByFile[component] = [];
+                }
+                issuesByFile[component].push(issue);
+              });
+              
+              markdownContent += '\n## 详细问题列表\n\n';
+              
+              for (const [file, issues] of Object.entries(issuesByFile)) {
+                markdownContent += `### 文件: ${file}\n\n`;
+                
+                issues.forEach(issue => {
+                  let severityText = '';
+                  switch (issue.severity) {
+                    case 'BLOCKER': severityText = '阻断级'; break;
+                    case 'CRITICAL': severityText = '严重级'; break;
+                    case 'MAJOR': severityText = '主要级'; break;
+                    case 'MINOR': severityText = '次要级'; break;
+                    case 'INFO': severityText = '提示级'; break;
+                    default: severityText = issue.severity;
+                  }
+                  
+                  let typeText = '';
+                  switch (issue.type) {
+                    case 'BUG': typeText = 'Bug'; break;
+                    case 'VULNERABILITY': typeText = '安全漏洞'; break;
+                    case 'CODE_SMELL': typeText = '代码异味'; break;
+                    default: typeText = issue.type;
+                  }
+                  
+                  markdownContent += `- 文件: ${file}\n`;
+                  markdownContent += `  行号: ${issue.line || 'N/A'}\n`;
+                  markdownContent += `  问题: ${issue.message}\n`;
+                  markdownContent += `  严重性: ${severityText}\n`;
+                  markdownContent += `  类型: ${typeText}\n`;
+                  markdownContent += `  [在SonarCloud中查看](https://sonarcloud.io/project/issues?id=${projectKey}&open=${issue.key})\n\n`;
+                });
+              }
+              
+              // 添加常见问题修复建议
+              markdownContent += '## 常见问题修复建议\n\n';
+              
+              // 检查是否存在特定规则的问题
+              const hasRule = rule => issuesResponse.issues.some(issue => issue.rule === rule);
+              
+              if (hasRule('python:S1481')) {
+                markdownContent += '- **未使用的变量**: 删除未使用的变量声明，或者在变量名前添加下划线（例如 `_unused`）\n';
+              }
+              
+              if (hasRule('python:S5754')) {
+                markdownContent += '- **类型检查**: 使用 `isinstance()` 替代 `type()` 进行类型检查\n';
+              }
+              
+              if (hasRule('python:S1066')) {
+                markdownContent += '- **合并嵌套if语句**: 将嵌套的if语句合并为一个使用 `and` 运算符的条件\n';
+              }
+              
+              if (hasRule('python:S1172')) {
+                markdownContent += '- **未使用的参数**: 删除未使用的函数参数，或者在参数名前添加下划线\n';
+              }
+              
+              if (hasRule('python:S5806')) {
+                markdownContent += '- **不必要的lambda**: 使用函数引用替代只调用另一个函数的lambda\n';
+              }
+              
+              // 添加通用建议
+              markdownContent += '- **代码重复**: 提取重复代码为共享函数或类\n';
+              markdownContent += '- **复杂函数**: 将大型函数拆分为更小的函数，每个函数只做一件事\n';
+              markdownContent += '- **注释**: 为复杂逻辑添加清晰的注释，解释"为什么"而不仅仅是"做什么"\n';
+            } else {
+              markdownContent += '## 没有发现问题\n\n恭喜！SonarCloud没有检测到任何问题。';
+            }
+            
+            // 保存Markdown文件
+            fs.writeFileSync('sonar_report.md', markdownContent);
+            
+            console.log('已生成SonarCloud问题报告');
+            
+      - name: Upload SonarCloud Issues Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarcloud-issues
+          path: |
+            sonar_issues.json
+            sonar_report.md

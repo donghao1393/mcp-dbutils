@@ -484,6 +484,24 @@ except Exception as e:
    pre-commit run --all-files
    ```
 
+### SonarCloud AI 集成
+我们实现了一个AI辅助的SonarCloud问题修复工作流：
+
+1. 我们的CI/CD流程自动提取SonarCloud分析结果
+2. 结果被格式化为JSON和Markdown两种格式
+3. 这些报告可以使用提供的Fish函数下载
+4. 然后可以将报告提供给AI工具进行分析和修复建议
+
+详细说明请参见[SonarCloud AI集成指南](docs/sonarcloud-ai-integration.md)。
+
+```bash
+# 加载函数
+source scripts/sonar-ai-fix.fish
+
+# 下载最新的SonarCloud分析报告
+sonar-ai-fix
+```
+
 ## 参与贡献
 欢迎贡献！以下是参与项目的方式：
 

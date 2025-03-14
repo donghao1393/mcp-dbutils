@@ -502,6 +502,24 @@ To check code quality locally:
    pre-commit run --all-files
    ```
 
+### SonarCloud AI Integration
+We've implemented an AI-assisted workflow for fixing SonarCloud issues:
+
+1. Our CI/CD pipeline automatically extracts SonarCloud analysis results
+2. Results are formatted into both JSON and Markdown formats
+3. These reports can be downloaded using the provided Fish function
+4. The reports can then be provided to AI tools for analysis and fix suggestions
+
+For detailed instructions, see [SonarCloud AI Integration Guide](docs/sonarcloud-ai-integration.md).
+
+```bash
+# Load the function
+source scripts/sonar-ai-fix.fish
+
+# Download the latest SonarCloud analysis reports
+sonar-ai-fix
+```
+
 ## Contributing
 Contributions are welcome! Here's how you can help:
 
