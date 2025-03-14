@@ -60,7 +60,7 @@ class ConnectionHandler(ABC):
 
         Args:
             config_path: Path to configuration file
-            connection: Database connection name
+            connection: str = DATABASE_CONNECTION_NAME
             debug: Enable debug mode
         """
         self.config_path = config_path
@@ -305,7 +305,7 @@ class ConnectionServer:
         Get appropriate connection handler based on connection name
 
         Args:
-            connection: Database connection name
+            connection: str = DATABASE_CONNECTION_NAME
 
         Returns:
             AsyncContextManager[ConnectionHandler]: Context manager for connection handler
