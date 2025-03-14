@@ -12,14 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-      
-      - name: Install Ruff
-        run: uv pip install --system ruff
-      
-      - name: Run Ruff Linter
-        run: ruff check .
-      
-      - name: Run Ruff Formatter
-        run: ruff format --check .
+      - uses: astral-sh/ruff-action@v3.2.1
+        with:
+          version: latest
