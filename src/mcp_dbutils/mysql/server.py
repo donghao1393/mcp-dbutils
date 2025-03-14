@@ -156,7 +156,6 @@ class MySQLServer(ConnectionServer):
             raise ValueError("仅支持SELECT查询")
 
         connection = arguments.get("connection")
-        use_pool = True
         conn = None
         try:
             if connection and self.config_path:
@@ -166,7 +165,6 @@ class MySQLServer(ConnectionServer):
                 masked_params = config.get_masked_connection_info()
                 self.log("info", f"使用配置 {connection} 连接数据库: {masked_params}")
                 conn = mysql.connector.connect(**conn_params)
-                use_pool = False
             else:
                 # 使用现有连接池
                 conn = self.pool.get_connection()

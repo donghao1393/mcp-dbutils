@@ -49,7 +49,6 @@ class SQLiteServer(ConnectionServer):
 
     async def list_resources(self) -> list[types.Resource]:
         """列出所有表资源"""
-        use_default = True
         conn = None
         try:
             connection = arguments.get("connection")
@@ -61,7 +60,6 @@ class SQLiteServer(ConnectionServer):
                 self.log("info", f"使用配置 {connection} 连接: {masked_params}")
                 conn = sqlite3.connect(**connection_params)
                 conn.row_factory = sqlite3.Row
-                use_default = False
             else:
                 # 使用默认连接
                 conn = self._get_connection()
@@ -152,7 +150,6 @@ class SQLiteServer(ConnectionServer):
         if not sql.lower().startswith("select"):
             raise ValueError("仅支持SELECT查询")
 
-        use_default = True
         conn = None
         try:
             connection = arguments.get("connection")
@@ -164,7 +161,6 @@ class SQLiteServer(ConnectionServer):
                 self.log("info", f"使用配置 {connection} 连接: {masked_params}")
                 conn = sqlite3.connect(**connection_params)
                 conn.row_factory = sqlite3.Row
-                use_default = False
             else:
                 # 使用默认连接
                 conn = self._get_connection()
