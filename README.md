@@ -42,7 +42,7 @@ uvx mcp-dbutils --config /path/to/config.yaml
 Add to Claude configuration:
 ```json
 "mcpServers": {
-  "mcp-dbutils": {
+  "dbutils": {
     "command": "uvx",
     "args": [
       "mcp-dbutils",
@@ -64,7 +64,7 @@ pip install mcp-dbutils
 Add to Claude configuration:
 ```json
 "mcpServers": {
-  "mcp-dbutils": {
+  "dbutils": {
     "command": "python",
     "args": [
       "-m",
@@ -91,7 +91,7 @@ docker run -i --rm \
 Add to Claude configuration:
 ```json
 "mcpServers": {
-  "mcp-dbutils": {
+  "dbutils": {
     "command": "docker",
     "args": [
       "run",
