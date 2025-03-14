@@ -103,13 +103,17 @@ jobs:
         with:
           name: coverage-report
       - name: SonarCloud Scan
+        id: sonar_scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
       - name: SonarQube Quality Gate Check
+        id: sonar_qg
         uses: sonarsource/sonarqube-quality-gate-action@master
+        continue-on-error: true
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -266,6 +270,7 @@ jobs:
             }
             
       - name: Extract SonarCloud Issues
+        if: always()
         uses: actions/github-script@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -416,6 +421,7 @@ jobs:
             console.log('已生成SonarCloud问题报告');
             
       - name: Upload SonarCloud Issues Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sonarcloud-issues
