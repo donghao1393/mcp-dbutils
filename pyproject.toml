@@ -65,6 +65,17 @@ filterwarnings = [
 target-version = "py310"
 # 行长度限制
 line-length = 88
+# 排除的文件和目录
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+# Lint配置
+[tool.ruff.lint]
 # 选择的规则集
 select = [
     "E",   # pycodestyle错误
@@ -79,17 +90,9 @@ select = [
 ]
 # 忽略的规则
 ignore = []
-# 排除的文件和目录
-exclude = [
-    ".git",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-]
 
 # isort配置
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["mcp_dbutils"]
 
 # 格式化配置
