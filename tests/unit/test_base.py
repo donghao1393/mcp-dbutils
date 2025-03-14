@@ -9,16 +9,16 @@ import pytest
 import yaml
 
 from mcp_dbutils.base import (
-    ConfigurationError,
     CONNECTION_NAME_REQUIRED_ERROR,
-    ConnectionError,
-    ConnectionHandler,
-    ConnectionServer,
     DATABASE_CONNECTION_NAME,
     EMPTY_QUERY_ERROR,
     EMPTY_TABLE_NAME_ERROR,
     INVALID_URI_FORMAT_ERROR,
-    SELECT_ONLY_ERROR
+    SELECT_ONLY_ERROR,
+    ConfigurationError,
+    ConnectionError,
+    ConnectionHandler,
+    ConnectionServer,
 )
 
 
