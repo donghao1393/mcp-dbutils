@@ -437,6 +437,38 @@ Provides MySQL-specific features:
 - SSL/TLS secure connection
 - URL and standard connection methods
 
+## Code Quality
+
+### Quality Gates
+We use SonarCloud to maintain high code quality standards. All pull requests must pass the following quality gates:
+
+- Code Coverage: ≥ 80%
+- Code Quality:
+  * No blocker or critical issues
+  * Less than 10 major issues
+  * Code duplication < 3%
+- Security:
+  * No security vulnerabilities
+  * No security hotspots
+
+### Automated Checks
+Our CI/CD pipeline automatically performs:
+1. Full test suite execution
+2. Code coverage analysis
+3. SonarCloud static code analysis
+4. Quality gate validation
+
+Pull requests that don't meet these standards will be automatically blocked from merging.
+
+### Local Development
+To check code quality locally:
+1. Run tests with coverage:
+   ```bash
+   pytest --cov=src/mcp_dbutils --cov-report=xml:coverage.xml tests/
+   ```
+2. Use SonarLint in your IDE to catch issues early
+3. Review SonarCloud analysis results in PR comments
+
 ## Contributing
 Contributions are welcome! Here's how you can help:
 
