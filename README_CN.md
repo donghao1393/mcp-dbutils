@@ -419,6 +419,71 @@ except Exception as e:
 - SSL/TLS安全连接
 - URL和标准连接方式
 
+## 代码质量
+
+### 质量门禁
+我们使用SonarCloud维持高代码质量标准。所有的Pull Request必须通过以下质量门禁：
+
+- 代码覆盖率：≥ 80%
+- 代码质量：
+  * 无阻塞级和严重级问题
+  * 主要问题数少于10个
+  * 代码重复率 < 3%
+- 安全性：
+  * 无安全漏洞
+  * 无安全热点问题
+
+### 自动化检查
+我们的CI/CD流程自动执行：
+1. 完整测试套件运行
+2. 代码覆盖率分析
+3. SonarCloud静态代码分析
+4. 质量门禁验证
+
+不符合这些标准的Pull Request将被自动阻止合并。
+
+### 代码风格
+我们使用Ruff进行代码风格检查和格式化：
+
+[![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
+所有代码必须遵循我们的风格指南：
+- 行长度：88个字符
+- 缩进：4个空格
+- 引号：双引号
+- 命名：PEP8约定
+
+详细指南请参见[STYLE_GUIDE.md](docs/STYLE_GUIDE.md)。
+
+### 本地开发
+本地检查代码质量：
+1. 运行带覆盖率的测试：
+   ```bash
+   pytest --cov=src/mcp_dbutils --cov-report=xml:coverage.xml tests/
+   ```
+2. 在IDE中使用SonarLint及早发现问题
+3. 在PR评论中查看SonarCloud分析结果
+4. 运行Ruff进行代码风格检查：
+   ```bash
+   # 安装Ruff
+   uv pip install ruff
+   
+   # 检查代码风格
+   ruff check .
+   
+   # 格式化代码
+   ruff format .
+   ```
+5. 使用pre-commit钩子进行自动检查：
+   ```bash
+   # 安装pre-commit
+   uv pip install pre-commit
+   pre-commit install
+   
+   # 运行所有检查
+   pre-commit run --all-files
+   ```
+
 ## 参与贡献
 欢迎贡献！以下是参与项目的方式：
 

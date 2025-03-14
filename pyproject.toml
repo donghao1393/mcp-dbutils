@@ -44,7 +44,9 @@ test = [
     "docker>=7.0.0",
     "aiosqlite>=0.19.0",
     "testcontainers>=3.7.0",
-    "pytest-cov>=4.1.0"
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "pre-commit>=3.6.0"
 ]
 
 [tool.pytest.ini_options]
@@ -56,3 +58,42 @@ markers = [
 filterwarnings = [
     "ignore::pytest.PytestCollectionWarning"
 ]
+
+# Ruff配置
+[tool.ruff]
+# 目标Python版本
+target-version = "py310"
+# 行长度限制
+line-length = 88
+# 选择的规则集
+select = [
+    "E",   # pycodestyle错误
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "T20", # flake8-print
+]
+# 忽略的规则
+ignore = []
+# 排除的文件和目录
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+# isort配置
+[tool.ruff.isort]
+known-first-party = ["mcp_dbutils"]
+
+# 格式化配置
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

@@ -460,6 +460,19 @@ Our CI/CD pipeline automatically performs:
 
 Pull requests that don't meet these standards will be automatically blocked from merging.
 
+### Code Style
+We use Ruff for code style checking and formatting:
+
+[![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
+All code must follow our style guide:
+- Line length: 88 characters
+- Indentation: 4 spaces
+- Quotes: Double quotes
+- Naming: PEP8 conventions
+
+For detailed guidelines, see [STYLE_GUIDE.md](docs/STYLE_GUIDE.md).
+
 ### Local Development
 To check code quality locally:
 1. Run tests with coverage:
@@ -468,6 +481,26 @@ To check code quality locally:
    ```
 2. Use SonarLint in your IDE to catch issues early
 3. Review SonarCloud analysis results in PR comments
+4. Run Ruff for code style checking:
+   ```bash
+   # Install Ruff
+   uv pip install ruff
+   
+   # Check code style
+   ruff check .
+   
+   # Format code
+   ruff format .
+   ```
+5. Use pre-commit hooks for automatic checks:
+   ```bash
+   # Install pre-commit
+   uv pip install pre-commit
+   pre-commit install
+   
+   # Run all checks
+   pre-commit run --all-files
+   ```
 
 ## Contributing
 Contributions are welcome! Here's how you can help:
