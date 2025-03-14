@@ -6,6 +6,9 @@ import psycopg2
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import PostgreSQLConfig
 
+# 常量定义
+COLUMNS_HEADER = "Columns:"
+
 
 class PostgreSQLHandler(ConnectionHandler):
     @property
@@ -192,7 +195,7 @@ class PostgreSQLHandler(ConnectionHandler):
                 description = [
                     f"Table: {table_name}",
                     f"Comment: {table_comment or 'No comment'}\n",
-                    "Columns:"
+                    COLUMNS_HEADER
                 ]
                 
                 for col in columns:
@@ -370,7 +373,7 @@ class PostgreSQLHandler(ConnectionHandler):
                             f"Index: {idx[0]}",
                             f"Type: {idx[2]}",
                             f"Method: {idx[3]}",
-                            "Columns:",
+                            COLUMNS_HEADER,
                         ]
                         if idx[5]:  # index comment
                             index_info.insert(1, f"Comment: {idx[5]}")

@@ -7,6 +7,9 @@ import mcp.types as types
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import SQLiteConfig
 
+# 常量定义
+COLUMNS_HEADER = "Columns:"
+
 
 class SQLiteHandler(ConnectionHandler):
     @property
@@ -113,7 +116,7 @@ class SQLiteHandler(ConnectionHandler):
                 # SQLite不支持表级注释，但我们可以获取表的详细信息
                 description = [
                     f"Table: {table_name}\n",
-                    "Columns:"
+                    COLUMNS_HEADER
                 ]
                 
                 for col in columns:
@@ -191,7 +194,7 @@ class SQLiteHandler(ConnectionHandler):
                     index_details = [
                         f"\nIndex: {idx[1]}",
                         f"Type: {'UNIQUE' if idx[2] else 'INDEX'}",
-                        "Columns:"
+                        COLUMNS_HEADER
                     ]
                     
                     for col in index_info:
