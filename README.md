@@ -38,17 +38,7 @@ Think of it as a secure bridge between AI systems and your databases, allowing A
 
 Choose **ONE** of the following methods to install:
 
-#### Option A: Using Smithery (Easiest - Recommended)
-
-This method automatically installs AND configures the service for Claude:
-
-```bash
-npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
-```
-
-After installation completes, skip to the "Using the Service" section.
-
-#### Option B: Using uvx (No Installation Needed)
+#### Option A: Using uvx (Recommended)
 
 This method uses the `uvx` command to run the service directly without installing any packages:
 
@@ -78,7 +68,7 @@ This method uses the `uvx` command to run the service directly without installin
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
 > - No installation is needed as uvx will automatically fetch the necessary files
 
-#### Option C: Manual Installation with Docker
+#### Option B: Manual Installation with Docker
 
 1. Install Docker from [docker.com](https://www.docker.com/products/docker-desktop/) if you don't have it
 
@@ -113,6 +103,16 @@ This method uses the `uvx` command to run the service directly without installin
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
 > - For SQLite databases, also replace the sqlite.db path with your actual database path
 > - For other database types, remove the SQLite volume line entirely
+
+#### Option C: Using Smithery (One-Click for Claude)
+
+This method automatically installs AND configures the service for Claude:
+
+```bash
+npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
+```
+
+After installation completes, skip to the "Using the Service" section.
 
 ### 2. Configuration
 
