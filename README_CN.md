@@ -74,10 +74,12 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 3. **将此配置添加到您的AI客户端：**
 
-**对于Claude Desktop和其他基于JSON的MCP客户端（如Cline）：**
-- 打开Claude Desktop（或任何其他支持基于JSON的MCP配置的客户端）（或任何其他支持基于JSON的MCP配置的客户端）
-- 前往设置 → 开发者
-- 在"MCP Servers"部分添加以下配置：
+**对于基于JSON的MCP客户端：**
+- 找到并编辑您客户端的MCP配置文件：
+  - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
+- 在JSON文件中添加以下配置：
 
 ```json
 "dbutils": {
@@ -111,10 +113,31 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 3. 将此配置添加到您的AI客户端：
 
-**对于Claude Desktop和其他基于JSON的MCP客户端（如Cline）：**
-- 打开Claude Desktop（或任何其他支持基于JSON的MCP配置的客户端）
-- 前往设置 → 开发者
-- 在"MCP Servers"部分添加以下配置：
+**对于基于JSON的MCP客户端：**
+- 找到并编辑您客户端的MCP配置文件：
+  - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
+- 在JSON文件中添加以下配置：
+
+```json
+"dbutils": {
+  "command": "docker",
+  "args": [
+    "run",
+    "-i",
+    "--rm",
+    "-v",
+    "/完整/路径/到您的/config.yaml:/app/config.yaml",
+    "-v",
+    "/完整/路径/到您的/sqlite.db:/app/sqlite.db",  // 仅SQLite数据库需要
+    "mcp/dbutils",
+    "--config",
+    "/app/config.yaml"
+  ]
+}
+```
+
 
 ```json
 "dbutils": {

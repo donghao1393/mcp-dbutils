@@ -74,10 +74,12 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 
 3. **Add this configuration to your AI client:**
 
-**For Claude Desktop and other JSON-based MCP clients (like Cline):**
-- Open Claude Desktop (or any other client that supports JSON-based MCP configuration)
-- Go to Settings → Developer
-- Add this configuration to the "MCP Servers" section:
+**For JSON-based MCP clients:**
+- Locate and edit your client's MCP configuration file:
+  - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **Other clients**: Refer to your client's documentation for the MCP configuration file location
+- Add the following configuration to the JSON file:
 
 ```json
 "dbutils": {
@@ -111,10 +113,12 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 
 3. Add this configuration to your AI client:
 
-**For Claude Desktop and other JSON-based MCP clients (like Cline):**
-- Open Claude Desktop (or any other client that supports JSON-based MCP configuration)
-- Go to Settings → Developer
-- Add this configuration to the "MCP Servers" section:
+**For JSON-based MCP clients:**
+- Locate and edit your client's MCP configuration file:
+  - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **Other clients**: Refer to your client's documentation for the MCP configuration file location
+- Add the following configuration to the JSON file:
 
 ```json
 "dbutils": {
