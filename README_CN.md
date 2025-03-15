@@ -74,8 +74,8 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 3. **将此配置添加到您的AI客户端：**
 
-**对于Claude Desktop：**
-- 打开Claude Desktop
+**对于Claude Desktop和其他基于JSON的MCP客户端（如Cline）：**
+- 打开Claude Desktop（或任何其他支持基于JSON的MCP配置的客户端）（或任何其他支持基于JSON的MCP配置的客户端）
 - 前往设置 → 开发者
 - 在"MCP Servers"部分添加以下配置：
 
@@ -111,8 +111,8 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 3. 将此配置添加到您的AI客户端：
 
-**对于Claude Desktop：**
-- 打开Claude Desktop
+**对于Claude Desktop和其他基于JSON的MCP客户端（如Cline）：**
+- 打开Claude Desktop（或任何其他支持基于JSON的MCP配置的客户端）
 - 前往设置 → 开发者
 - 在"MCP Servers"部分添加以下配置：
 
