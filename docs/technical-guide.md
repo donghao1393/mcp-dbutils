@@ -299,42 +299,42 @@ except Exception as e:
 - 自动掩盖日志中的敏感信息（如密码）
 - 在只读事务中执行查询
 
-## Communication Model and Security Architecture
+## 通信模式与安全架构
 
-The MCP Database Utilities service implements a secure communication model designed to protect your data at every step. The following diagram illustrates how data flows between components while maintaining security:
+MCP数据库工具服务实现了一套安全的通信模式，旨在每一步都保护您的数据安全。下图展示了数据在各组件之间的流动方式，同时保持安全性：
 
 ```mermaid
 flowchart LR
-    subgraph User["User Environment"]
-        Client["AI Client\n(Claude/Cursor)"]
-        ConfigFile["Configuration File\n(YAML)"]
+    subgraph User["用户环境"]
+        Client["AI客户端<br>(Claude/Cursor)"]
+        ConfigFile["配置文件<br>(YAML)"]
     end
     
-    subgraph MCP["MCP Database Utilities"]
-        MCPService["MCP Service"]
-        ConnectionManager["Connection Manager"]
-        QueryProcessor["Query Processor\n(READ-ONLY)"]
+    subgraph MCP["MCP数据库工具"]
+        MCPService["MCP服务"]
+        ConnectionManager["连接管理器"]
+        QueryProcessor["查询处理器<br>(只读)"]
     end
     
-    subgraph Databases["Database Layer"]
-        DB1["Database 1"]
-        DB2["Database 2"]
-        DBn["Database n"]
+    subgraph Databases["数据库层"]
+        DB1["数据库1"]
+        DB2["数据库2"]
+        DBn["数据库n"]
     end
     
-    %% Communication flows
-    Client-- "1. Data request\n(natural language)" -->MCPService
-    ConfigFile-. "Loads on startup\n(connection details)" .->MCPService
-    MCPService-- "2. Processes request" -->ConnectionManager
-    ConnectionManager-- "3. Opens connection\n(when needed)" -->Databases
-    ConnectionManager-- "4. Sends query\n(SELECT only)" -->QueryProcessor
-    QueryProcessor-- "5. Executes query" -->Databases
-    Databases-- "6. Returns results" -->QueryProcessor
-    QueryProcessor-- "7. Formats results" -->MCPService
-    MCPService-- "8. Delivers results" -->Client
-    ConnectionManager-- "9. Closes connection\n(after completion)" -->Databases
+    %% 通信流程
+    Client-- "1. 数据请求<br>(自然语言)" -->MCPService
+    ConfigFile-. "启动时加载<br>(连接详情)" .->MCPService
+    MCPService-- "2. 处理请求" -->ConnectionManager
+    ConnectionManager-- "3. 打开连接<br>(按需)" -->Databases
+    ConnectionManager-- "4. 发送查询<br>(仅SELECT)" -->QueryProcessor
+    QueryProcessor-- "5. 执行查询" -->Databases
+    Databases-- "6. 返回结果" -->QueryProcessor
+    QueryProcessor-- "7. 格式化结果" -->MCPService
+    MCPService-- "8. 传递结果" -->Client
+    ConnectionManager-- "9. 关闭连接<br>(完成后)" -->Databases
     
-    %% Styling
+    %% 样式
     classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
     classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
     classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
@@ -343,32 +343,32 @@ flowchart LR
     class MCP mcp
     class Databases db
     
-    %% Add security notes
+    %% 添加安全说明
     style ConnectionManager stroke-dasharray: 5 5
     style QueryProcessor stroke-dasharray: 5 5
 ```
 
-### Key Security Features
+### 核心安全特性
 
-1. **Isolated Access Flow**:
-   - Your AI client never directly accesses your databases
-   - All requests pass through the controlled MCP service environment
+1. **隔离访问流程**:
+   - 您的AI客户端永远不会直接访问您的数据库
+   - 所有请求都通过受控的MCP服务环境传递
 
-2. **Temporary Connections**:
-   - Database connections are only established when needed
-   - Connections are immediately closed after query execution
-   - No persistent connections that could be exploited
+2. **临时连接**:
+   - 仅在需要时才建立数据库连接
+   - 查询执行后立即关闭连接
+   - 没有可被利用的持久连接
 
-3. **Read-Only Operations**:
-   - The Query Processor enforces strict SELECT-only operations
-   - No data modification is possible (no INSERT, UPDATE, DELETE)
+3. **只读操作**:
+   - 查询处理器强制执行严格的仅SELECT操作
+   - 不可能修改数据（无INSERT、UPDATE、DELETE）
 
-4. **Configuration Separation**:
-   - Connection details are isolated in a separate configuration file
-   - Credentials are never exposed to the AI model
+4. **配置分离**:
+   - 连接详情隔离在单独的配置文件中
+   - 凭据永远不会暴露给AI模型
 
-5. **Multiple Database Support**:
-   - Each database connection is managed separately
-   - Databases remain isolated from each other through the Connection Manager
+5. **多数据库支持**:
+   - 每个数据库连接单独管理
+   - 数据库通过连接管理器相互隔离
 
-This architecture ensures that even if you're using the tool for multiple databases or purposes, each connection remains secure and isolated, with minimal exposure of your data.
+这种架构确保即使您将该工具用于多个数据库或用途，每个连接仍然保持安全和隔离，最大限度地减少数据暴露。
