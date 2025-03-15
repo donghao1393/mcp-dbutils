@@ -4,6 +4,7 @@ import os
 import tempfile
 
 import pytest
+import pytest_asyncio
 import yaml
 
 from mcp_dbutils.base import (
@@ -15,8 +16,33 @@ from mcp_dbutils.log import create_logger
 # 创建测试用的 logger
 logger = create_logger("test-sqlite-extended", True)  # debug=True 以显示所有日志
 
+@pytest_asyncio.fixture(autouse=True)
+async def setup_test_table(sqlite_db, mcp_config):
+    """Create test table before each test"""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
+        yaml.dump(mcp_config, tmp)
+        tmp.flush()
+        server = ConnectionServer(config_path=tmp.name)
+        async with server.get_handler("test_sqlite") as handler:
+            # Create test table
+            await handler.execute_query("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    email TEXT
+                )
+            """)
+            # Insert test data
+            await handler.execute_query("""
+                INSERT OR IGNORE INTO users (id, name, email) VALUES 
+                (1, 'Test User 1', 'test1@example.com'),
+                (2, 'Test User 2', 'test2@example.com')
+            """)
+    yield
+    # Cleanup is handled by the sqlite_db fixture
+
 @pytest.mark.asyncio
-async def test_get_indexes(sqlite_db, mcp_config):
+async def test_get_table_indexes(sqlite_db, mcp_config):
     """Test getting index information for SQLite table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -24,7 +50,7 @@ async def test_get_indexes(sqlite_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_sqlite") as handler:
             # Get indexes for users table
-            indexes = await handler.get_indexes("users")
+            indexes = await handler.get_table_indexes("users")
             
             # Verify indexes content
             assert "Indexes for users:" in indexes
@@ -36,13 +62,13 @@ async def test_get_indexes(sqlite_db, mcp_config):
             os.system(f"sqlite3 {path} 'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)'")
             
             # Get updated indexes
-            indexes = await handler.get_indexes("users")
+            indexes = await handler.get_table_indexes("users")
             assert "idx_users_email" in indexes  # Should show our custom index
             assert "Index:" in indexes
             assert "Definition:" in indexes
 
 @pytest.mark.asyncio
-async def test_get_indexes_nonexistent(sqlite_db, mcp_config):
+async def test_get_table_indexes_nonexistent(sqlite_db, mcp_config):
     """Test getting indexes for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -50,7 +76,7 @@ async def test_get_indexes_nonexistent(sqlite_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_sqlite") as handler:
             with pytest.raises(ConnectionHandlerError, match="Failed to get index information"):
-                await handler.get_indexes("nonexistent_table")
+                await handler.get_table_indexes("nonexistent_table")
 
 @pytest.mark.asyncio
 async def test_explain_query(sqlite_db, mcp_config):
@@ -64,8 +90,8 @@ async def test_explain_query(sqlite_db, mcp_config):
             explain_result = await handler.explain_query("SELECT * FROM users WHERE id = 1")
             
             # Verify the explanation includes expected SQLite EXPLAIN output
-            assert "QUERY PLAN" in explain_result or "addr" in explain_result
-            assert "scan" in explain_result.lower()
+            assert "Query Execution Plan" in explain_result
+            assert "Details" in explain_result
             assert "users" in explain_result
 
 @pytest.mark.asyncio
@@ -76,11 +102,11 @@ async def test_explain_query_invalid(sqlite_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_sqlite") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Failed to get query execution plan"):
+            with pytest.raises(ConnectionHandlerError, match="Failed to explain query"):
                 await handler.explain_query("SELECT * FROM nonexistent_table")
 
 @pytest.mark.asyncio
-async def test_get_table_statistics(sqlite_db, mcp_config):
+async def test_get_table_stats(sqlite_db, mcp_config):
     """Test getting table statistics"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -88,15 +114,15 @@ async def test_get_table_statistics(sqlite_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_sqlite") as handler:
             # Get statistics for users table
-            stats = await handler.get_table_statistics("users")
+            stats = await handler.get_table_stats("users")
             
             # Verify statistics content
-            assert "Statistics for users:" in stats
-            assert "Row count" in stats
-            assert "Available in SQLite 3.16+" in stats or "pages" in stats
+            assert "Table Statistics for users:" in stats
+            assert "Estimated Row Count" in stats
+            assert "Data Length" in stats
 
 @pytest.mark.asyncio
-async def test_get_table_statistics_nonexistent(sqlite_db, mcp_config):
+async def test_get_table_stats_nonexistent(sqlite_db, mcp_config):
     """Test getting statistics for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -104,7 +130,7 @@ async def test_get_table_statistics_nonexistent(sqlite_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_sqlite") as handler:
             with pytest.raises(ConnectionHandlerError, match="Failed to get table statistics"):
-                await handler.get_table_statistics("nonexistent_table")
+                await handler.get_table_stats("nonexistent_table")
 
 @pytest.mark.asyncio
 async def test_execute_complex_queries(sqlite_db, mcp_config):
@@ -157,4 +183,4 @@ async def test_execute_complex_queries(sqlite_db, mcp_config):
                 assert "name" in result["columns"]
                 assert "title" in result["columns"]
             except Exception as e:
-                logger("warning", f"JOIN query test skipped: {str(e)}")
+                logger.warning(f"JOIN query test skipped: {str(e)}")

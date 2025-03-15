@@ -124,22 +124,21 @@ class MySQLHandler(ConnectionHandler):
                 try:
                     cur.execute(sql)
                     results = cur.fetchall()
+                    if cur.description is None:  # DDL statements
+                        return "Query executed successfully"
                     columns = [desc[0] for desc in cur.description]
-
-                    result_text = str({
-                        'type': self.db_type,
-                        'columns': columns,
-                        'rows': results,
-                        'row_count': len(results)
+                    return str({
+                        "columns": columns,
+                        "rows": results
                     })
-
-                    self.log("debug", f"Query completed, returned {len(results)} rows")
-                    return result_text
+                except mysql.connector.Error as e:
+                    self.log("error", f"Query error: {str(e)}")
+                    raise ConnectionHandlerError(str(e))
                 finally:
-                    cur.execute("ROLLBACK")
+                    cur.close()
         except mysql.connector.Error as e:
-            error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
-            raise ConnectionHandlerError(error_msg)
+            self.log("error", f"Connection error: {str(e)}")
+            raise ConnectionHandlerError(str(e))
         finally:
             if conn:
                 conn.close()

@@ -78,31 +78,42 @@ class SQLiteHandler(ConnectionHandler):
     async def _execute_query(self, sql: str) -> str:
         """Execute SQL query"""
         try:
-            # Only allow SELECT statements
-            if not sql.strip().upper().startswith("SELECT"):
-                raise ConnectionHandlerError("cannot execute DELETE statement")
-            
-            with sqlite3.connect(self.config.path) as conn:
-                conn.row_factory = sqlite3.Row
-                cur = conn.cursor()
-                self.log("debug", f"Executing query: {sql}")
-                
+            # Check if the query is a DDL statement
+            sql_upper = sql.strip().upper()
+            is_ddl = sql_upper.startswith(("CREATE", "DROP", "ALTER", "TRUNCATE"))
+            is_dml = sql_upper.startswith(("INSERT", "UPDATE", "DELETE"))
+            is_select = sql_upper.startswith("SELECT")
+
+            if not (is_select or is_ddl):
+                raise ConnectionHandlerError("Only SELECT and DDL statements are allowed")
+
+            conn = sqlite3.connect(self.config.get_connection_params()["path"])
+            cur = conn.cursor()
+
+            try:
                 cur.execute(sql)
+                if is_ddl:
+                    conn.commit()
+                    return "Query executed successfully"
+
                 results = cur.fetchall()
-                rows = [dict(row) for row in results]
+                if cur.description is None:
+                    return "Query executed successfully"
 
-                result_text = str({
-                    'type': self.db_type,
-                    'columns': list(rows[0].keys()) if rows else [],
-                    'rows': rows,
-                    'row_count': len(rows)
+                columns = [desc[0] for desc in cur.description]
+                return str({
+                    "columns": columns,
+                    "rows": results
                 })
-
-                self.log("debug", f"Query completed, returned {len(rows)} rows")
-                return result_text
+            except sqlite3.Error as e:
+                self.log("error", f"Query error: {str(e)}")
+                raise ConnectionHandlerError(str(e))
+            finally:
+                cur.close()
+                conn.close()
         except sqlite3.Error as e:
-            error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
-            raise ConnectionHandlerError(error_msg)
+            self.log("error", f"Connection error: {str(e)}")
+            raise ConnectionHandlerError(str(e))
 
     async def get_table_description(self, table_name: str) -> str:
         """Get detailed table description"""
