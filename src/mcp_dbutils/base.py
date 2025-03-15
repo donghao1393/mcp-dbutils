@@ -337,21 +337,25 @@ class ConnectionServer:
             ConnectionHandler: 数据库连接处理器
             
         Raises:
-            ConfigurationError: 如果数据库类型不支持
+            ConfigurationError: 如果数据库类型不支持或导入失败
         """
         self.send_log(LOG_LEVEL_DEBUG, f"Creating handler for database type: {db_type}")
         
-        if db_type == 'sqlite':
-            from .sqlite.handler import SQLiteHandler
-            return SQLiteHandler(self.config_path, connection, self.debug)
-        elif db_type == 'postgres':
-            from .postgres.handler import PostgreSQLHandler
-            return PostgreSQLHandler(self.config_path, connection, self.debug)
-        elif db_type == 'mysql':
-            from .mysql.handler import MySQLHandler
-            return MySQLHandler(self.config_path, connection, self.debug)
-        else:
-            raise ConfigurationError(f"Unsupported database type: {db_type}")
+        try:
+            if db_type == 'sqlite':
+                from .sqlite.handler import SQLiteHandler
+                return SQLiteHandler(self.config_path, connection, self.debug)
+            elif db_type == 'postgres':
+                from .postgres.handler import PostgreSQLHandler
+                return PostgreSQLHandler(self.config_path, connection, self.debug)
+            elif db_type == 'mysql':
+                from .mysql.handler import MySQLHandler
+                return MySQLHandler(self.config_path, connection, self.debug)
+            else:
+                raise ConfigurationError(f"Unsupported database type: {db_type}")
+        except ImportError as e:
+            # 捕获导入错误并转换为ConfigurationError，以保持与现有测试兼容
+            raise ConfigurationError(f"Failed to import handler for {db_type}: {str(e)}")
 
     @asynccontextmanager
     async def get_handler(self, connection: str) -> AsyncContextManager[ConnectionHandler]:
