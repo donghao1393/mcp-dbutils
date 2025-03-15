@@ -1,6 +1,7 @@
 """SQLite connection handler implementation"""
 
 import sqlite3
+import time
 
 import mcp.types as types
 
@@ -91,21 +92,34 @@ class SQLiteHandler(ConnectionHandler):
             cur = conn.cursor()
 
             try:
+                start_time = time.time()
                 cur.execute(sql)
-                # Commit changes for DDL and DML statements
-                if is_ddl or is_dml:
-                    conn.commit()
+                conn.commit()
+                end_time = time.time()
+                elapsed_ms = (end_time - start_time) * 1000
+                self.log("debug", f"Query executed in {elapsed_ms:.2f}ms")
+                self.stats.record_query()
+                self.stats.record_query_duration(sql, elapsed_ms/1000)
+                
+                if is_select:
+                    # Get column names
+                    columns = [description[0] for description in cur.description]
+                    # Fetch results and convert to dictionaries
+                    results = []
+                    for row in cur.fetchall():
+                        # Convert each row to a dictionary
+                        row_dict = {}
+                        for i, col_name in enumerate(columns):
+                            row_dict[col_name] = row[i]
+                        results.append(row_dict)
+                    
+                    return str({
+                        "columns": columns,
+                        "rows": results
+                    })
+                else:
+                    # For DDL/DML statements
                     return "Query executed successfully"
-
-                results = cur.fetchall()
-                if cur.description is None:
-                    return "Query executed successfully"
-
-                columns = [desc[0] for desc in cur.description]
-                return str({
-                    "columns": columns,
-                    "rows": results
-                })
             except sqlite3.Error as e:
                 self.log("error", f"Query error: {str(e)}")
                 raise ConnectionHandlerError(str(e))

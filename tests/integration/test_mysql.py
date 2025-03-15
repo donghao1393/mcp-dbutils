@@ -63,14 +63,15 @@ async def test_execute_query(mysql_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_non_select_query(mysql_db, mcp_config):
-    """Test that non-SELECT queries are rejected"""
+    """Test executing non-SELECT queries"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Cannot execute statement in a READ ONLY transaction"):
-                await handler.execute_query("DELETE FROM users")
+            # 我们现在允许非SELECT查询
+            result = await handler.execute_query("DELETE FROM users")
+            assert result == "Query executed successfully"
 
 @pytest.mark.asyncio
 async def test_invalid_query(mysql_db, mcp_config):

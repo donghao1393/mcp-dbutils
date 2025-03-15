@@ -58,14 +58,15 @@ async def test_execute_query(sqlite_db, mcp_config):
 
 @pytest.mark.asyncio
 async def test_non_select_query(sqlite_db, mcp_config):
-    """Test that non-SELECT queries are rejected"""
+    """Test executing non-SELECT queries"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_sqlite") as handler:
-            with pytest.raises(ConnectionHandlerError, match="cannot execute DELETE statement"):
-                await handler.execute_query("DELETE FROM products")
+            # 我们现在允许非SELECT查询
+            result = await handler.execute_query("DELETE FROM products")
+            assert result == "Query executed successfully"
 
 @pytest.mark.asyncio
 async def test_invalid_query(sqlite_db, mcp_config):

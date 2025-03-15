@@ -160,13 +160,23 @@ class MySQLHandler(ConnectionHandler):
                 # Check if table exists
                 cur.execute("""
                     SELECT COUNT(*) as count
-                    FROM information_schema.tables 
+                    FROM information_schema.tables
                     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 table_exists = cur.fetchone()
-                if not table_exists or table_exists['count'] == 0:
+                
+                # Handle different formats of cursor results (dict or tuple)
+                if not table_exists:
                     raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
-
+                
+                # If fetchone returns a dictionary (dictionary=True was used)
+                if isinstance(table_exists, dict) and 'count' in table_exists and table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
+                # If fetchone returns a tuple
+                if isinstance(table_exists, tuple) and table_exists[0] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
                 # Get table information and comment
                 cur.execute("""
                     SELECT 
@@ -262,11 +272,21 @@ class MySQLHandler(ConnectionHandler):
                 # Check if table exists
                 cur.execute("""
                     SELECT COUNT(*) as count
-                    FROM information_schema.tables 
+                    FROM information_schema.tables
                     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 table_exists = cur.fetchone()
-                if not table_exists or table_exists['count'] == 0:
+                
+                # Handle different formats of cursor results (dict or tuple)
+                if not table_exists:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
+                # If fetchone returns a dictionary (dictionary=True was used)
+                if isinstance(table_exists, dict) and 'count' in table_exists and table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
+                # If fetchone returns a tuple
+                if isinstance(table_exists, tuple) and table_exists[0] == 0:
                     raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
 
                 # Get index information
@@ -331,13 +351,23 @@ class MySQLHandler(ConnectionHandler):
                 # Check if table exists
                 cur.execute("""
                     SELECT COUNT(*) as count
-                    FROM information_schema.tables 
+                    FROM information_schema.tables
                     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 table_exists = cur.fetchone()
-                if not table_exists or table_exists['count'] == 0:
+                
+                # Handle different formats of cursor results (dict or tuple)
+                if not table_exists:
                     raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
-
+                
+                # If fetchone returns a dictionary (dictionary=True was used)
+                if isinstance(table_exists, dict) and 'count' in table_exists and table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
+                # If fetchone returns a tuple
+                if isinstance(table_exists, tuple) and table_exists[0] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
                 # Get table statistics
                 cur.execute("""
                     SELECT 
@@ -406,13 +436,23 @@ class MySQLHandler(ConnectionHandler):
                 # Check if table exists
                 cur.execute("""
                     SELECT COUNT(*) as count
-                    FROM information_schema.tables 
+                    FROM information_schema.tables
                     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 table_exists = cur.fetchone()
-                if not table_exists or table_exists['count'] == 0:
+                
+                # Handle different formats of cursor results (dict or tuple)
+                if not table_exists:
                     raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
-
+                
+                # If fetchone returns a dictionary (dictionary=True was used)
+                if isinstance(table_exists, dict) and 'count' in table_exists and table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
+                # If fetchone returns a tuple
+                if isinstance(table_exists, tuple) and table_exists[0] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+                
                 # Get constraint information
                 cur.execute("""
                     SELECT 

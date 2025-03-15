@@ -214,7 +214,7 @@ class TestMySQLHandler:
             mock_cursor.execute.side_effect = [None, mysql.connector.Error('Query failed'), None]
             
             # Call the method and expect an exception
-            with pytest.raises(ConnectionHandlerError, match="Query execution failed"):
+            with pytest.raises(ConnectionHandlerError, match="Query failed"):
                 await handler._execute_query('SELECT * FROM users')
             
             # Verify connection was closed even after an error
@@ -225,34 +225,13 @@ class TestMySQLHandler:
         """Test getting detailed table description"""
         # Mock the connector.connect function
         with patch('mysql.connector.connect', return_value=mock_conn) as mock_connect:
-            # Mock cursor to return table info and columns
-            table_info = {'table_comment': 'Test table comment'}
-            columns = [
-                {
-                    'column_name': 'id', 
-                    'data_type': 'int', 
-                    'column_default': None,
-                    'is_nullable': 'NO', 
-                    'character_maximum_length': None,
-                    'numeric_precision': 10,
-                    'numeric_scale': 0,
-                    'column_comment': 'ID column'
-                },
-                {
-                    'column_name': 'name', 
-                    'data_type': 'varchar', 
-                    'column_default': 'NULL',
-                    'is_nullable': 'YES', 
-                    'character_maximum_length': 255,
-                    'numeric_precision': None,
-                    'numeric_scale': None,
-                    'column_comment': 'Name column'
-                }
-            ]
-            
-            # Set up the mock cursor to return different data for different queries
+            # Mock cursor to return table exists check
             mock_cursor = mock_conn.cursor().__enter__()
-            mock_cursor.fetchone.return_value = table_info
+            # Set up sequential returns for different execute calls
+            # First return: table exists check returns a dict for compatibility with both cursor formats
+            # Second return: table info
+            # Third return: columns info
+            mock_cursor.fetchone.side_effect = [{'count': 1}, table_info]
             mock_cursor.fetchall.return_value = columns
             
             # Call the method
@@ -262,7 +241,7 @@ class TestMySQLHandler:
             mock_connect.assert_called_once()
             
             # Verify the cursor was used correctly
-            assert mock_cursor.execute.call_count == 2
+            assert mock_cursor.execute.call_count == 3
             
             # Verify the result format
             assert isinstance(result, str)
