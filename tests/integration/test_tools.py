@@ -266,9 +266,62 @@ async def test_list_indexes_tool(postgres_db, sqlite_db, mcp_config):
             await server_to_client_send.aclose()
             await server_to_client_recv.aclose()
 
-@pytest.mark.skip(reason="Error testing is unstable, will be fixed in a future PR")
 @pytest.mark.asyncio
 async def test_list_tables_tool_errors(postgres_db, mcp_config):
     """Test error cases for list_tables tool"""
-    # This test is skipped for now
-    pass
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
+        # 写入有效的配置
+        yaml.dump(mcp_config, tmp)
+        tmp.flush()
+        server = ConnectionServer(config_path=tmp.name)
+
+        # 创建双向流
+        client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
+        server_to_client_send, server_to_client_recv = anyio.create_memory_object_stream[types.JSONRPCMessage](10)
+
+        # 在后台启动服务器
+        server_task = asyncio.create_task(
+            server.server.run(
+                client_to_server_recv,
+                server_to_client_send,
+                server.server.create_initialization_options(),
+                raise_exceptions=False  # 不抛出异常，让客户端接收错误响应
+            )
+        )
+
+        try:
+            # 初始化客户端会话
+            client = ClientSession(server_to_client_recv, client_to_server_send)
+            async with client:
+                await client.initialize()
+
+                # 测试场景1：不存在的连接名
+                result = await client.call_tool("dbutils-list-tables", {"connection": "non_existent_connection"})
+                print(f"收到响应: {result}")
+                assert result.isError == True, "应该返回错误状态"
+                assert len(result.content) == 1
+                assert result.content[0].type == "text"
+                assert "Connection not found" in result.content[0].text
+                assert "non_existent_connection" in result.content[0].text
+
+                # 测试场景2：缺少必需的连接参数
+                result = await client.call_tool("dbutils-list-tables", {})
+                print(f"收到响应: {result}")
+                assert result.isError == True, "应该返回错误状态"
+                assert len(result.content) == 1
+                assert result.content[0].type == "text"
+                assert "Connection name must be specified" in result.content[0].text
+
+        finally:
+            # 清理
+            server_task.cancel()
+            try:
+                await server_task
+            except asyncio.CancelledError:
+                pass
+
+            # 关闭流
+            await client_to_server_send.aclose()
+            await client_to_server_recv.aclose()
+            await server_to_client_send.aclose()
+            await server_to_client_recv.aclose()
