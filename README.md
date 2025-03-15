@@ -48,13 +48,11 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 
 After installation completes, skip to the "Using the Service" section.
 
-#### Option B: Using Python Package (Manual Setup)
+#### Option B: Using uvx (No Installation Needed)
 
-1. Install the package using pip:
+This method uses the `uvx` command to run the service directly without installing any packages:
 
-```bash
-pip install mcp-dbutils
-```
+1. Make sure you have `uvx` available (most AI clients include this)
 
 2. Create a configuration file (see next section for details)
 
@@ -67,20 +65,18 @@ pip install mcp-dbutils
 
 ```json
 "dbutils": {
-  "command": "python",
+  "command": "uvx",
   "args": [
-    "-m",
-    "mcp_dbutils",
+    "mcp-dbutils",
     "--config",
     "/full/path/to/your/config.yaml"
   ]
 }
 ```
 
-> **Important Notes for Python Setup:**
+> **Important Notes for uvx Setup:**
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
-> - Make sure Python 3.10+ is installed on your system
-> - Virtual environments are recommended but not required
+> - No installation is needed as uvx will automatically fetch the necessary files
 
 #### Option C: Manual Installation with Docker
 

@@ -48,13 +48,11 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 
 安装完成后，直接跳到"使用服务"部分。
 
-#### 方式B：使用Python包（手动设置）
+#### 方式B：使用uvx（无需安装）
 
-1. 使用pip安装软件包：
+此方法使用`uvx`命令直接运行服务，无需安装任何软件包：
 
-```bash
-pip install mcp-dbutils
-```
+1. 确保您可以使用`uvx`命令（大多数AI客户端都包含此命令）
 
 2. 创建配置文件（详见下一节）
 
@@ -67,20 +65,18 @@ pip install mcp-dbutils
 
 ```json
 "dbutils": {
-  "command": "python",
+  "command": "uvx",
   "args": [
-    "-m",
-    "mcp_dbutils",
+    "mcp-dbutils",
     "--config",
     "/完整/路径/到您的/config.yaml"
   ]
 }
 ```
 
-> **Python设置的重要注意事项：**
+> **uvx设置的重要注意事项：**
 > - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
-> - 确保您的系统上安装了Python 3.10+
-> - 推荐但不强制使用虚拟环境
+> - 无需安装，因为uvx会自动获取必要的文件
 
 #### 方式C：使用Docker手动安装
 
