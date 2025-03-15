@@ -23,6 +23,16 @@ MCP Database Utilities is an all-in-one MCP service that enables your AI to do d
 
 Think of it as a secure bridge between AI systems and your databases, allowing AI to read and analyze your data without direct database access or risking data modifications.
 
+### Security-First Design for Everyone
+
+Designed with security as top priority, it's perfect for small businesses, startups, and security-conscious individuals who need data analysis without extensive security infrastructure:
+
+- **Isolated Connections**: Each database connection is managed by name and strictly isolated from others, preventing cross-connection vulnerabilities
+- **On-Demand Connection**: Connects to your database only when the AI requests it and disconnects immediately after completion
+- **Configuration Protection**: Uses a separate YAML configuration file to eliminate misinterpretation risks (like special character errors in direct commands)
+- **Minimal Data Exposure**: Communicates only with your database and AI model - when using local AI models, no data needs to leave your computer
+- **No Write Access**: Your data is protected by default - the service operates in read-only mode
+
 ## Why Use MCP Database Utilities?
 
 - **Universal AI Support**: Works with any AI system that supports the MCP protocol
