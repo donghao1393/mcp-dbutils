@@ -5,10 +5,10 @@ import mcp.types as types
 import pytest
 
 from mcp_dbutils.base import (
-    ConfigurationError,
-    ConnectionServer,
     LOG_LEVEL_DEBUG,
     LOG_LEVEL_ERROR,
+    ConfigurationError,
+    ConnectionServer,
 )
 
 # Constants for error messages
@@ -725,6 +725,73 @@ class TestConnectionServerHandlers:
         # Verify that _handle_analyze_query was called and send_log was called for the error
         connection_server._handle_analyze_query.assert_called_once_with("test_conn", "SELECT 1")
         connection_server.send_log.assert_called_once()
+
+    def test_setup_handlers(self, connection_server):
+        """Test the _setup_handlers method sets up all handlers correctly"""
+        # Mock the server decorators
+        mock_list_resources = MagicMock()
+        mock_list_resources.return_value = lambda f: f  # Return the function unchanged
+        
+        mock_read_resource = MagicMock()
+        mock_read_resource.return_value = lambda f: f
+        
+        mock_list_tools = MagicMock()
+        mock_list_tools.return_value = lambda f: f
+        
+        mock_call_tool = MagicMock()
+        mock_call_tool.return_value = lambda f: f
+        
+        # Store original decorators
+        original_list_resources = connection_server.server.list_resources
+        original_read_resource = connection_server.server.read_resource
+        original_list_tools = connection_server.server.list_tools
+        original_call_tool = connection_server.server.call_tool
+        
+        # Replace with mocks
+        connection_server.server.list_resources = mock_list_resources
+        connection_server.server.read_resource = mock_read_resource
+        connection_server.server.list_tools = mock_list_tools
+        connection_server.server.call_tool = mock_call_tool
+        
+        try:
+            # Call the method
+            connection_server._setup_handlers()
+            
+            # Verify all decorators were called
+            assert mock_list_resources.called, "list_resources decorator should have been called"
+            assert mock_read_resource.called, "read_resource decorator should have been called"
+            assert mock_list_tools.called, "list_tools decorator should have been called"
+            assert mock_call_tool.called, "call_tool decorator should have been called"
+            
+            # Verify handle_list_resources function
+            if mock_list_resources.call_args and mock_list_resources.call_args.args:
+                handler = mock_list_resources.call_args.args[0]
+                assert callable(handler)
+                assert handler.__name__ == "handle_list_resources"
+            
+            # Verify handle_read_resource function
+            if mock_read_resource.call_args and mock_read_resource.call_args.args:
+                handler = mock_read_resource.call_args.args[0]
+                assert callable(handler)
+                assert handler.__name__ == "handle_read_resource"
+            
+            # Verify handle_list_tools function
+            if mock_list_tools.call_args and mock_list_tools.call_args.args:
+                handler = mock_list_tools.call_args.args[0]
+                assert callable(handler)
+                assert handler.__name__ == "handle_list_tools"
+            
+            # Verify handle_call_tool function
+            if mock_call_tool.call_args and mock_call_tool.call_args.args:
+                handler = mock_call_tool.call_args.args[0]
+                assert callable(handler)
+                assert handler.__name__ == "handle_call_tool"
+        finally:
+            # Restore original decorators
+            connection_server.server.list_resources = original_list_resources
+            connection_server.server.read_resource = original_read_resource
+            connection_server.server.list_tools = original_list_tools
+            connection_server.server.call_tool = original_call_tool
 
 
 class TestConnectionServerRun:
