@@ -76,8 +76,13 @@ class SQLiteHandler(ConnectionHandler):
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
 
-    async def _execute_query(self, sql: str) -> str:
-        """Execute SQL query"""
+    async def _execute_query(self, sql: str, internal: bool = False) -> str:
+        """Execute SQL query
+        
+        Args:
+            sql: SQL query to execute
+            internal: If True, this is an internal query and will not be recorded in statistics
+        """
         try:
             # Check if the query is a DDL statement
             sql_upper = sql.strip().upper()
@@ -98,8 +103,11 @@ class SQLiteHandler(ConnectionHandler):
                 end_time = time.time()
                 elapsed_ms = (end_time - start_time) * 1000
                 self.log("debug", f"Query executed in {elapsed_ms:.2f}ms")
-                self.stats.record_query()
-                self.stats.record_query_duration(sql, elapsed_ms/1000)
+                
+                # 不再调用record_query，由基类的execute_query方法处理
+                # 只记录查询持续时间（如果不是内部查询）
+                if not internal:
+                    self.stats.record_query_duration(sql, elapsed_ms/1000)
                 
                 if is_select:
                     # Get column names
@@ -253,7 +261,7 @@ class SQLiteHandler(ConnectionHandler):
             with sqlite3.connect(self.config.path) as conn:
                 cur = conn.cursor()
                 
-                # Check if table exists
+                # Check if table exists - 这是内部查询，不应计入统计
                 cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
                 if not cur.fetchone():
                     raise ConnectionHandlerError(f"Table '{table_name}' doesn't exist")
@@ -262,7 +270,7 @@ class SQLiteHandler(ConnectionHandler):
                 cur.execute(f"PRAGMA table_info({table_name})")
                 columns = cur.fetchall()
                 
-                # Count rows
+                # Count rows - 这是内部查询，不应计入统计
                 cur.execute(f"SELECT COUNT(*) FROM {table_name}")
                 row_count = cur.fetchone()[0]
                 
