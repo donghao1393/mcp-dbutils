@@ -77,15 +77,19 @@ class MySQLConfig(ConnectionConfig):
     ssl: Optional[SSLConfig] = None
 
     @classmethod
-    def from_yaml(cls, yaml_path: str, db_name: str, local_host: Optional[str] = None) -> 'MySQLConfig':
-        """Create configuration from YAML file
-
+    def _validate_connection_config(cls, configs: dict, db_name: str) -> dict:
+        """验证连接配置是否有效
+        
         Args:
-            yaml_path: Path to YAML configuration file
-            db_name: Connection configuration name to use
-            local_host: Optional local host address
+            configs: 配置字典
+            db_name: 连接名称
+            
+        Returns:
+            dict: 数据库配置
+            
+        Raises:
+            ValueError: 如果配置无效
         """
-        configs = cls.load_yaml_config(yaml_path)
         if not db_name:
             raise ValueError("Connection name must be specified")
         if db_name not in configs:
@@ -103,57 +107,121 @@ class MySQLConfig(ConnectionConfig):
             raise ValueError("User must be specified in connection configuration")
         if not db_config.get('password'):
             raise ValueError("Password must be specified in connection configuration")
+            
+        return db_config
+        
+    @classmethod
+    def _create_config_from_url(cls, db_config: dict, local_host: Optional[str] = None) -> 'MySQLConfig':
+        """从URL创建配置
+        
+        Args:
+            db_config: 数据库配置
+            local_host: 可选的本地主机地址
+            
+        Returns:
+            MySQLConfig: 配置对象
+        """
+        # Parse URL for connection parameters
+        params = parse_url(db_config['url'])
+        config = cls(
+            database=params['database'],
+            user=db_config['user'],
+            password=db_config['password'],
+            host=params['host'],
+            port=params['port'],
+            charset=params['charset'],
+            local_host=local_host,
+            url=db_config['url'],
+            ssl=params.get('ssl')
+        )
+        return config
+        
+    @classmethod
+    def _create_config_from_params(cls, db_config: dict, local_host: Optional[str] = None) -> 'MySQLConfig':
+        """从参数创建配置
+        
+        Args:
+            db_config: 数据库配置
+            local_host: 可选的本地主机地址
+            
+        Returns:
+            MySQLConfig: 配置对象
+            
+        Raises:
+            ValueError: 如果缺少必需参数或SSL配置无效
+        """
+        if not db_config.get('database'):
+            raise ValueError("MySQL database name must be specified in configuration")
+        if not db_config.get('host'):
+            raise ValueError("Host must be specified in connection configuration")
+        if not db_config.get('port'):
+            raise ValueError("Port must be specified in connection configuration")
+        
+        # Parse SSL configuration if present
+        ssl_config = cls._parse_ssl_config(db_config)
+        
+        config = cls(
+            database=db_config['database'],
+            user=db_config['user'],
+            password=db_config['password'],
+            host=db_config['host'],
+            port=str(db_config['port']),
+            charset=db_config.get('charset', 'utf8mb4'),
+            local_host=local_host,
+            ssl=ssl_config
+        )
+        return config
+        
+    @classmethod
+    def _parse_ssl_config(cls, db_config: dict) -> Optional[SSLConfig]:
+        """解析SSL配置
+        
+        Args:
+            db_config: 数据库配置
+            
+        Returns:
+            Optional[SSLConfig]: SSL配置或None
+            
+        Raises:
+            ValueError: 如果SSL配置无效
+        """
+        if 'ssl' not in db_config:
+            return None
+            
+        ssl_params = db_config['ssl']
+        if not isinstance(ssl_params, dict):
+            raise ValueError("SSL configuration must be a dictionary")
+        
+        if ssl_params.get('mode') not in [None, 'disabled', 'required', 'verify_ca', 'verify_identity']:
+            raise ValueError(f"Invalid ssl-mode: {ssl_params.get('mode')}")
+        
+        return SSLConfig(
+            mode=ssl_params.get('mode', 'disabled'),
+            ca=ssl_params.get('ca'),
+            cert=ssl_params.get('cert'),
+            key=ssl_params.get('key')
+        )
 
-        # Get connection parameters
+    @classmethod
+    def from_yaml(cls, yaml_path: str, db_name: str, local_host: Optional[str] = None) -> 'MySQLConfig':
+        """Create configuration from YAML file
+
+        Args:
+            yaml_path: Path to YAML configuration file
+            db_name: Connection configuration name to use
+            local_host: Optional local host address
+        """
+        configs = cls.load_yaml_config(yaml_path)
+        
+        # Validate connection config
+        db_config = cls._validate_connection_config(configs, db_name)
+
+        # Create configuration based on URL or parameters
         if 'url' in db_config:
-            # Parse URL for connection parameters
-            params = parse_url(db_config['url'])
-            config = cls(
-                database=params['database'],
-                user=db_config['user'],
-                password=db_config['password'],
-                host=params['host'],
-                port=params['port'],
-                charset=params['charset'],
-                local_host=local_host,
-                url=db_config['url'],
-                ssl=params.get('ssl')
-            )
+            config = cls._create_config_from_url(db_config, local_host)
         else:
-            if not db_config.get('database'):
-                raise ValueError("MySQL database name must be specified in configuration")
-            if not db_config.get('host'):
-                raise ValueError("Host must be specified in connection configuration")
-            if not db_config.get('port'):
-                raise ValueError("Port must be specified in connection configuration")
+            config = cls._create_config_from_params(db_config, local_host)
             
-            # Parse SSL configuration if present
-            ssl_config = None
-            if 'ssl' in db_config:
-                ssl_params = db_config['ssl']
-                if not isinstance(ssl_params, dict):
-                    raise ValueError("SSL configuration must be a dictionary")
-                
-                if ssl_params.get('mode') not in [None, 'disabled', 'required', 'verify_ca', 'verify_identity']:
-                    raise ValueError(f"Invalid ssl-mode: {ssl_params.get('mode')}")
-                
-                ssl_config = SSLConfig(
-                    mode=ssl_params.get('mode', 'disabled'),
-                    ca=ssl_params.get('ca'),
-                    cert=ssl_params.get('cert'),
-                    key=ssl_params.get('key')
-                )
-            
-            config = cls(
-                database=db_config['database'],
-                user=db_config['user'],
-                password=db_config['password'],
-                host=db_config['host'],
-                port=str(db_config['port']),
-                charset=db_config.get('charset', 'utf8mb4'),
-                local_host=local_host,
-                ssl=ssl_config
-            )
         config.debug = cls.get_debug_mode()
         return config
 
