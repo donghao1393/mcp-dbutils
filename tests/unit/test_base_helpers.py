@@ -13,6 +13,7 @@ from mcp_dbutils.base import (
     ConnectionServer,
 )
 
+
 class TestBaseHelpers:
     """Test helper methods in base.py"""
     
@@ -66,21 +67,21 @@ class TestBaseHelpers:
     
     def test_get_config_or_raise_missing_connections(self, server):
         """Test _get_config_or_raise with missing connections section"""
-        with patch('builtins.open', mock_open(read_data="other_section: value")):
-            with pytest.raises(ConfigurationError, match="must contain 'connections' section"):
-                server._get_config_or_raise("test_connection")
+        with patch('builtins.open', mock_open(read_data="other_section: value")), \
+             pytest.raises(ConfigurationError, match="must contain 'connections' section"):
+            server._get_config_or_raise("test_connection")
     
     def test_get_config_or_raise_connection_not_found(self, server, mock_config_yaml):
         """Test _get_config_or_raise with non-existent connection"""
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with pytest.raises(ConfigurationError, match="Connection not found"):
-                server._get_config_or_raise("nonexistent")
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             pytest.raises(ConfigurationError, match="Connection not found"):
+            server._get_config_or_raise("nonexistent")
     
     def test_get_config_or_raise_missing_type(self, server, mock_config_yaml):
         """Test _get_config_or_raise with connection missing type field"""
-        with patch('builtins.open', mock_open(read_data=mock_config_yaml)):
-            with pytest.raises(ConfigurationError, match="must include 'type' field"):
-                server._get_config_or_raise("test_missing_type")
+        with patch('builtins.open', mock_open(read_data=mock_config_yaml)), \
+             pytest.raises(ConfigurationError, match="must include 'type' field"):
+            server._get_config_or_raise("test_missing_type")
 
     @patch('mcp_dbutils.base.ConnectionServer._create_handler_for_type')
     @pytest.mark.asyncio
