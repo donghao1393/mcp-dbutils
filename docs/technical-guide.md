@@ -1,5 +1,79 @@
 # MCP 数据库工具技术指南
 
+## 通信模式与安全架构
+
+MCP数据库工具服务实现了一套安全的通信模式，旨在每一步都保护您的数据安全。下图展示了数据在各组件之间的流动方式，同时保持安全性：
+
+```mermaid
+flowchart LR
+    subgraph User["用户环境"]
+        Client["AI客户端<br>(Claude/Cursor)"]
+        ConfigFile["配置文件<br>(YAML)"]
+    end
+    
+    subgraph MCP["MCP数据库工具"]
+        MCPService["MCP服务"]
+        ConnectionManager["连接管理器"]
+        QueryProcessor["查询处理器<br>(只读)"]
+    end
+    
+    subgraph Databases["数据库层"]
+        DB1["数据库1"]
+        DB2["数据库2"]
+        DBn["数据库n"]
+    end
+    
+    %% 通信流程
+    Client-- "步骤1:<br>数据请求<br>(自然语言)" -->MCPService
+    ConfigFile-. "启动时加载<br>(连接详情)" .->MCPService
+    MCPService-- "步骤2:<br>处理请求" -->ConnectionManager
+    ConnectionManager-- "步骤3:<br>打开连接<br>(按需)" -->Databases
+    ConnectionManager-- "步骤4:<br>发送查询<br>(仅SELECT)" -->QueryProcessor
+    QueryProcessor-- "步骤5:<br>执行查询" -->Databases
+    Databases-- "步骤6:<br>返回结果" -->QueryProcessor
+    QueryProcessor-- "步骤7:<br>格式化结果" -->MCPService
+    MCPService-- "步骤8:<br>传递结果" -->Client
+    ConnectionManager-- "步骤9:<br>关闭连接<br>(完成后)" -->Databases
+    
+    %% 样式
+    classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+    
+    class User user
+    class MCP mcp
+    class Databases db
+    
+    %% 添加安全说明
+    style ConnectionManager stroke-dasharray: 5 5
+    style QueryProcessor stroke-dasharray: 5 5
+```
+
+### 核心安全特性
+
+1. **隔离访问流程**:
+   - 您的AI客户端永远不会直接访问您的数据库
+   - 所有请求都通过受控的MCP服务环境传递
+
+2. **临时连接**:
+   - 仅在需要时才建立数据库连接
+   - 查询执行后立即关闭连接
+   - 没有可被利用的持久连接
+
+3. **只读操作**:
+   - 查询处理器强制执行严格的仅SELECT操作
+   - 不可能修改数据（无INSERT、UPDATE、DELETE）
+
+4. **配置分离**:
+   - 连接详情隔离在单独的配置文件中
+   - 凭据永远不会暴露给AI模型
+
+5. **多数据库支持**:
+   - 每个数据库连接单独管理
+   - 数据库通过连接管理器相互隔离
+
+这种架构确保即使您将该工具用于多个数据库或用途，每个连接仍然保持安全和隔离，最大限度地减少数据暴露。
+
 ## 架构设计
 
 ### 核心概念：抽象层设计
@@ -354,80 +428,6 @@ dbutils-get-performance --connection=my-postgres
 
 此工具提供连接的整体性能统计，包括查询时间、缓存命中率和资源使用情况。
 
-## 通信模式与安全架构
-
-MCP数据库工具服务实现了一套安全的通信模式，旨在每一步都保护您的数据安全。下图展示了数据在各组件之间的流动方式，同时保持安全性：
-
-```mermaid
-flowchart LR
-    subgraph User["用户环境"]
-        Client["AI客户端<br>(Claude/Cursor)"]
-        ConfigFile["配置文件<br>(YAML)"]
-    end
-    
-    subgraph MCP["MCP数据库工具"]
-        MCPService["MCP服务"]
-        ConnectionManager["连接管理器"]
-        QueryProcessor["查询处理器<br>(只读)"]
-    end
-    
-    subgraph Databases["数据库层"]
-        DB1["数据库1"]
-        DB2["数据库2"]
-        DBn["数据库n"]
-    end
-    
-    %% 通信流程
-    Client-- "步骤1:<br>数据请求<br>(自然语言)" -->MCPService
-    ConfigFile-. "启动时加载<br>(连接详情)" .->MCPService
-    MCPService-- "步骤2:<br>处理请求" -->ConnectionManager
-    ConnectionManager-- "步骤3:<br>打开连接<br>(按需)" -->Databases
-    ConnectionManager-- "步骤4:<br>发送查询<br>(仅SELECT)" -->QueryProcessor
-    QueryProcessor-- "步骤5:<br>执行查询" -->Databases
-    Databases-- "步骤6:<br>返回结果" -->QueryProcessor
-    QueryProcessor-- "步骤7:<br>格式化结果" -->MCPService
-    MCPService-- "步骤8:<br>传递结果" -->Client
-    ConnectionManager-- "步骤9:<br>关闭连接<br>(完成后)" -->Databases
-    
-    %% 样式
-    classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
-    classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
-    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
-    
-    class User user
-    class MCP mcp
-    class Databases db
-    
-    %% 添加安全说明
-    style ConnectionManager stroke-dasharray: 5 5
-    style QueryProcessor stroke-dasharray: 5 5
-```
-
-### 核心安全特性
-
-1. **隔离访问流程**:
-   - 您的AI客户端永远不会直接访问您的数据库
-   - 所有请求都通过受控的MCP服务环境传递
-
-2. **临时连接**:
-   - 仅在需要时才建立数据库连接
-   - 查询执行后立即关闭连接
-   - 没有可被利用的持久连接
-
-3. **只读操作**:
-   - 查询处理器强制执行严格的仅SELECT操作
-   - 不可能修改数据（无INSERT、UPDATE、DELETE）
-
-4. **配置分离**:
-   - 连接详情隔离在单独的配置文件中
-   - 凭据永远不会暴露给AI模型
-
-5. **多数据库支持**:
-   - 每个数据库连接单独管理
-   - 数据库通过连接管理器相互隔离
-
-这种架构确保即使您将该工具用于多个数据库或用途，每个连接仍然保持安全和隔离，最大限度地减少数据暴露。
-
 ## 故障排除指南
 
 在使用MCP数据库工具时，您可能会遇到以下常见问题。以下是排查和解决这些问题的指南。
@@ -473,10 +473,36 @@ flowchart LR
 
 对于高级故障排除，您可以启用详细日志记录：
 
+#### 命令行启用调试
+
 ```bash
 # 启用详细日志
-uvx mcp-dbutils --config your_config.yaml --log-level debug
+MCP_DEBUG=1 uvx mcp-dbutils --config your_config.yaml
 ```
+
+#### MCP客户端配置中启用调试
+
+在MCP配置中添加环境变量：
+
+**JSON配置示例**：
+```json
+{
+  "dbutils": {
+    "command": "uvx",
+    "args": [
+      "mcp-dbutils",
+      "--config",
+      "/path/to/your/config.yaml"
+    ],
+    "env": {
+      "MCP_DEBUG": "1"
+    }
+  }
+}
+```
+
+**Cursor MCP配置**：
+在Cursor设置 → MCP → 编辑服务器配置中添加环境变量。
 
 日志文件默认位于：
 - **Linux/macOS**: `~/.local/share/mcp-dbutils/logs/`

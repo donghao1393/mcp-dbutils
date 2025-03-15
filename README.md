@@ -49,7 +49,7 @@ MCP Database Utilities is built with a **security-first architecture**, making i
 - **User-Controlled Access**: You decide which databases are accessible
 - **Secure Default Settings**: Secure by default with no additional configuration needed
 
-For technical details about our security architecture, see the [Technical Guide](docs/technical-guide.md#security-architecture).
+For technical details about our security architecture, see the [Technical Guide](docs/technical-guide.md#通信模式与安全架构).
 
 ## Why Use MCP Database Utilities?
 
