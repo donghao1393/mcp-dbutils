@@ -34,42 +34,59 @@ Think of it as a secure bridge between AI systems and your databases, allowing A
 
 ## Getting Started
 
-### 1. Quick Installation
+### 1. Installation Guide
 
-The easiest way to install is through Smithery:
+Choose **ONE** of the following methods to install:
+
+#### Option A: Using Smithery (Easiest - Recommended)
+
+This method automatically installs AND configures the service for Claude:
 
 ```bash
 npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
-Or using uvx (no installation needed):
-```bash
-uvx mcp-dbutils --config /path/to/config.yaml
+After installation completes, skip to the "Using the Service" section.
+
+#### Option B: Manual Installation with Docker
+
+1. Install Docker from [docker.com](https://www.docker.com/products/docker-desktop/) if you don't have it
+
+2. Create a configuration file (see next section for details)
+
+3. Add this configuration to your AI client:
+
+**For Claude Desktop:**
+- Open Claude Desktop
+- Go to Settings → Developer
+- Add this configuration to the "MCP Servers" section:
+
+```json
+"dbutils": {
+  "command": "docker",
+  "args": [
+    "run",
+    "-i",
+    "--rm",
+    "-v",
+    "/full/path/to/your/config.yaml:/app/config.yaml",
+    "-v",
+    "/full/path/to/your/sqlite.db:/app/sqlite.db",  // Only needed for SQLite
+    "mcp/dbutils",
+    "--config",
+    "/app/config.yaml"
+  ]
+}
 ```
 
-Or using pip:
-```bash
-pip install mcp-dbutils
-```
+> **Important Notes for Docker:**
+> - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
+> - For SQLite databases, also replace the sqlite.db path with your actual database path
+> - For other database types, remove the SQLite volume line entirely
 
-Or using Docker:
-```bash
-docker run -i --rm \
-  -v /path/to/config.yaml:/app/config.yaml \
-  -v /path/to/sqlite.db:/app/sqlite.db \  # Optional: for SQLite database
-  -e MCP_DEBUG=1 \  # Optional: Enable debug mode
-  mcp/dbutils --config /app/config.yaml
-```
+### 2. Configuration
 
-> **Note for Docker database connections:**
-> - For SQLite: Mount your database file using `-v /path/to/sqlite.db:/app/sqlite.db`
-> - For PostgreSQL running on host:
->   - On Mac/Windows: Use `host.docker.internal` as host in config
->   - On Linux: Use `172.17.0.1` (docker0 IP) or run with `--network="host"`
-
-### 2. Simple Configuration
-
-Create a config.yaml file with your database information:
+Create a file named `config.yaml` with your database connection details:
 
 ```yaml
 connections:
@@ -86,53 +103,25 @@ connections:
     password: my_password
 ```
 
-### 3. Connect to Your AI System
+### 4. Using the Service
 
-Add to your AI system's MCP configuration:
-
-```json
-"mcpServers": {
-  "dbutils": {
-    "command": "uvx",
-    "args": [
-      "mcp-dbutils",
-      "--config",
-      "/path/to/config.yaml"
-    ]
-  }
-}
-```
-
-For Docker installation:
-```json
-"mcpServers": {
-  "dbutils": {
-    "command": "docker",
-    "args": [
-      "run",
-      "-i",
-      "--rm",
-      "-v",
-      "/path/to/config.yaml:/app/config.yaml",
-      "-v",
-      "/path/to/sqlite.db:/app/sqlite.db",  // Optional: for SQLite database
-      "mcp/dbutils",
-      "--config",
-      "/app/config.yaml"
-    ]
-  }
-}
-```
-
-### 4. Start Using with Your AI
-
-That's it! Now your AI can:
+Once installed and configured properly, your AI can now:
 - List tables in your database
 - View table structures
-- Run SQL queries to analyze your data
-- Provide insights based on your data
+- Execute SQL queries safely
+- Analyze data across multiple databases
 
-Simply ask questions about your data, and the AI will use the connection to help you find answers.
+**To verify everything is working:**
+
+1. Ask your AI something like: "Can you check if you're able to connect to my database?"
+2. If properly configured, the AI should reply that it can connect to the database specified in your config file
+3. Try a simple command like: "List the tables in my database"
+
+If you encounter any issues, check:
+- Your configuration file syntax is correct
+- The database connection details are accurate
+- Your AI client has the MCP server properly configured
+- Your database is accessible from your computer
 
 ## Example Interactions
 

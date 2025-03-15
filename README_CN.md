@@ -34,42 +34,59 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 ## 开始使用
 
-### 1. 快速安装
+### 1. 安装指南
 
-最简单的安装方式是通过 Smithery：
+选择**以下一种**方法进行安装：
+
+#### 方式A：使用Smithery（最简单 - 推荐）
+
+此方法自动安装并配置服务到Claude：
 
 ```bash
 npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
-或使用 uvx（无需安装）：
-```bash
-uvx mcp-dbutils --config /path/to/config.yaml
+安装完成后，直接跳到"使用服务"部分。
+
+#### 方式B：使用Docker手动安装
+
+1. 如果您没有Docker，请从[docker.com](https://www.docker.com/products/docker-desktop/)安装
+
+2. 创建配置文件（详见下一节）
+
+3. 将此配置添加到您的AI客户端：
+
+**对于Claude Desktop：**
+- 打开Claude Desktop
+- 前往设置 → 开发者
+- 在"MCP Servers"部分添加以下配置：
+
+```json
+"dbutils": {
+  "command": "docker",
+  "args": [
+    "run",
+    "-i",
+    "--rm",
+    "-v",
+    "/完整/路径/到您的/config.yaml:/app/config.yaml",
+    "-v",
+    "/完整/路径/到您的/sqlite.db:/app/sqlite.db",  // 仅SQLite数据库需要
+    "mcp/dbutils",
+    "--config",
+    "/app/config.yaml"
+  ]
+}
 ```
 
-或使用 pip：
-```bash
-pip install mcp-dbutils
-```
+> **Docker的重要注意事项：**
+> - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
+> - 对于SQLite数据库，同样替换sqlite.db的路径为您的实际数据库路径
+> - 对于其他类型的数据库，完全删除SQLite卷行
 
-或使用 Docker：
-```bash
-docker run -i --rm \
-  -v /path/to/config.yaml:/app/config.yaml \
-  -v /path/to/sqlite.db:/app/sqlite.db \  # 可选：用于SQLite数据库
-  -e MCP_DEBUG=1 \  # 可选：启用调试模式
-  mcp/dbutils --config /app/config.yaml
-```
+### 2. 配置
 
-> **Docker数据库连接注意事项：**
-> - 对于SQLite：使用 `-v /path/to/sqlite.db:/app/sqlite.db` 挂载数据库文件
-> - 对于主机上运行的PostgreSQL：
->   - Mac/Windows：在配置中使用 `host.docker.internal` 作为主机
->   - Linux：使用 `172.17.0.1`（docker0 IP）或使用 `--network="host"` 运行
-
-### 2. 简单配置
-
-创建一个包含数据库信息的 config.yaml 文件：
+创建一个名为`config.yaml`的文件，包含您的数据库连接详细信息：
 
 ```yaml
 connections:
@@ -86,53 +103,25 @@ connections:
     password: my_password
 ```
 
-### 3. 连接到您的 AI 系统
+### 4. 使用服务
 
-添加到您的 AI 系统的 MCP 配置中：
-
-```json
-"mcpServers": {
-  "dbutils": {
-    "command": "uvx",
-    "args": [
-      "mcp-dbutils",
-      "--config",
-      "/path/to/config.yaml"
-    ]
-  }
-}
-```
-
-对于Docker安装：
-```json
-"mcpServers": {
-  "dbutils": {
-    "command": "docker",
-    "args": [
-      "run",
-      "-i",
-      "--rm",
-      "-v",
-      "/path/to/config.yaml:/app/config.yaml",
-      "-v",
-      "/path/to/sqlite.db:/app/sqlite.db",  // 可选：用于SQLite数据库
-      "mcp/dbutils",
-      "--config",
-      "/app/config.yaml"
-    ]
-  }
-}
-```
-
-### 4. 开始与您的 AI 一起使用
-
-就是这样！现在您的 AI 可以：
+正确安装和配置后，您的AI现在可以：
 - 列出数据库中的表
 - 查看表结构
-- 运行 SQL 查询分析您的数据
-- 基于您的数据提供洞察
+- 安全执行SQL查询
+- 跨多个数据库分析数据
 
-只需询问有关您数据的问题，AI 将使用连接帮助您找到答案。
+**验证一切正常工作：**
+
+1. 向您的AI提问类似："你能检查一下是否可以连接到我的数据库吗？"
+2. 如果配置正确，AI应回复它可以连接到您配置文件中指定的数据库
+3. 尝试一个简单的命令，如："列出我数据库中的表"
+
+如果遇到问题，请检查：
+- 您的配置文件语法是否正确
+- 数据库连接详细信息是否准确
+- 您的AI客户端是否正确配置了MCP服务器
+- 您的数据库是否可从您的计算机访问
 
 ## 交互示例
 
