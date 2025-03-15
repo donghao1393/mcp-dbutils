@@ -74,7 +74,7 @@ async def test_get_table_constraints_nonexistent(mysql_db, mcp_config):
                 await handler.get_table_constraints("nonexistent_table")
 
 @pytest.mark.asyncio
-async def test_get_table_statistics(mysql_db, mcp_config):
+async def test_get_table_stats(mysql_db, mcp_config):
     """Test getting table statistics"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -82,7 +82,7 @@ async def test_get_table_statistics(mysql_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
             # Get statistics for users table
-            stats = await handler.get_table_statistics("users")
+            stats = await handler.get_table_stats("users")
             
             # Verify statistics content
             assert "Statistics for users:" in stats
@@ -114,11 +114,11 @@ async def test_explain_query_invalid(mysql_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Failed to get query execution plan"):
+            with pytest.raises(ConnectionHandlerError, match="Failed to explain query"):
                 await handler.explain_query("SELECT * FROM nonexistent_table")
 
 @pytest.mark.asyncio
-async def test_get_indexes(mysql_db, mcp_config):
+async def test_get_table_indexes(mysql_db, mcp_config):
     """Test getting index information"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -126,14 +126,14 @@ async def test_get_indexes(mysql_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
             # Get indexes for users table
-            indexes = await handler.get_indexes("users")
+            indexes = await handler.get_table_indexes("users")
             
             # Verify indexes content
             assert "Indexes for users:" in indexes
             assert "PRIMARY" in indexes  # Primary key index
             
 @pytest.mark.asyncio
-async def test_get_indexes_nonexistent(mysql_db, mcp_config):
+async def test_get_table_indexes_nonexistent(mysql_db, mcp_config):
     """Test getting indexes for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(mcp_config, tmp)
@@ -141,4 +141,4 @@ async def test_get_indexes_nonexistent(mysql_db, mcp_config):
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
             with pytest.raises(ConnectionHandlerError, match="Failed to get index information"):
-                await handler.get_indexes("nonexistent_table")
+                await handler.get_table_indexes("nonexistent_table")
