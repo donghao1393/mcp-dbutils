@@ -2,10 +2,10 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import mcp.types as types
 import mysql.connector
 import pytest
 
-import mcp.types as types
 from mcp_dbutils.base import ConnectionHandlerError
 from mcp_dbutils.mysql.handler import MySQLHandler
 
