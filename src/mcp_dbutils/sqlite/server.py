@@ -163,7 +163,7 @@ class SQLiteServer(ConnectionServer):
                 columns = [desc[0] for desc in cursor.description]
                 formatted_results = [dict(zip(columns, row)) for row in results]
 
-                # 在测试环境中，connection可能是MagicMock对象，不能序列化为JSON
+                # 使用更通用的方法确定配置名称
                 config_name = connection if isinstance(connection, str) else 'default'
                 result_text = json.dumps({
                     'type': 'sqlite',
@@ -179,7 +179,7 @@ class SQLiteServer(ConnectionServer):
                 return [types.TextContent(type="text", text=result_text)]
 
         except sqlite3.Error as e:
-            # 在测试环境中，connection可能是MagicMock对象，不能序列化为JSON
+            # 使用更通用的方法确定配置名称
             config_name = connection if isinstance(connection, str) else 'default'
             error_msg = json.dumps({
                 'type': 'sqlite',

@@ -17,8 +17,7 @@ from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from datetime import datetime
 from importlib.metadata import metadata
-from typing import AsyncContextManager
-from unittest.mock import MagicMock
+from typing import AsyncContextManager, Any, Dict
 
 import mcp.server.stdio
 import mcp.types as types
@@ -347,14 +346,16 @@ class ConnectionServer:
 
                 handler.stats.record_connection_start()
                 self.send_log(LOG_LEVEL_DEBUG, f"Handler created successfully for {connection}")
-                # 处理MagicMock对象，避免JSON序列化错误
+                # 使用通用的方式处理统计信息序列化
                 try:
-                    stats_dict = handler.stats.to_dict()
-                    stats_json = json.dumps(stats_dict)
-                    self.send_log(LOG_LEVEL_INFO, f"Resource stats: {stats_json}")
+                    if hasattr(handler.stats, 'to_dict') and callable(handler.stats.to_dict):
+                        stats_dict = handler.stats.to_dict()
+                        stats_json = json.dumps(stats_dict)
+                        self.send_log(LOG_LEVEL_INFO, f"Resource stats: {stats_json}")
+                    else:
+                        self.send_log(LOG_LEVEL_INFO, "Resource stats not available")
                 except TypeError:
-                    # 在测试环境中，stats可能是MagicMock对象
-                    self.send_log(LOG_LEVEL_INFO, "Resource stats: [Mock object in test environment]")
+                    self.send_log(LOG_LEVEL_INFO, "Resource stats: [Could not serialize stats object]")
                 yield handler
             except yaml.YAMLError as e:
                 raise ConfigurationError(f"Invalid YAML configuration: {str(e)}")
@@ -364,16 +365,19 @@ class ConnectionServer:
                 if handler:
                     self.send_log(LOG_LEVEL_DEBUG, f"Cleaning up handler for {connection}")
                     handler.stats.record_connection_end()
-                    # 处理MagicMock对象，避免JSON序列化错误
+                    # 使用通用的方式处理统计信息序列化
                     try:
-                        stats_dict = handler.stats.to_dict()
-                        stats_json = json.dumps(stats_dict)
-                        self.send_log(LOG_LEVEL_INFO, f"Final resource stats: {stats_json}")
+                        if hasattr(handler.stats, 'to_dict') and callable(handler.stats.to_dict):
+                            stats_dict = handler.stats.to_dict()
+                            stats_json = json.dumps(stats_dict)
+                            self.send_log(LOG_LEVEL_INFO, f"Final resource stats: {stats_json}")
+                        else:
+                            self.send_log(LOG_LEVEL_INFO, "Final resource stats not available")
                     except TypeError:
-                        # 在测试环境中，stats可能是MagicMock对象
-                        self.send_log(LOG_LEVEL_INFO, "Final resource stats: [Mock object in test environment]")
-                    # 在测试环境中，handler可能是MagicMock对象，但cleanup可能是AsyncMock
-                    await handler.cleanup()
+                        self.send_log(LOG_LEVEL_INFO, "Final resource stats: [Could not serialize stats object]")
+                    # 清理资源
+                    if hasattr(handler, 'cleanup') and callable(handler.cleanup):
+                        await handler.cleanup()
 
     def _setup_handlers(self):
         """Setup MCP handlers"""
