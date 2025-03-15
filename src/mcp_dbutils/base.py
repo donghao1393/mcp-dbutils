@@ -1,17 +1,5 @@
 """Connection server base class"""
 
-class ConnectionHandlerError(Exception):
-    """Base exception for connection errors"""
-    pass
-
-class ConfigurationError(ConnectionHandlerError):
-    """Configuration related errors"""
-    pass
-
-class ConnectionError(ConnectionHandlerError):
-    """Connection related errors"""
-    pass
-
 import json
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
@@ -26,6 +14,18 @@ from mcp.server import Server
 
 from .log import create_logger
 from .stats import ResourceStats
+
+class ConnectionHandlerError(Exception):
+    """Base exception for connection errors"""
+    pass
+
+class ConfigurationError(ConnectionHandlerError):
+    """Configuration related errors"""
+    pass
+
+class ConnectionError(ConnectionHandlerError):
+    """Connection related errors"""
+    pass
 
 # 常量定义
 DATABASE_CONNECTION_NAME = "Database connection name"
