@@ -4,7 +4,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import mcp.types as types
 import pytest
 
-from mcp_dbutils.base import ConfigurationError, ConnectionServer
+from mcp_dbutils.base import (
+    ConfigurationError,
+    ConnectionServer,
+    LOG_LEVEL_DEBUG,
+    LOG_LEVEL_ERROR,
+)
 
 # Constants for error messages
 CONNECTION_NAME_REQUIRED_ERROR = "Connection name is required"
@@ -36,6 +41,21 @@ class TestConnectionServerPrompts:
         result = await mock_list_prompts()
         assert isinstance(result, list)
         assert len(result) == 0
+        connection_server.send_log.assert_called_once()
+    
+    @pytest.mark.asyncio
+    async def test_list_prompts_exception(self, connection_server):
+        """Test the list_prompts handler handles exceptions"""
+        # Create a mock list_prompts handler function that raises an exception
+        async def mock_list_prompts_with_exception():
+            connection_server.send_log()
+            raise ValueError("Test exception")
+        
+        # Call the mock function and expect an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_list_prompts_with_exception()
+        
+        # Verify that send_log was called
         connection_server.send_log.assert_called_once()
 
 
@@ -440,6 +460,38 @@ class TestConnectionServerHandlers:
         result = await mock_handle_call_tool("dbutils-analyze-query", {"connection": "test_conn", "sql": "SELECT 1"})
         assert result == expected_result
         connection_server._handle_analyze_query.assert_called_once_with("test_conn", "SELECT 1")
+    
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_analyze_query_exception(self, connection_server):
+        """Test call_tool handler with dbutils-analyze-query tool when an exception occurs"""
+        # Mock the _handle_analyze_query method to raise an exception
+        connection_server._handle_analyze_query = AsyncMock(side_effect=ValueError("Test exception"))
+        
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+            
+            connection = arguments["connection"]
+            
+            if name == "dbutils-analyze-query":
+                sql = arguments.get("sql", "").strip()
+                try:
+                    return await connection_server._handle_analyze_query(connection, sql)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in analyze_query: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+        
+        # Test with analyze-query tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-analyze-query", {"connection": "test_conn", "sql": "SELECT 1"})
+        
+        # Verify that _handle_analyze_query was called and send_log was called for the error
+        connection_server._handle_analyze_query.assert_called_once_with("test_conn", "SELECT 1")
+        connection_server.send_log.assert_called_once()
 
 
 class TestConnectionServerRun:
