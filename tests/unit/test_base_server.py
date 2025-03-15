@@ -94,6 +94,61 @@ class TestConnectionServerPrompts:
             # Restore the original method
             connection_server.server.list_prompts = original_list_prompts
 
+    @pytest.mark.asyncio
+    async def test_setup_prompts_exception_handler(self, connection_server):
+        """Test that the _setup_prompts method handles exceptions correctly in the decorated function"""
+        # Mock the decorator to capture the decorated function
+        original_list_prompts = connection_server.server.list_prompts
+        captured_handler = None
+        
+        def mock_decorator():
+            def wrapper(func):
+                nonlocal captured_handler
+                captured_handler = func
+                return func
+            return wrapper
+        
+        # Replace the decorator with our mock
+        connection_server.server.list_prompts = mock_decorator
+        
+        try:
+            # Call the method to set up the handler
+            connection_server._setup_prompts()
+            
+            # Now we have captured the handler, restore the original decorator
+            connection_server.server.list_prompts = original_list_prompts
+            
+            # Make sure we captured the handler
+            assert captured_handler is not None
+            
+            # Setup mocks for testing exception flow
+            connection_server.send_log = MagicMock()
+            
+            # Create a test exception that will be raised in the try block
+            test_exception = ValueError("Test error in list_prompts")
+            
+            # Mock the self.send_log in the try block to raise an exception after being called
+            def mock_send_log_and_raise(*args, **kwargs):
+                # First call during normal operation (debug log)
+                if args[0] == LOG_LEVEL_DEBUG:
+                    # After logging debug, simulate an error
+                    raise test_exception
+            
+            connection_server.send_log.side_effect = mock_send_log_and_raise
+            
+            # Call the handler and expect the exception to be caught and logged, then re-raised
+            with pytest.raises(ValueError, match="Test error in list_prompts"):
+                await captured_handler()
+            
+            # Check that both the debug log and the error log were called
+            assert connection_server.send_log.call_count == 2
+            connection_server.send_log.assert_any_call(LOG_LEVEL_DEBUG, "Handling list_prompts request")
+            connection_server.send_log.assert_any_call(LOG_LEVEL_ERROR, f"Error in list_prompts: {test_exception}")
+            
+        finally:
+            # Make sure we always restore the original decorator
+            connection_server.server.list_prompts = original_list_prompts
+
 
 class TestConnectionServerTools:
     def test_get_available_tools(self, connection_server):
@@ -792,6 +847,128 @@ class TestConnectionServerHandlers:
             connection_server.server.read_resource = original_read_resource
             connection_server.server.list_tools = original_list_tools
             connection_server.server.call_tool = original_call_tool
+
+    @pytest.mark.asyncio
+    async def test_setup_handlers_list_resources_exception(self, connection_server):
+        """Test the exception handling in handle_list_resources function from _setup_handlers"""
+        # Mock the decorators to capture the decorated functions
+        original_list_resources = connection_server.server.list_resources
+        captured_list_resources = None
+        
+        def mock_list_resources_decorator():
+            def wrapper(func):
+                nonlocal captured_list_resources
+                captured_list_resources = func
+                return func
+            return wrapper
+        
+        # Replace decorators with mocks
+        connection_server.server.list_resources = mock_list_resources_decorator
+        
+        try:
+            # Call setup_handlers to register handlers
+            connection_server._setup_handlers()
+            
+            # Restore the decorators
+            connection_server.server.list_resources = original_list_resources
+            
+            # Validate we captured the handlers
+            assert captured_list_resources is not None
+            
+            # Use the original self reference from the captured function
+            # Store the original self object
+            original_self = connection_server
+            
+            # Prepare mocks
+            mock_handler = AsyncMock()
+            mock_handler.get_tables = AsyncMock(side_effect=ValueError("DB error"))
+            
+            # Define a custom async context manager for testing
+            @asynccontextmanager
+            async def mock_get_handler(connection_name):
+                try:
+                    yield mock_handler
+                finally:
+                    pass
+            
+            # Replace the get_handler method
+            original_get_handler = original_self.get_handler
+            original_self.get_handler = mock_get_handler
+            
+            try:
+                # The function should raise the exception
+                with pytest.raises(ValueError, match="DB error"):
+                    await captured_list_resources({"connection": "test_conn"})
+                
+                # Verify mock_handler's get_tables was called
+                mock_handler.get_tables.assert_called_once()
+            finally:
+                # Restore the original get_handler
+                original_self.get_handler = original_get_handler
+        finally:
+            # Always restore the original decorator
+            connection_server.server.list_resources = original_list_resources
+    
+    @pytest.mark.asyncio
+    async def test_setup_handlers_read_resource_exception(self, connection_server):
+        """Test the exception handling in handle_read_resource function from _setup_handlers"""
+        # Mock the decorators to capture the decorated functions
+        original_read_resource = connection_server.server.read_resource
+        captured_read_resource = None
+        
+        def mock_read_resource_decorator():
+            def wrapper(func):
+                nonlocal captured_read_resource
+                captured_read_resource = func
+                return func
+            return wrapper
+        
+        # Replace decorators with mocks
+        connection_server.server.read_resource = mock_read_resource_decorator
+        
+        try:
+            # Call setup_handlers to register handlers
+            connection_server._setup_handlers()
+            
+            # Restore the decorators
+            connection_server.server.read_resource = original_read_resource
+            
+            # Validate we captured the handlers
+            assert captured_read_resource is not None
+            
+            # Use the original self reference from the captured function
+            # Store the original self object
+            original_self = connection_server
+            
+            # Prepare mocks
+            mock_handler = AsyncMock()
+            mock_handler.get_schema = AsyncMock(side_effect=ValueError("Schema error"))
+            
+            # Define a custom async context manager for testing
+            @asynccontextmanager
+            async def mock_get_handler(connection_name):
+                try:
+                    yield mock_handler
+                finally:
+                    pass
+            
+            # Replace the get_handler method
+            original_get_handler = original_self.get_handler
+            original_self.get_handler = mock_get_handler
+            
+            try:
+                # The function should raise the exception
+                with pytest.raises(ValueError, match="Schema error"):
+                    await captured_read_resource("mock://table1/schema", {"connection": "test_conn"})
+                
+                # Verify mock_handler's get_schema was called
+                mock_handler.get_schema.assert_called_once_with("table1")
+            finally:
+                # Restore the original get_handler
+                original_self.get_handler = original_get_handler
+        finally:
+            # Always restore the original decorator
+            connection_server.server.read_resource = original_read_resource
 
 
 class TestConnectionServerRun:
