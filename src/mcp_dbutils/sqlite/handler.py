@@ -87,7 +87,7 @@ class SQLiteHandler(ConnectionHandler):
             if not (is_select or is_ddl):
                 raise ConnectionHandlerError("Only SELECT and DDL statements are allowed")
 
-            conn = sqlite3.connect(self.config.get_connection_params()["path"])
+            conn = sqlite3.connect(self.config.path)
             cur = conn.cursor()
 
             try:
@@ -112,8 +112,8 @@ class SQLiteHandler(ConnectionHandler):
                 cur.close()
                 conn.close()
         except sqlite3.Error as e:
-            self.log("error", f"Connection error: {str(e)}")
-            raise ConnectionHandlerError(str(e))
+            error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
+            raise ConnectionHandlerError(error_msg)
 
     async def get_table_description(self, table_name: str) -> str:
         """Get detailed table description"""

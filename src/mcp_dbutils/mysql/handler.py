@@ -119,11 +119,18 @@ class MySQLHandler(ConnectionHandler):
             self.log("debug", f"Executing query: {sql}")
 
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
-                # Start read-only transaction
-                cur.execute("SET TRANSACTION READ ONLY")
+                # Check if the query is a SELECT statement
+                sql_upper = sql.strip().upper()
+                is_select = sql_upper.startswith("SELECT")
+                
+                # Only set read-only transaction for SELECT statements
+                if is_select:
+                    cur.execute("SET TRANSACTION READ ONLY")
                 try:
                     cur.execute(sql)
-                    results = cur.fetchall()
+                    if not is_select:
+                        conn.commit()
+                    results = cur.fetchall() if is_select else []
                     if cur.description is None:  # DDL statements
                         return "Query executed successfully"
                     columns = [desc[0] for desc in cur.description]
@@ -137,8 +144,8 @@ class MySQLHandler(ConnectionHandler):
                 finally:
                     cur.close()
         except mysql.connector.Error as e:
-            self.log("error", f"Connection error: {str(e)}")
-            raise ConnectionHandlerError(str(e))
+            error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
+            raise ConnectionHandlerError(error_msg)
         finally:
             if conn:
                 conn.close()
