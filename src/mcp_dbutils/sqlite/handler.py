@@ -142,7 +142,7 @@ class SQLiteHandler(ConnectionHandler):
             with sqlite3.connect(self.config.path) as conn:
                 cur = conn.cursor()
                 # SQLite provides the complete CREATE statement
-                cur.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+                cur.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
                 result = cur.fetchone()
                 
                 if not result:
@@ -151,7 +151,7 @@ class SQLiteHandler(ConnectionHandler):
                 ddl = result[0]
                 
                 # Get indexes
-                cur.execute(f"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=?", (table_name,))
+                cur.execute("SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=?", (table_name,))
                 indexes = cur.fetchall()
                 
                 # Add index definitions
@@ -234,9 +234,9 @@ class SQLiteHandler(ConnectionHandler):
                 indexes = cur.fetchall()
                 
                 # Get page count and size
-                cur.execute(f"PRAGMA page_count")
+                cur.execute("PRAGMA page_count")
                 page_count = cur.fetchone()[0]
-                cur.execute(f"PRAGMA page_size")
+                cur.execute("PRAGMA page_size")
                 page_size = cur.fetchone()[0]
                 
                 # Calculate total size

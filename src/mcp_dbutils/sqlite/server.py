@@ -54,7 +54,7 @@ class SQLiteServer(ConnectionServer):
             # 使用默认连接
             conn = self._get_connection()
 
-            with closing(conn) as connection:
+            with closing(conn) as _:
                 cursor = conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 )
@@ -155,7 +155,7 @@ class SQLiteServer(ConnectionServer):
                 # 使用默认连接
                 conn = self._get_connection()
 
-            with closing(conn) as connection:
+            with closing(conn) as _:
                 self.log("info", f"执行查询: {sql}")
                 cursor = conn.execute(sql)
                 results = cursor.fetchall()

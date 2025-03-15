@@ -299,6 +299,64 @@ class ConnectionServer:
                 self.send_log(LOG_LEVEL_ERROR, f"Error in list_prompts: {str(e)}")
                 raise
 
+    def _get_config_or_raise(self, connection: str) -> dict:
+        """读取配置文件并验证连接配置
+        
+        Args:
+            connection: 连接名称
+            
+        Returns:
+            dict: 连接配置
+            
+        Raises:
+            ConfigurationError: 如果配置文件格式不正确或连接不存在
+        """
+        with open(self.config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            if not config or 'connections' not in config:
+                raise ConfigurationError("Configuration file must contain 'connections' section")
+            if connection not in config['connections']:
+                available_connections = list(config['connections'].keys())
+                raise ConfigurationError(f"Connection not found: {connection}. Available connections: {available_connections}")
+            
+            db_config = config['connections'][connection]
+            
+            if 'type' not in db_config:
+                raise ConfigurationError("Database configuration must include 'type' field")
+                
+            return db_config
+            
+    def _create_handler_for_type(self, db_type: str, connection: str) -> ConnectionHandler:
+        """基于数据库类型创建相应的处理器
+        
+        Args:
+            db_type: 数据库类型
+            connection: 连接名称
+            
+        Returns:
+            ConnectionHandler: 数据库连接处理器
+            
+        Raises:
+            ConfigurationError: 如果数据库类型不支持或导入失败
+        """
+        self.send_log(LOG_LEVEL_DEBUG, f"Creating handler for database type: {db_type}")
+        
+        try:
+            if db_type == 'sqlite':
+                from .sqlite.handler import SQLiteHandler
+                return SQLiteHandler(self.config_path, connection, self.debug)
+            elif db_type == 'postgres':
+                from .postgres.handler import PostgreSQLHandler
+                return PostgreSQLHandler(self.config_path, connection, self.debug)
+            elif db_type == 'mysql':
+                from .mysql.handler import MySQLHandler
+                return MySQLHandler(self.config_path, connection, self.debug)
+            else:
+                raise ConfigurationError(f"Unsupported database type: {db_type}")
+        except ImportError as e:
+            # 捕获导入错误并转换为ConfigurationError，以保持与现有测试兼容
+            raise ConfigurationError(f"Failed to import handler for {db_type}: {str(e)}")
+
     @asynccontextmanager
     async def get_handler(self, connection: str) -> AsyncContextManager[ConnectionHandler]:
         """Get connection handler
@@ -311,74 +369,385 @@ class ConnectionServer:
         Returns:
             AsyncContextManager[ConnectionHandler]: Context manager for connection handler
         """
-        # Read configuration file to determine database type
-        with open(self.config_path, 'r') as f:
-            config = yaml.safe_load(f)
-            if not config or 'connections' not in config:
-                raise ConfigurationError("Configuration file must contain 'connections' section")
-            if connection not in config['connections']:
-                available_connections = list(config['connections'].keys())
-                raise ConfigurationError(f"Connection not found: {connection}. Available connections: {available_connections}")
+        # Read configuration file and validate connection
+        db_config = self._get_config_or_raise(connection)
+        
+        # Create appropriate handler based on database type
+        handler = None
+        try:
+            db_type = db_config['type']
+            handler = self._create_handler_for_type(db_type, connection)
 
-            db_config = config['connections'][connection]
+            # Set session for MCP logging
+            if hasattr(self.server, 'session'):
+                handler._session = self.server.session
 
-            handler = None
-            try:
-                if 'type' not in db_config:
-                    raise ConfigurationError("Database configuration must include 'type' field")
+            handler.stats.record_connection_start()
+            self.send_log(LOG_LEVEL_DEBUG, f"Handler created successfully for {connection}")
+            
+            yield handler
+        finally:
+            if handler:
+                self.send_log(LOG_LEVEL_DEBUG, f"Cleaning up handler for {connection}")
+                handler.stats.record_connection_end()
+                
+                if hasattr(handler, 'cleanup') and callable(handler.cleanup):
+                    await handler.cleanup()
 
-                db_type = db_config['type']
-                self.send_log(LOG_LEVEL_DEBUG, f"Creating handler for database type: {db_type}")
-                if db_type == 'sqlite':
-                    from .sqlite.handler import SQLiteHandler
-                    handler = SQLiteHandler(self.config_path, connection, self.debug)
-                elif db_type == 'postgres':
-                    from .postgres.handler import PostgreSQLHandler
-                    handler = PostgreSQLHandler(self.config_path, connection, self.debug)
-                elif db_type == 'mysql':
-                    from .mysql.handler import MySQLHandler
-                    handler = MySQLHandler(self.config_path, connection, self.debug)
-                else:
-                    raise ConfigurationError(f"Unsupported database type: {db_type}")
+    def _get_available_tools(self) -> list[types.Tool]:
+        """返回所有可用的数据库工具列表
+        
+        Returns:
+            list[types.Tool]: 工具列表
+        """
+        return [
+            types.Tool(
+                name="dbutils-run-query",
+                description="Execute read-only SQL query on database connection",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "sql": {
+                            "type": "string",
+                            "description": "SQL query (SELECT only)"
+                        }
+                    },
+                    "required": ["connection", "sql"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-list-tables",
+                description="List all available tables in the specified database connection",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        }
+                    },
+                    "required": ["connection"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-describe-table",
+                description="Get detailed information about a table's structure",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "table": {
+                            "type": "string",
+                            "description": "Table name to describe"
+                        }
+                    },
+                    "required": ["connection", "table"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-get-ddl",
+                description="Get DDL statement for creating the table",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "table": {
+                            "type": "string",
+                            "description": "Table name to get DDL for"
+                        }
+                    },
+                    "required": ["connection", "table"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-list-indexes",
+                description="List all indexes on the specified table",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "table": {
+                            "type": "string",
+                            "description": "Table name to list indexes for"
+                        }
+                    },
+                    "required": ["connection", "table"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-get-stats",
+                description="Get table statistics like row count and size",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "table": {
+                            "type": "string",
+                            "description": "Table name to get statistics for"
+                        }
+                    },
+                    "required": ["connection", "table"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-list-constraints",
+                description="List all constraints (primary key, foreign keys, etc) on the table",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "table": {
+                            "type": "string",
+                            "description": "Table name to list constraints for"
+                        }
+                    },
+                    "required": ["connection", "table"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-explain-query",
+                description="Get execution plan for a SQL query",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "sql": {
+                            "type": "string",
+                            "description": "SQL query to explain"
+                        }
+                    },
+                    "required": ["connection", "sql"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-get-performance",
+                description="Get database performance statistics",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        }
+                    },
+                    "required": ["connection"]
+                }
+            ),
+            types.Tool(
+                name="dbutils-analyze-query",
+                description="Analyze a SQL query for performance",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": DATABASE_CONNECTION_NAME
+                        },
+                        "sql": {
+                            "type": "string",
+                            "description": "SQL query to analyze"
+                        }
+                    },
+                    "required": ["connection", "sql"]
+                }
+            )
+        ]
+        
+    async def _handle_list_tables(self, connection: str) -> list[types.TextContent]:
+        """处理列表表格工具调用
+        
+        Args:
+            connection: 数据库连接名称
+            
+        Returns:
+            list[types.TextContent]: 表格列表
+        """
+        async with self.get_handler(connection) as handler:
+            tables = await handler.get_tables()
+            if not tables:
+                # 空表列表的情况也返回数据库类型
+                return [types.TextContent(type="text", text=f"[{handler.db_type}] No tables found")]
+            
+            formatted_tables = "\n".join([
+                f"Table: {table.name}\n" +
+                f"URI: {table.uri}\n" +
+                (f"Description: {table.description}\n" if table.description else "") +
+                "---"
+                for table in tables
+            ])
+            # 添加数据库类型前缀
+            return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{formatted_tables}")]
+            
+    async def _handle_run_query(self, connection: str, sql: str) -> list[types.TextContent]:
+        """处理运行查询工具调用
+        
+        Args:
+            connection: 数据库连接名称
+            sql: SQL查询语句
+            
+        Returns:
+            list[types.TextContent]: 查询结果
+            
+        Raises:
+            ConfigurationError: 如果SQL为空或非SELECT语句
+        """
+        if not sql:
+            raise ConfigurationError(EMPTY_QUERY_ERROR)
 
-                # Set session for MCP logging
-                if hasattr(self.server, 'session'):
-                    handler._session = self.server.session
+        # Only allow SELECT statements
+        if not sql.lower().startswith("select"):
+            raise ConfigurationError(SELECT_ONLY_ERROR)
 
-                handler.stats.record_connection_start()
-                self.send_log(LOG_LEVEL_DEBUG, f"Handler created successfully for {connection}")
-                # 使用通用的方式处理统计信息序列化
+        async with self.get_handler(connection) as handler:
+            result = await handler.execute_query(sql)
+            return [types.TextContent(type="text", text=result)]
+            
+    async def _handle_table_tools(self, name: str, connection: str, table: str) -> list[types.TextContent]:
+        """处理表相关工具调用
+        
+        Args:
+            name: 工具名称
+            connection: 数据库连接名称
+            table: 表名
+            
+        Returns:
+            list[types.TextContent]: 工具执行结果
+            
+        Raises:
+            ConfigurationError: 如果表名为空
+        """
+        if not table:
+            raise ConfigurationError(EMPTY_TABLE_NAME_ERROR)
+        
+        async with self.get_handler(connection) as handler:
+            result = await handler.execute_tool_query(name, table_name=table)
+            return [types.TextContent(type="text", text=result)]
+            
+    async def _handle_explain_query(self, connection: str, sql: str) -> list[types.TextContent]:
+        """处理解释查询工具调用
+        
+        Args:
+            connection: 数据库连接名称
+            sql: SQL查询语句
+            
+        Returns:
+            list[types.TextContent]: 查询解释
+            
+        Raises:
+            ConfigurationError: 如果SQL为空
+        """
+        if not sql:
+            raise ConfigurationError(EMPTY_QUERY_ERROR)
+        
+        async with self.get_handler(connection) as handler:
+            result = await handler.execute_tool_query("dbutils-explain-query", sql=sql)
+            return [types.TextContent(type="text", text=result)]
+            
+    async def _handle_performance(self, connection: str) -> list[types.TextContent]:
+        """处理性能统计工具调用
+        
+        Args:
+            connection: 数据库连接名称
+            
+        Returns:
+            list[types.TextContent]: 性能统计
+        """
+        async with self.get_handler(connection) as handler:
+            performance_stats = handler.stats.get_performance_stats()
+            return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{performance_stats}")]
+            
+    async def _handle_analyze_query(self, connection: str, sql: str) -> list[types.TextContent]:
+        """处理查询分析工具调用
+        
+        Args:
+            connection: 数据库连接名称
+            sql: SQL查询语句
+            
+        Returns:
+            list[types.TextContent]: 查询分析结果
+            
+        Raises:
+            ConfigurationError: 如果SQL为空
+        """
+        if not sql:
+            raise ConfigurationError(EMPTY_QUERY_ERROR)
+        
+        async with self.get_handler(connection) as handler:
+            # First get the execution plan
+            explain_result = await handler.explain_query(sql)
+            
+            # Then execute the actual query to measure performance
+            start_time = datetime.now()
+            if sql.lower().startswith("select"):
                 try:
-                    if hasattr(handler.stats, 'to_dict') and callable(handler.stats.to_dict):
-                        stats_dict = handler.stats.to_dict()
-                        stats_json = json.dumps(stats_dict)
-                        self.send_log(LOG_LEVEL_INFO, f"Resource stats: {stats_json}")
-                    else:
-                        self.send_log(LOG_LEVEL_INFO, "Resource stats not available")
-                except TypeError:
-                    self.send_log(LOG_LEVEL_INFO, "Resource stats: [Could not serialize stats object]")
-                yield handler
-            except yaml.YAMLError as e:
-                raise ConfigurationError(f"Invalid YAML configuration: {str(e)}")
-            except ImportError as e:
-                raise ConfigurationError(f"Failed to import handler for {db_type}: {str(e)}")
-            finally:
-                if handler:
-                    self.send_log(LOG_LEVEL_DEBUG, f"Cleaning up handler for {connection}")
-                    handler.stats.record_connection_end()
-                    # 使用通用的方式处理统计信息序列化
-                    try:
-                        if hasattr(handler.stats, 'to_dict') and callable(handler.stats.to_dict):
-                            stats_dict = handler.stats.to_dict()
-                            stats_json = json.dumps(stats_dict)
-                            self.send_log(LOG_LEVEL_INFO, f"Final resource stats: {stats_json}")
-                        else:
-                            self.send_log(LOG_LEVEL_INFO, "Final resource stats not available")
-                    except TypeError:
-                        self.send_log(LOG_LEVEL_INFO, "Final resource stats: [Could not serialize stats object]")
-                    # 清理资源
-                    if hasattr(handler, 'cleanup') and callable(handler.cleanup):
-                        await handler.cleanup()
+                    await handler.execute_query(sql)
+                except Exception as e:
+                    # If query fails, we still provide the execution plan
+                    self.send_log(LOG_LEVEL_ERROR, f"Query execution failed during analysis: {str(e)}")
+            duration = (datetime.now() - start_time).total_seconds()
+            
+            # Combine analysis results
+            analysis = [
+                f"[{handler.db_type}] Query Analysis",
+                f"SQL: {sql}",
+                "",
+                f"Execution Time: {duration*1000:.2f}ms",
+                "",
+                "Execution Plan:",
+                explain_result
+            ]
+            
+            # Add optimization suggestions
+            suggestions = self._get_optimization_suggestions(explain_result, duration)
+            if suggestions:
+                analysis.append("\nOptimization Suggestions:")
+                analysis.extend(suggestions)
+                
+            return [types.TextContent(type="text", text="\n".join(analysis))]
+            
+    def _get_optimization_suggestions(self, explain_result: str, duration: float) -> list[str]:
+        """根据执行计划和耗时获取优化建议
+        
+        Args:
+            explain_result: 执行计划
+            duration: 查询耗时（秒）
+            
+        Returns:
+            list[str]: 优化建议列表
+        """
+        suggestions = []
+        if "seq scan" in explain_result.lower() and duration > 0.1:
+            suggestions.append("- Consider adding an index to avoid sequential scan")
+        if "hash join" in explain_result.lower() and duration > 0.5:
+            suggestions.append("- Consider optimizing join conditions")
+        if duration > 0.5:  # 500ms
+            suggestions.append("- Query is slow, consider optimizing or adding caching")
+        if "temporary" in explain_result.lower():
+            suggestions.append("- Query creates temporary tables, consider restructuring")
+            
+        return suggestions
 
     def _setup_handlers(self):
         """Setup MCP handlers"""
@@ -409,180 +778,7 @@ class ConnectionServer:
 
         @self.server.list_tools()
         async def handle_list_tools() -> list[types.Tool]:
-            return [
-                types.Tool(
-                    name="dbutils-run-query",
-                    description="Execute read-only SQL query on database connection",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "sql": {
-                                "type": "string",
-                                "description": "SQL query (SELECT only)"
-                            }
-                        },
-                        "required": ["connection", "sql"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-list-tables",
-                    description="List all available tables in the specified database connection",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            }
-                        },
-                        "required": ["connection"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-describe-table",
-                    description="Get detailed information about a table's structure",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "table": {
-                                "type": "string",
-                                "description": "Table name to describe"
-                            }
-                        },
-                        "required": ["connection", "table"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-get-ddl",
-                    description="Get DDL statement for creating the table",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "table": {
-                                "type": "string",
-                                "description": "Table name to get DDL for"
-                            }
-                        },
-                        "required": ["connection", "table"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-list-indexes",
-                    description="List all indexes on the specified table",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "table": {
-                                "type": "string",
-                                "description": "Table name to list indexes for"
-                            }
-                        },
-                        "required": ["connection", "table"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-get-stats",
-                    description="Get table statistics like row count and size",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "table": {
-                                "type": "string",
-                                "description": "Table name to get statistics for"
-                            }
-                        },
-                        "required": ["connection", "table"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-list-constraints",
-                    description="List all constraints (primary key, foreign keys, etc) on the table",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "table": {
-                                "type": "string",
-                                "description": "Table name to list constraints for"
-                            }
-                        },
-                        "required": ["connection", "table"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-explain-query",
-                    description="Get execution plan for a SQL query",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "sql": {
-                                "type": "string",
-                                "description": "SQL query to explain"
-                            }
-                        },
-                        "required": ["connection", "sql"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-get-performance",
-                    description="Get database performance statistics",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            }
-                        },
-                        "required": ["connection"]
-                    }
-                ),
-                types.Tool(
-                    name="dbutils-analyze-query",
-                    description="Analyze a SQL query for performance",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "connection": {
-                                "type": "string",
-                                "description": DATABASE_CONNECTION_NAME
-                            },
-                            "sql": {
-                                "type": "string",
-                                "description": "SQL query to analyze"
-                            }
-                        },
-                        "required": ["connection", "sql"]
-                    }
-                )
-            ]
+            return self._get_available_tools()
 
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
@@ -592,100 +788,22 @@ class ConnectionServer:
             connection = arguments["connection"]
 
             if name == "dbutils-list-tables":
-                async with self.get_handler(connection) as handler:
-                    tables = await handler.get_tables()
-                    if not tables:
-                        # 空表列表的情况也返回数据库类型
-                        return [types.TextContent(type="text", text=f"[{handler.db_type}] No tables found")]
-                    
-                    formatted_tables = "\n".join([
-                        f"Table: {table.name}\n" +
-                        f"URI: {table.uri}\n" +
-                        (f"Description: {table.description}\n" if table.description else "") +
-                        "---"
-                        for table in tables
-                    ])
-                    # 添加数据库类型前缀
-                    return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{formatted_tables}")]
+                return await self._handle_list_tables(connection)
             elif name == "dbutils-run-query":
                 sql = arguments.get("sql", "").strip()
-                if not sql:
-                    raise ConfigurationError(EMPTY_QUERY_ERROR)
-
-                # Only allow SELECT statements
-                if not sql.lower().startswith("select"):
-                    raise ConfigurationError(SELECT_ONLY_ERROR)
-
-                async with self.get_handler(connection) as handler:
-                    result = await handler.execute_query(sql)
-                    return [types.TextContent(type="text", text=result)]
+                return await self._handle_run_query(connection, sql)
             elif name in ["dbutils-describe-table", "dbutils-get-ddl", "dbutils-list-indexes",
                          "dbutils-get-stats", "dbutils-list-constraints"]:
                 table = arguments.get("table", "").strip()
-                if not table:
-                    raise ConfigurationError(EMPTY_TABLE_NAME_ERROR)
-                
-                async with self.get_handler(connection) as handler:
-                    result = await handler.execute_tool_query(name, table_name=table)
-                    return [types.TextContent(type="text", text=result)]
+                return await self._handle_table_tools(name, connection, table)
             elif name == "dbutils-explain-query":
                 sql = arguments.get("sql", "").strip()
-                if not sql:
-                    raise ConfigurationError(EMPTY_QUERY_ERROR)
-                
-                async with self.get_handler(connection) as handler:
-                    result = await handler.execute_tool_query(name, sql=sql)
-                    return [types.TextContent(type="text", text=result)]
+                return await self._handle_explain_query(connection, sql)
             elif name == "dbutils-get-performance":
-                async with self.get_handler(connection) as handler:
-                    performance_stats = handler.stats.get_performance_stats()
-                    return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{performance_stats}")]
+                return await self._handle_performance(connection)
             elif name == "dbutils-analyze-query":
                 sql = arguments.get("sql", "").strip()
-                if not sql:
-                    raise ConfigurationError(EMPTY_QUERY_ERROR)
-                
-                async with self.get_handler(connection) as handler:
-                    # First get the execution plan
-                    explain_result = await handler.explain_query(sql)
-                    
-                    # Then execute the actual query to measure performance
-                    start_time = datetime.now()
-                    if sql.lower().startswith("select"):
-                        try:
-                            await handler.execute_query(sql)
-                        except Exception as e:
-                            # If query fails, we still provide the execution plan
-                            self.send_log(LOG_LEVEL_ERROR, f"Query execution failed during analysis: {str(e)}")
-                    duration = (datetime.now() - start_time).total_seconds()
-                    
-                    # Combine analysis results
-                    analysis = [
-                    f"[{handler.db_type}] Query Analysis",
-                    f"SQL: {sql}",
-                    "",
-                    f"Execution Time: {duration*1000:.2f}ms",
-                    "",
-                    "Execution Plan:",
-                        explain_result
-                    ]
-                    
-                    # Add optimization suggestions based on execution plan and timing
-                    suggestions = []
-                    if "seq scan" in explain_result.lower() and duration > 0.1:
-                        suggestions.append("- Consider adding an index to avoid sequential scan")
-                    if "hash join" in explain_result.lower() and duration > 0.5:
-                        suggestions.append("- Consider optimizing join conditions")
-                    if duration > 0.5:  # 500ms
-                        suggestions.append("- Query is slow, consider optimizing or adding caching")
-                    if "temporary" in explain_result.lower():
-                        suggestions.append("- Query creates temporary tables, consider restructuring")
-                    
-                    if suggestions:
-                        analysis.append("\nOptimization Suggestions:")
-                        analysis.extend(suggestions)
-                        
-                    return [types.TextContent(type="text", text="\n".join(analysis))]
+                return await self._handle_analyze_query(connection, sql)
             else:
                 raise ConfigurationError(f"Unknown tool: {name}")
 
