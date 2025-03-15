@@ -159,15 +159,15 @@ class TestBaseHelpers:
                 raise ImportError("Module not found")
             return original_import(name, *args, **kwargs)
             
-        with patch('builtins.__import__', side_effect=mock_import_error):
-            with patch('builtins.open', mock_open(read_data="""
+        with patch('builtins.__import__', side_effect=mock_import_error), \
+             patch('builtins.open', mock_open(read_data="""
             connections:
               test_connection:
                 type: sqlite
                 path: /path/to/db.sqlite
-            """)):
-                with pytest.raises(ConfigurationError, match="Failed to import"):
-                    server._create_handler_for_type('sqlite', 'test_connection')
+            """)), \
+             pytest.raises(ConfigurationError, match="Failed to import"):
+            server._create_handler_for_type('sqlite', 'test_connection')
 
     @pytest.mark.asyncio
     async def test_handle_list_tables(self, server):
