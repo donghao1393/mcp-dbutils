@@ -70,7 +70,25 @@ This method uses `uvx`, which is part of the Python package manager tool called 
    # Should display something like: uv 0.5.5 (Homebrew 2024-11-27)
    ```
 
-2. **Create a configuration file** (see next section for details)
+2. **Create a configuration file** named `config.yaml` with your database connection details:
+
+   ```yaml
+   connections:
+     my-sqlite:
+       type: sqlite
+       path: /path/to/my-database.db
+       
+     my-postgres:
+       type: postgres
+       host: localhost
+       port: 5432
+       dbname: my_database
+       user: my_user
+       password: my_password
+   ```
+
+   > For advanced configuration options (SSL connections, connection pooling, etc.), 
+   > please refer to the [Configuration System Details](docs/technical-guide.md#configuration-system-details) section in our technical guide.
 
 3. **Add this configuration to your AI client:**
 
@@ -160,25 +178,6 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
 After installation completes, skip to the "Using the Service" section.
-
-### 2. Configuration
-
-Create a file named `config.yaml` with your database connection details:
-
-```yaml
-connections:
-  my-sqlite:
-    type: sqlite
-    path: /path/to/my-database.db
-    
-  my-postgres:
-    type: postgres
-    host: localhost
-    port: 5432
-    dbname: my_database
-    user: my_user
-    password: my_password
-```
 
 ### 4. Using the Service
 

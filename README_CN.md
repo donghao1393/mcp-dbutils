@@ -70,7 +70,25 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
    # 应显示类似：uv 0.5.5 (Homebrew 2024-11-27)
    ```
 
-2. **创建配置文件**（详见下一节）
+2. **创建一个名为`config.yaml`的配置文件**，包含您的数据库连接详细信息：
+
+   ```yaml
+   connections:
+     my-sqlite:
+       type: sqlite
+       path: /path/to/my-database.db
+       
+     my-postgres:
+       type: postgres
+       host: localhost
+       port: 5432
+       dbname: my_database
+       user: my_user
+       password: my_password
+   ```
+
+   > 有关高级配置选项（SSL连接、连接池等），
+   > 请参阅我们技术指南中的[配置系统详解](docs/technical-guide.md#配置系统详解)部分。
 
 3. **将此配置添加到您的AI客户端：**
 
@@ -171,25 +189,6 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
 安装完成后，直接跳到"使用服务"部分。
-
-### 2. 配置
-
-创建一个名为`config.yaml`的文件，包含您的数据库连接详细信息：
-
-```yaml
-connections:
-  my-sqlite:
-    type: sqlite
-    path: /path/to/my-database.db
-    
-  my-postgres:
-    type: postgres
-    host: localhost
-    port: 5432
-    dbname: my_database
-    user: my_user
-    password: my_password
-```
 
 ### 4. 使用服务
 
