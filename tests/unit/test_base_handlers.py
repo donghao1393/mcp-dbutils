@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import mcp.types as types
-from mcp_dbutils.base import ConnectionServer, ConfigurationError
+import pytest
+
+from mcp_dbutils.base import ConfigurationError, ConnectionServer
 
 # Constants for error messages - use the actual error messages from the code
 EMPTY_QUERY_ERROR = "SQL query cannot be empty"
