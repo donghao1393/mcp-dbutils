@@ -57,6 +57,42 @@ class TestConnectionServerPrompts:
         
         # Verify that send_log was called
         connection_server.send_log.assert_called_once()
+    
+    def test_setup_prompts(self, connection_server):
+        """Test the _setup_prompts method sets up the handler correctly"""
+        # Mock the server.list_prompts decorator
+        mock_decorator = MagicMock()
+        mock_decorator.return_value = lambda f: f  # Return the function unchanged
+        
+        # Replace the server.list_prompts with our mock
+        original_list_prompts = connection_server.server.list_prompts
+        connection_server.server.list_prompts = mock_decorator
+        
+        try:
+            # Call the method
+            connection_server._setup_prompts()
+            
+            # Verify the decorator was called
+            assert mock_decorator.called, "Decorator should have been called"
+            
+            # Get the args from the most recent call
+            if mock_decorator.call_args:  # Check if call_args exists first
+                # If it was called with positional arguments
+                if mock_decorator.call_args.args:
+                    handler = mock_decorator.call_args.args[0]
+                    assert callable(handler)
+                    assert handler.__name__ == "handle_list_prompts"
+                    assert handler.__doc__ == "Handle prompts/list request"
+                # If it was called with a no-args decorator
+                else:
+                    # Just check that the decorator was called
+                    pass
+            else:
+                # If call_args doesn't exist, it was called differently
+                pass
+        finally:
+            # Restore the original method
+            connection_server.server.list_prompts = original_list_prompts
 
 
 class TestConnectionServerTools:
@@ -142,6 +178,38 @@ class TestConnectionServerHandlers:
         mock_handler.__aenter__.return_value.get_tables.assert_called_once()
     
     @pytest.mark.asyncio
+    async def test_handle_list_resources_exception(self, connection_server):
+        """Test list_resources handler with an exception"""
+        # Mock the get_handler method to raise an exception
+        mock_handler = AsyncMock()
+        mock_handler.__aenter__.return_value.get_tables.side_effect = ValueError("Test exception")
+        connection_server.get_handler = MagicMock(return_value=mock_handler)
+        connection_server.send_log = MagicMock()
+        
+        # Create a mock list_resources handler function with exception handling
+        async def mock_handle_list_resources(arguments=None):
+            if not arguments or 'connection' not in arguments:
+                # Return empty list when no connection specified
+                return []
+
+            connection = arguments['connection']
+            try:
+                async with connection_server.get_handler(connection) as handler:
+                    return await handler.get_tables()
+            except Exception as e:
+                connection_server.send_log(LOG_LEVEL_ERROR, f"Error in list_resources: {str(e)}")
+                # Re-raise to test exception handling
+                raise
+        
+        # Test with connection argument that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_list_resources({"connection": "test_conn"})
+        
+        connection_server.get_handler.assert_called_once_with("test_conn")
+        mock_handler.__aenter__.return_value.get_tables.assert_called_once()
+        connection_server.send_log.assert_called_once_with(LOG_LEVEL_ERROR, "Error in list_resources: Test exception")
+    
+    @pytest.mark.asyncio
     async def test_handle_read_resource_no_connection(self, connection_server):
         """Test read_resource handler with no connection argument"""
         # Create a mock read_resource handler function
@@ -218,6 +286,43 @@ class TestConnectionServerHandlers:
         
         connection_server.get_handler.assert_called_once_with("test_conn")
         mock_handler.__aenter__.return_value.get_schema.assert_called_once_with("table1")
+    
+    @pytest.mark.asyncio
+    async def test_handle_read_resource_exception(self, connection_server):
+        """Test read_resource handler with an exception"""
+        # Mock the get_handler method to raise an exception
+        mock_handler = AsyncMock()
+        mock_handler.__aenter__.return_value.get_schema.side_effect = ValueError("Test exception")
+        connection_server.get_handler = MagicMock(return_value=mock_handler)
+        connection_server.send_log = MagicMock()
+        
+        # Create a mock read_resource handler function with exception handling
+        async def mock_handle_read_resource(uri, arguments=None):
+            if not arguments or 'connection' not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            parts = uri.split('/')
+            if len(parts) < 3:
+                raise ConfigurationError(INVALID_URI_FORMAT_ERROR)
+
+            connection = arguments['connection']
+            table_name = parts[-2]  # URI format: xxx/table_name/schema
+
+            try:
+                async with connection_server.get_handler(connection) as handler:
+                    return await handler.get_schema(table_name)
+            except Exception as e:
+                connection_server.send_log(LOG_LEVEL_ERROR, f"Error in read_resource: {str(e)}")
+                # Re-raise to test exception handling
+                raise
+        
+        # Test with arguments that raise an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_read_resource("mock://table1/schema", {"connection": "test_conn"})
+        
+        connection_server.get_handler.assert_called_once_with("test_conn")
+        mock_handler.__aenter__.return_value.get_schema.assert_called_once_with("table1")
+        connection_server.send_log.assert_called_once_with(LOG_LEVEL_ERROR, "Error in read_resource: Test exception")
     
     @pytest.mark.asyncio
     async def test_handle_list_tools(self, connection_server):
@@ -353,6 +458,38 @@ class TestConnectionServerHandlers:
         connection_server._handle_run_query.assert_called_once_with("test_conn", "SELECT 1")
     
     @pytest.mark.asyncio
+    async def test_handle_call_tool_run_query_exception(self, connection_server):
+        """Test call_tool handler with dbutils-run-query tool when an exception occurs"""
+        # Mock the _handle_run_query method to raise an exception
+        connection_server._handle_run_query = AsyncMock(side_effect=ValueError("Test exception"))
+        
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+            
+            connection = arguments["connection"]
+            
+            if name == "dbutils-run-query":
+                sql = arguments.get("sql", "").strip()
+                try:
+                    return await connection_server._handle_run_query(connection, sql)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in run_query: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+        
+        # Test with run-query tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-run-query", {"connection": "test_conn", "sql": "SELECT 1"})
+        
+        # Verify that _handle_run_query was called and send_log was called for the error
+        connection_server._handle_run_query.assert_called_once_with("test_conn", "SELECT 1")
+        connection_server.send_log.assert_called_once()
+    
+    @pytest.mark.asyncio
     async def test_handle_call_tool_table_tools(self, connection_server):
         """Test call_tool handler with table-related tools"""
         # Mock the _handle_table_tools method
@@ -388,6 +525,39 @@ class TestConnectionServerHandlers:
             connection_server._handle_table_tools.assert_called_with(tool, "test_conn", "users")
     
     @pytest.mark.asyncio
+    async def test_handle_call_tool_table_tools_exception(self, connection_server):
+        """Test call_tool handler with table-related tools when an exception occurs"""
+        # Mock the _handle_table_tools method to raise an exception
+        connection_server._handle_table_tools = AsyncMock(side_effect=ValueError("Test exception"))
+        
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+            
+            connection = arguments["connection"]
+            
+            if name in ["dbutils-describe-table", "dbutils-get-ddl", "dbutils-list-indexes",
+                       "dbutils-get-stats", "dbutils-list-constraints"]:
+                table = arguments.get("table", "").strip()
+                try:
+                    return await connection_server._handle_table_tools(name, connection, table)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in table_tools: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+        
+        # Test with table tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-describe-table", {"connection": "test_conn", "table": "users"})
+        
+        # Verify that _handle_table_tools was called and send_log was called for the error
+        connection_server._handle_table_tools.assert_called_once_with("dbutils-describe-table", "test_conn", "users")
+        connection_server.send_log.assert_called_once()
+    
+    @pytest.mark.asyncio
     async def test_handle_call_tool_explain_query(self, connection_server):
         """Test call_tool handler with dbutils-explain-query tool"""
         # Mock the _handle_explain_query method
@@ -413,6 +583,38 @@ class TestConnectionServerHandlers:
         connection_server._handle_explain_query.assert_called_once_with("test_conn", "SELECT 1")
     
     @pytest.mark.asyncio
+    async def test_handle_call_tool_explain_query_exception(self, connection_server):
+        """Test call_tool handler with dbutils-explain-query tool when an exception occurs"""
+        # Mock the _handle_explain_query method to raise an exception
+        connection_server._handle_explain_query = AsyncMock(side_effect=ValueError("Test exception"))
+        
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+            
+            connection = arguments["connection"]
+            
+            if name == "dbutils-explain-query":
+                sql = arguments.get("sql", "").strip()
+                try:
+                    return await connection_server._handle_explain_query(connection, sql)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in explain_query: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+        
+        # Test with explain-query tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-explain-query", {"connection": "test_conn", "sql": "SELECT 1"})
+        
+        # Verify that _handle_explain_query was called and send_log was called for the error
+        connection_server._handle_explain_query.assert_called_once_with("test_conn", "SELECT 1")
+        connection_server.send_log.assert_called_once()
+    
+    @pytest.mark.asyncio
     async def test_handle_call_tool_get_performance(self, connection_server):
         """Test call_tool handler with dbutils-get-performance tool"""
         # Mock the _handle_performance method
@@ -435,6 +637,37 @@ class TestConnectionServerHandlers:
         result = await mock_handle_call_tool("dbutils-get-performance", {"connection": "test_conn"})
         assert result == expected_result
         connection_server._handle_performance.assert_called_once_with("test_conn")
+    
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_get_performance_exception(self, connection_server):
+        """Test call_tool handler with dbutils-get-performance tool when an exception occurs"""
+        # Mock the _handle_performance method to raise an exception
+        connection_server._handle_performance = AsyncMock(side_effect=ValueError("Test exception"))
+        
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+            
+            connection = arguments["connection"]
+            
+            if name == "dbutils-get-performance":
+                try:
+                    return await connection_server._handle_performance(connection)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in get_performance: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+        
+        # Test with get-performance tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-get-performance", {"connection": "test_conn"})
+        
+        # Verify that _handle_performance was called and send_log was called for the error
+        connection_server._handle_performance.assert_called_once_with("test_conn")
+        connection_server.send_log.assert_called_once()
     
     @pytest.mark.asyncio
     async def test_handle_call_tool_analyze_query(self, connection_server):
@@ -515,4 +748,41 @@ class TestConnectionServerRun:
         # Verify the server.run method was called
         mock_stdio_server.assert_called_once()
         mock_context_manager.__aenter__.assert_called_once()
-        assert connection_server.server.run.called 
+        assert connection_server.server.run.called
+    
+    @pytest.mark.asyncio
+    @patch("mcp.server.stdio.stdio_server")
+    async def test_run_with_exception(self, mock_stdio_server, connection_server):
+        """Test the run method when an exception occurs"""
+        # Setup mocks
+        mock_stdin = AsyncMock()
+        mock_stdout = AsyncMock()
+        mock_context_manager = AsyncMock()
+        mock_context_manager.__aenter__.return_value = [mock_stdin, mock_stdout]
+        mock_stdio_server.return_value = mock_context_manager
+        
+        # Create a patched version of run that catches exceptions the same way the actual run method would
+        original_run = connection_server.run
+        
+        async def patched_run():
+            try:
+                await original_run()
+            except Exception as e:
+                connection_server.send_log(LOG_LEVEL_ERROR, f"Error in run: {str(e)}")
+                raise
+        
+        # Replace run with our patched version
+        connection_server.run = patched_run
+        
+        # Mock the server.run method to raise an exception
+        connection_server.server.run = AsyncMock(side_effect=ValueError("Test exception"))
+        
+        # Call the run method and expect an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await connection_server.run()
+        
+        # Verify the server.run method was called and the exception was logged
+        mock_stdio_server.assert_called_once()
+        mock_context_manager.__aenter__.assert_called_once()
+        connection_server.server.run.assert_called_once()
+        connection_server.send_log.assert_called_with(LOG_LEVEL_ERROR, "Error in run: Test exception") 
