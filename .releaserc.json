@@ -6,7 +6,7 @@
     "@semantic-release/changelog",
     ["@semantic-release/exec", {
       "verifyConditionsCmd": "uv --version",
-      "prepareCmd": "sed -i.bak 's/version = \".*\"/version = \"${nextRelease.version}\"/g' pyproject.toml && rm -f pyproject.toml.bak",
+      "prepareCmd": "sed -i.bak '0,/version = \".*\"/s//version = \"${nextRelease.version}\"/' pyproject.toml && rm -f pyproject.toml.bak",
       "publishCmd": "uv build"
     }],
     ["@semantic-release/git", {
