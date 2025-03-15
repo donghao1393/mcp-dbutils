@@ -283,9 +283,18 @@ jobs:
             const projectKey = process.env.SONAR_PROJECT_KEY;
             console.log(`获取项目 ${projectKey} 的SonarCloud问题...`);
             
+            // 获取PR号
+            let prNumberParam = '';
+            if (context.issue.number) {
+              prNumberParam = `&pullRequest=${context.issue.number}`;
+              console.log(`处理PR #${context.issue.number}的SonarCloud问题`);
+            } else {
+              console.log('未检测到PR号，将获取所有未解决的问题');
+            }
+            
             // 获取未解决的问题
             const issuesResponse = await fetch(
-              `https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&resolved=false&ps=500`,
+              `https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}${prNumberParam}&resolved=false&ps=500`,
               { headers: { Authorization: `Bearer ${process.env.SONAR_TOKEN}` } }
             ).then(res => res.json());
             
