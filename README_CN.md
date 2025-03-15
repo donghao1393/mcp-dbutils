@@ -76,6 +76,14 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 }
 ```
 
+**对于Cursor：**
+- 打开Cursor
+- 前往设置 → MCP
+- 点击"添加MCP服务器"并填写：
+  - 名称：`Database Utility MCP`
+  - 类型：`Command`（默认）
+  - 命令：`uvx mcp-dbutils --config /完整/路径/到您的/config.yaml`
+
 > **uvx设置的重要注意事项：**
 > - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
 > - 如果收到找不到uvx的错误，请确保步骤1成功完成

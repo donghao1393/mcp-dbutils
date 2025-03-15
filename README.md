@@ -76,6 +76,14 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 }
 ```
 
+**For Cursor:**
+- Open Cursor
+- Go to Settings → MCP
+- Click "Add MCP Server" and fill in:
+  - Name: `Database Utility MCP`
+  - Type: `Command` (default)
+  - Command: `uvx mcp-dbutils --config /full/path/to/your/config.yaml`
+
 > **Important Notes for uvx Setup:**
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
 > - If you get an error about uvx not being found, make sure step 1 was completed successfully
@@ -111,6 +119,14 @@ This method uses `uvx`, which is part of the Python package manager tool called 
   ]
 }
 ```
+
+**For Cursor:**
+- Open Cursor
+- Go to Settings → MCP
+- Click "Add MCP Server" and fill in:
+  - Name: `Database Utility MCP`
+  - Type: `Command` (default)
+  - Command: `docker run -i --rm -v /full/path/to/your/config.yaml:/app/config.yaml -v /full/path/to/your/sqlite.db:/app/sqlite.db mcp/dbutils --config /app/config.yaml`
 
 > **Important Notes for Docker:**
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
