@@ -61,9 +61,9 @@ class TestBaseHelpers:
     
     def test_get_config_or_raise_invalid_yaml(self, server):
         """Test _get_config_or_raise with invalid YAML"""
-        with patch('builtins.open', mock_open(read_data="invalid: yaml: content:")):
-            with pytest.raises(yaml.YAMLError):
-                server._get_config_or_raise("test_connection")
+        with patch('builtins.open', mock_open(read_data="invalid: yaml: content:")), \
+             pytest.raises(yaml.YAMLError):
+            server._get_config_or_raise("test_connection")
     
     def test_get_config_or_raise_missing_connections(self, server):
         """Test _get_config_or_raise with missing connections section"""
