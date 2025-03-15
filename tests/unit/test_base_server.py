@@ -1,10 +1,10 @@
-from unittest.mock import AsyncMock, MagicMock, patch
 from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import mcp.types as types
 import pytest
 
-from mcp_dbutils.base import ConnectionServer, ConfigurationError
+from mcp_dbutils.base import ConfigurationError, ConnectionServer
 
 # Constants for error messages
 CONNECTION_NAME_REQUIRED_ERROR = "Connection name is required"
@@ -15,12 +15,12 @@ DATABASE_CONNECTION_NAME = "Database connection name"
 @pytest.fixture
 def connection_server():
     # Mock the config path and server initialization
-    with patch("os.path.exists", return_value=True):
-        with patch("builtins.open", MagicMock()):
-            with patch("yaml.safe_load", return_value={}):
-                server = ConnectionServer(config_path="mock_config.yaml")
-                server.send_log = MagicMock()
-                return server
+    with patch("os.path.exists", return_value=True), \
+         patch("builtins.open", MagicMock()), \
+         patch("yaml.safe_load", return_value={}):
+        server = ConnectionServer(config_path="mock_config.yaml")
+        server.send_log = MagicMock()
+        return server
 
 
 class TestConnectionServerPrompts:
