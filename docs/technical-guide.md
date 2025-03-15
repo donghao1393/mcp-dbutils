@@ -323,16 +323,16 @@ flowchart LR
     end
     
     %% 通信流程
-    Client-- "1. 数据请求<br>(自然语言)" -->MCPService
+    Client-- "步骤1:<br>数据请求<br>(自然语言)" -->MCPService
     ConfigFile-. "启动时加载<br>(连接详情)" .->MCPService
-    MCPService-- "2. 处理请求" -->ConnectionManager
-    ConnectionManager-- "3. 打开连接<br>(按需)" -->Databases
-    ConnectionManager-- "4. 发送查询<br>(仅SELECT)" -->QueryProcessor
-    QueryProcessor-- "5. 执行查询" -->Databases
-    Databases-- "6. 返回结果" -->QueryProcessor
-    QueryProcessor-- "7. 格式化结果" -->MCPService
-    MCPService-- "8. 传递结果" -->Client
-    ConnectionManager-- "9. 关闭连接<br>(完成后)" -->Databases
+    MCPService-- "步骤2:<br>处理请求" -->ConnectionManager
+    ConnectionManager-- "步骤3:<br>打开连接<br>(按需)" -->Databases
+    ConnectionManager-- "步骤4:<br>发送查询<br>(仅SELECT)" -->QueryProcessor
+    QueryProcessor-- "步骤5:<br>执行查询" -->Databases
+    Databases-- "步骤6:<br>返回结果" -->QueryProcessor
+    QueryProcessor-- "步骤7:<br>格式化结果" -->MCPService
+    MCPService-- "步骤8:<br>传递结果" -->Client
+    ConnectionManager-- "步骤9:<br>关闭连接<br>(完成后)" -->Databases
     
     %% 样式
     classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
