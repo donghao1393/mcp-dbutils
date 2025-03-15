@@ -343,91 +343,6 @@ SQLite配置选项：
 - 自动掩盖日志中的敏感信息（如密码）
 - 在只读事务中执行查询
 
-## 性能优化指南
-
-MCP数据库工具设计为高效运行，但优化您的查询和配置可以显著提高性能和用户体验。
-
-### 高效查询技巧
-
-1. **选择性字段查询**
-   - 使用 `SELECT 特定字段` 而不是 `SELECT *`
-   - 仅请求您实际需要的列，减少数据传输量
-
-2. **使用适当的WHERE条件**
-   - 总是使用WHERE条件限制结果集
-   - 针对有索引的列进行过滤以获得最佳性能
-
-3. **结果集大小限制**
-   - 对于大型表，始终使用LIMIT子句
-   - 考虑分页查询大型结果集：`LIMIT 100 OFFSET 200`
-
-4. **优化JOIN操作**
-   - 仅JOIN实际需要的表
-   - 优先使用内连接（INNER JOIN）而非外连接（OUTER JOIN）
-   - 确保JOIN条件中使用的字段已建立索引
-
-### 配置优化
-
-1. **连接池配置**
-   对于高并发环境，您可以调整连接池设置：
-   ```yaml
-   connections:
-     my-postgres:
-       # 基本连接信息
-       pool:
-         min_size: 1      # 最小连接数
-         max_size: 5      # 最大连接数
-         timeout: 30      # 连接超时（秒）
-         recycle: 300     # 连接回收时间（秒）
-   ```
-
-2. **超时设置**
-   为防止长时间运行的查询占用资源：
-   ```yaml
-   connections:
-     my-postgres:
-       # 基本连接信息
-       query_timeout: 60  # 查询超时（秒）
-   ```
-
-3. **结果大小限制**
-   控制返回结果的大小：
-   ```yaml
-   global:
-     max_rows: 5000       # 最大返回行数
-     max_text_size: 10000 # 最大文本字段大小（字节）
-   ```
-
-### 系统资源考虑
-
-1. **内存使用**
-   - 对于大型数据集，考虑增加可用内存
-   - 使用查询优化减少内存需求
-
-2. **CPU使用率**
-   - 复杂查询（大量JOIN或聚合）需要更多CPU资源
-   - 考虑分解复杂查询为多个简单查询
-
-3. **网络带宽**
-   - 对于远程数据库，网络延迟可能成为瓶颈
-   - 尽量减少大型数据传输，优先在数据库内聚合数据
-
-### 性能监控
-
-使用内置工具监控查询性能：
-
-```
-dbutils-explain-query --connection=my-postgres --sql="SELECT * FROM large_table WHERE id > 1000"
-```
-
-此工具提供查询执行计划，帮助识别性能瓶颈和改进机会。
-
-```
-dbutils-get-performance --connection=my-postgres
-```
-
-此工具提供连接的整体性能统计，包括查询时间、缓存命中率和资源使用情况。
-
 ## 故障排除指南
 
 在使用MCP数据库工具时，您可能会遇到以下常见问题。以下是排查和解决这些问题的指南。
@@ -504,134 +419,33 @@ MCP_DEBUG=1 uvx mcp-dbutils --config your_config.yaml
 **Cursor MCP配置**：
 在Cursor设置 → MCP → 编辑服务器配置中添加环境变量。
 
-日志文件默认位于：
-- **Linux/macOS**: `~/.local/share/mcp-dbutils/logs/`
-- **Windows**: `%APPDATA%\mcp-dbutils\logs\`
+#### 查看日志
 
-### 常见错误代码
+MCP客户端会处理服务生成的日志。不同的MCP客户端可能在不同位置存储日志：
 
-| 错误代码 | 描述 | 可能的解决方案 |
-|---------|------|---------------|
-| DB001   | 配置文件不存在 | 检查文件路径和权限 |
-| DB002   | 配置格式无效 | 检查YAML语法和必需字段 |
-| DB003   | 数据库连接失败 | 验证连接参数和网络可达性 |
-| DB004   | 查询语法错误 | 检查SQL语法和表名/列名 |
-| DB005   | 非SELECT查询 | 移除任何修改数据的操作 |
-| DB006   | 权限不足 | 确认用户有足够的权限 |
-| DB007   | 查询超时 | 简化查询或增加超时设置 |
+- 对于Claude Desktop：请查看Claude Desktop的应用日志
+- 对于Cursor：请查看Cursor的MCP日志部分
+- 对于其他客户端：请参考各自客户端的文档了解如何访问MCP服务日志
 
-如果您遇到未在本指南中列出的问题，请查看我们的[GitHub issues页面](https://github.com/donghao1393/mcp-dbutils/issues)或提交新问题获取支持。
+如果您在使用过程中遇到问题，以下资源可能会有所帮助：
 
-## 版本升级与迁移指南
+1. **项目文档**：首先查看最新的[项目文档](https://github.com/donghao1393/mcp-dbutils)以获取使用指南和已知问题
 
-随着MCP数据库工具的持续改进，定期升级到最新版本可确保您获得最新功能、安全修复和性能改进。本节提供版本升级的最佳实践和版本间迁移的指导。
+2. **GitHub Issues**：搜索或[提交新issue](https://github.com/donghao1393/mcp-dbutils/issues)报告错误或请求帮助
 
-### 版本命名约定
+3. **GitHub Discussions**：参与[讨论区](https://github.com/donghao1393/mcp-dbutils/discussions)获取社区支持或分享使用经验
 
-我们遵循语义化版本（SemVer）规范：
+## 版本更新
 
-- **主版本**（例如 `2.x.x`）：包含重大变更，可能需要配置调整
-- **次版本**（例如 `1.2.x`）：添加了向后兼容的新功能
-- **补丁版本**（例如 `1.1.1`）：向后兼容的错误修复和小改进
+MCP数据库工具会定期发布更新，包含新功能、性能改进和错误修复。大多数情况下，更新过程由MCP客户端自动管理，您无需手动干预。
 
-### 升级前检查清单
+### 获取最新版本
 
-在升级之前，请执行以下步骤：
+- **使用MCP客户端**：大多数MCP客户端（如Claude Desktop、Cursor等）会自动更新到最新版本
 
-1. **备份配置文件**
-   ```bash
-   cp your_config.yaml your_config.yaml.bak
-   ```
+- **手动检查更新**：
+  - 访问[GitHub仓库](https://github.com/donghao1393/mcp-dbutils)查看最新版本
+  - 阅读[发布说明](https://github.com/donghao1393/mcp-dbutils/releases)了解新功能和变更
 
-2. **检查当前版本**
-   ```bash
-   uvx mcp-dbutils --version
-   ```
-   
-3. **查看版本说明**
-   - 访问 [GitHub发布页面](https://github.com/donghao1393/mcp-dbutils/releases)
-   - 检查新版本与当前版本之间的更改
-
-4. **检查兼容性**
-   - 特别注意标记为"破坏性变更"的项目
-   - 查看是否需要更新配置文件格式
-
-### 升级步骤
-
-#### 使用uvx的升级（推荐）
-
-```bash
-# 升级到最新版本
-uvx pip install --upgrade mcp-dbutils
-
-# 或升级到特定版本
-uvx pip install --upgrade mcp-dbutils==1.2.0
-```
-
-#### Docker镜像升级
-
-```bash
-# 拉取最新镜像
-docker pull mcp/dbutils:latest
-
-# 或拉取特定版本
-docker pull mcp/dbutils:1.2.0
-```
-
-#### Smithery升级
-
-```bash
-npx -y @smithery/cli update @donghao1393/mcp-dbutils
-```
-
-### 主要版本迁移指南
-
-#### 从0.x升级到1.x
-
-**配置文件变更**：
-- 连接格式已更改，请参照以下示例更新配置文件
-  ```yaml
-  # 旧格式 (0.x)
-  databases:
-    - name: my-db
-      type: postgres
-      host: localhost
-  
-  # 新格式 (1.x)
-  connections:
-    my-db:
-      type: postgres
-      host: localhost
-  ```
-
-**新功能**：
-- 添加了连接池支持
-- 改进了错误处理和日志记录
-- 添加了SSL/TLS配置选项
-
-#### 从1.x升级到2.x（未来）
-
-当主要版本升级可用时，我们将在此处提供详细的迁移指南。
-
-### 版本降级
-
-如果您需要回滚到早期版本：
-
-```bash
-# 使用uvx降级
-uvx pip install mcp-dbutils==1.0.0
-
-# 或使用特定Docker镜像
-docker pull mcp/dbutils:1.0.0
-```
-
-### 配置文件转换工具
-
-对于主要版本升级，我们提供配置文件转换工具：
-
-```bash
-# 将0.x配置文件转换为1.x格式
-uvx mcp-dbutils-convert --input old_config.yaml --output new_config.yaml
-```
-
-请在升级后测试服务，确保所有功能按预期工作。如果遇到问题，您可以使用备份的配置文件和降级到先前版本作为临时解决方案。
+- **问题报告**：
+  - 如果您在更新后遇到问题，请[提交issue](https://github.com/donghao1393/mcp-dbutils/issues)
