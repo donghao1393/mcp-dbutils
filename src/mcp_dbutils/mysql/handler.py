@@ -157,6 +157,16 @@ class MySQLHandler(ConnectionHandler):
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
+                # Check if table exists
+                cur.execute("""
+                    SELECT COUNT(*) as count
+                    FROM information_schema.tables 
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                """, (self.config.database, table_name))
+                table_exists = cur.fetchone()
+                if not table_exists or table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+
                 # Get table information and comment
                 cur.execute("""
                     SELECT 
@@ -249,6 +259,16 @@ class MySQLHandler(ConnectionHandler):
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
+                # Check if table exists
+                cur.execute("""
+                    SELECT COUNT(*) as count
+                    FROM information_schema.tables 
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                """, (self.config.database, table_name))
+                table_exists = cur.fetchone()
+                if not table_exists or table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+
                 # Get index information
                 cur.execute("""
                     SELECT 
@@ -308,6 +328,16 @@ class MySQLHandler(ConnectionHandler):
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
+                # Check if table exists
+                cur.execute("""
+                    SELECT COUNT(*) as count
+                    FROM information_schema.tables 
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                """, (self.config.database, table_name))
+                table_exists = cur.fetchone()
+                if not table_exists or table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+
                 # Get table statistics
                 cur.execute("""
                     SELECT 
@@ -373,6 +403,16 @@ class MySQLHandler(ConnectionHandler):
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
+                # Check if table exists
+                cur.execute("""
+                    SELECT COUNT(*) as count
+                    FROM information_schema.tables 
+                    WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                """, (self.config.database, table_name))
+                table_exists = cur.fetchone()
+                if not table_exists or table_exists['count'] == 0:
+                    raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
+
                 # Get constraint information
                 cur.execute("""
                     SELECT 

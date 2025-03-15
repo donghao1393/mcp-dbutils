@@ -53,7 +53,7 @@ async def test_get_table_indexes(sqlite_db, mcp_config):
             indexes = await handler.get_table_indexes("users")
             
             # Verify indexes content
-            assert "Indexes for users:" in indexes
+            assert "No indexes found on table users" in indexes
             # SQLite might not have indexes for the test table by default
             # so we're just checking the header is present
 

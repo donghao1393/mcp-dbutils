@@ -185,6 +185,12 @@ class SQLiteHandler(ConnectionHandler):
         try:
             with sqlite3.connect(self.config.path) as conn:
                 cur = conn.cursor()
+                
+                # Check if table exists
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+                if not cur.fetchone():
+                    raise ConnectionHandlerError(f"Table '{table_name}' doesn't exist")
+                
                 # 获取索引列表
                 cur.execute(f"PRAGMA index_list({table_name})")
                 indexes = cur.fetchall()
@@ -232,6 +238,11 @@ class SQLiteHandler(ConnectionHandler):
         try:
             with sqlite3.connect(self.config.path) as conn:
                 cur = conn.cursor()
+                
+                # Check if table exists
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+                if not cur.fetchone():
+                    raise ConnectionHandlerError(f"Table '{table_name}' doesn't exist")
                 
                 # Get basic table information
                 cur.execute(f"PRAGMA table_info({table_name})")
@@ -393,6 +404,13 @@ class SQLiteHandler(ConnectionHandler):
         try:
             with sqlite3.connect(self.config.path) as conn:
                 cur = conn.cursor()
+                
+                # Check if the query is valid by preparing it
+                try:
+                    # Use prepare to validate the query without executing it
+                    conn.execute(f"EXPLAIN {sql}")
+                except sqlite3.Error as e:
+                    raise ConnectionHandlerError(f"Failed to explain query: {str(e)}")
                 
                 # Get EXPLAIN output
                 cur.execute(f"EXPLAIN QUERY PLAN {sql}")
