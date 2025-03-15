@@ -36,7 +36,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 cur.execute("""
                     SELECT 
                         TABLE_NAME as table_name,
@@ -66,7 +66,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get column information
                 cur.execute("""
                     SELECT 
@@ -118,7 +118,7 @@ class MySQLHandler(ConnectionHandler):
             conn = mysql.connector.connect(**conn_params)
             self.log("debug", f"Executing query: {sql}")
 
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Start read-only transaction
                 cur.execute("SET TRANSACTION READ ONLY")
                 try:
@@ -150,7 +150,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get table information and comment
                 cur.execute("""
                     SELECT 
@@ -220,7 +220,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # MySQL provides a SHOW CREATE TABLE statement
                 cur.execute(f"SHOW CREATE TABLE {table_name}")
                 result = cur.fetchone()
@@ -242,7 +242,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get index information
                 cur.execute("""
                     SELECT 
@@ -301,7 +301,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get table statistics
                 cur.execute("""
                     SELECT 
@@ -366,7 +366,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get constraint information
                 cur.execute("""
                     SELECT 
@@ -429,7 +429,7 @@ class MySQLHandler(ConnectionHandler):
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get EXPLAIN output
                 cur.execute(f"EXPLAIN FORMAT=TREE {sql}")
                 explain_result = cur.fetchall()

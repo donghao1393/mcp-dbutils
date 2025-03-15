@@ -49,7 +49,7 @@ class MySQLServer(ConnectionServer):
         """列出所有表资源"""
         try:
             conn = self.pool.get_connection()
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 cur.execute("""
                     SELECT 
                         table_name,
@@ -78,7 +78,7 @@ class MySQLServer(ConnectionServer):
         try:
             table_name = uri.split('/')[-2]
             conn = self.pool.get_connection()
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 # 获取列信息
                 cur.execute("""
                     SELECT 
@@ -170,7 +170,7 @@ class MySQLServer(ConnectionServer):
                 conn = self.pool.get_connection()
 
             self.log("info", f"执行查询: {sql}")
-            with conn.cursor(dictionary=True) as cur:
+            with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 # 设置只读事务
                 cur.execute("SET TRANSACTION READ ONLY")
                 try:
