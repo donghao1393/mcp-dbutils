@@ -298,7 +298,7 @@ async def test_list_tables_tool_errors(postgres_db, mcp_config):
                 # 测试场景1：不存在的连接名
                 result = await client.call_tool("dbutils-list-tables", {"connection": "non_existent_connection"})
                 print(f"收到响应: {result}")
-                assert result.isError == True, "应该返回错误状态"
+                assert result.isError, "应该返回错误状态"
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 assert "Connection not found" in result.content[0].text
@@ -307,7 +307,7 @@ async def test_list_tables_tool_errors(postgres_db, mcp_config):
                 # 测试场景2：缺少必需的连接参数
                 result = await client.call_tool("dbutils-list-tables", {})
                 print(f"收到响应: {result}")
-                assert result.isError == True, "应该返回错误状态"
+                assert result.isError, "应该返回错误状态"
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 assert "Connection name must be specified" in result.content[0].text
