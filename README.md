@@ -40,13 +40,25 @@ Choose **ONE** of the following methods to install:
 
 #### Option A: Using uvx (Recommended)
 
-This method uses the `uvx` command to run the service directly without installing any packages:
+This method uses `uvx`, which is part of the Python package manager tool called "uv". Here's how to set it up:
 
-1. Make sure you have `uvx` available (most AI clients include this)
+1. **Install uv and uvx first:**
 
-2. Create a configuration file (see next section for details)
+   **On macOS or Linux:**
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
 
-3. Add this configuration to your AI client:
+   **On Windows:**
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+   After installation, restart your terminal or command prompt.
+
+2. **Create a configuration file** (see next section for details)
+
+3. **Add this configuration to your AI client:**
 
 **For Claude Desktop:**
 - Open Claude Desktop
@@ -66,7 +78,8 @@ This method uses the `uvx` command to run the service directly without installin
 
 > **Important Notes for uvx Setup:**
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
-> - No installation is needed as uvx will automatically fetch the necessary files
+> - If you get an error about uvx not being found, make sure step 1 was completed successfully
+> - You can verify uvx is installed by typing `uvx --version` in your terminal
 
 #### Option B: Manual Installation with Docker
 

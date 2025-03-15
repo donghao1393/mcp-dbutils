@@ -40,13 +40,25 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 #### 方式A：使用uvx（推荐）
 
-此方法使用`uvx`命令直接运行服务，无需安装任何软件包：
+此方法使用`uvx`，它是Python包管理工具"uv"的一部分。以下是设置步骤：
 
-1. 确保您可以使用`uvx`命令（大多数AI客户端都包含此命令）
+1. **首先安装uv和uvx：**
 
-2. 创建配置文件（详见下一节）
+   **在macOS或Linux上：**
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
 
-3. 将此配置添加到您的AI客户端：
+   **在Windows上：**
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+   安装后，重启您的终端或命令提示符。
+
+2. **创建配置文件**（详见下一节）
+
+3. **将此配置添加到您的AI客户端：**
 
 **对于Claude Desktop：**
 - 打开Claude Desktop
@@ -66,7 +78,8 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
 
 > **uvx设置的重要注意事项：**
 > - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
-> - 无需安装，因为uvx会自动获取必要的文件
+> - 如果收到找不到uvx的错误，请确保步骤1成功完成
+> - 您可以在终端中输入`uvx --version`来验证uvx是否已安装
 
 #### 方式B：使用Docker手动安装
 
