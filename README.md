@@ -23,23 +23,39 @@ MCP Database Utilities is an all-in-one MCP service that enables your AI to do d
 
 Think of it as a secure bridge between AI systems and your databases, allowing AI to read and analyze your data without direct database access or risking data modifications.
 
-### Security-First Design for Everyone
+## Security and Privacy: Our Top Priority
 
-Designed with security as top priority, it's perfect for small businesses, startups, and security-conscious individuals who need data analysis without extensive security infrastructure:
+MCP Database Utilities is built with a **security-first architecture**, making it ideal for businesses, startups, and individuals who value data protection. Our comprehensive security measures include:
 
-- **Isolated Connections**: Each database connection is managed by name and strictly isolated from others, preventing cross-connection vulnerabilities
-- **On-Demand Connection**: Connects to your database only when the AI requests it and disconnects immediately after completion
-- **Configuration Protection**: Uses a separate YAML configuration file to eliminate misinterpretation risks (like special character errors in direct commands)
-- **Minimal Data Exposure**: Communicates only with your database and AI model - when using local AI models, no data needs to leave your computer
-- **No Write Access**: Your data is protected by default - the service operates in read-only mode
+### Data Protection
+
+- **Strictly Read-Only**: All operations are limited to SELECT queries only - data cannot be modified
+- **No Direct Database Access**: AI interacts with your database through our secure service, never directly
+- **Isolated Connections**: Each database connection is managed separately and strictly isolated
+- **On-Demand Connectivity**: Connects only when needed and disconnects immediately after task completion
+- **Automatic Timeouts**: Long-running operations are automatically terminated to prevent resource abuse
+
+### Privacy Safeguards
+
+- **Local Processing**: All data processing occurs on your local machine - no data sent to external servers
+- **Minimal Data Exposure**: Only requested data is returned, limiting exposure scope
+- **Credential Protection**: Connection credentials are never exposed to the AI model
+- **Sensitive Data Masking**: Passwords and connection details are automatically hidden in logs
+
+### Enterprise-Ready Security
+
+- **SSL/TLS Support**: Encrypted connections to remote databases
+- **Configuration Separation**: YAML configuration files eliminate interpretation risks
+- **User-Controlled Access**: You decide which databases are accessible
+- **Secure Default Settings**: Secure by default with no additional configuration needed
+
+For technical details about our security architecture, see the [Technical Guide](docs/technical-guide.md#security-architecture).
 
 ## Why Use MCP Database Utilities?
 
 - **Universal AI Support**: Works with any AI system that supports the MCP protocol
 - **Multiple Database Support**: Connect to SQLite, MySQL, PostgreSQL with the same interface
-- **Safe Data Access**: Read-only operations ensure your data cannot be modified
 - **Simple Configuration**: Single YAML file for all your database connections
-- **Enhanced Privacy**: Your data stays local, with sensitive information automatically protected
 - **Advanced Capabilities**: Table exploration, schema analysis, and query execution
 
 ## Getting Started
@@ -223,15 +239,6 @@ If you encounter any issues, check:
 **You**: "How many customers made purchases in the last month?"
 
 **AI**: "Let me run a query to find out... According to the data, 128 customers made purchases in the last month. The total value of these purchases was $25,437.82."
-
-## Security and Privacy
-
-Your data's security is our priority:
-
-- **Read-Only Access**: AI can only view data, never modify it
-- **Secure Connections**: Support for SSL/TLS encrypted database connections
-- **Local Processing**: Your data stays on your computer
-- **Sensitive Data Protection**: Passwords and connection details are automatically hidden in logs
 
 ## Available Tools
 
