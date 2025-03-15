@@ -84,15 +84,16 @@ class SQLiteHandler(ConnectionHandler):
             is_dml = sql_upper.startswith(("INSERT", "UPDATE", "DELETE"))
             is_select = sql_upper.startswith("SELECT")
 
-            if not (is_select or is_ddl):
-                raise ConnectionHandlerError("Only SELECT and DDL statements are allowed")
+            if not (is_select or is_ddl or is_dml):
+                raise ConnectionHandlerError("Only SELECT, DDL, and DML statements are allowed")
 
             conn = sqlite3.connect(self.config.path)
             cur = conn.cursor()
 
             try:
                 cur.execute(sql)
-                if is_ddl:
+                # Commit changes for DDL and DML statements
+                if is_ddl or is_dml:
                     conn.commit()
                     return "Query executed successfully"
 

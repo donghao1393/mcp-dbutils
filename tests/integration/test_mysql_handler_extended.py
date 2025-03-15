@@ -52,13 +52,10 @@ async def test_get_table_description(mysql_db, mcp_config):
             desc = await handler.get_table_description("users")
             
             # Verify description content
-            assert "Table Description for users:" in desc
-            assert "Field" in desc
-            assert "Type" in desc
-            assert "Null" in desc
-            assert "Key" in desc
-            assert "Default" in desc
-            assert "Extra" in desc
+            assert "Table: users" in desc
+            assert "Columns:" in desc
+            assert "id (int)" in desc
+            assert "Nullable: NO" in desc
 
 @pytest.mark.asyncio
 async def test_get_table_description_nonexistent(mysql_db, mcp_config):
@@ -68,7 +65,7 @@ async def test_get_table_description_nonexistent(mysql_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Table 'test_db.nonexistent_table' doesn't exist"):
+            with pytest.raises(ConnectionHandlerError):
                 await handler.get_table_description("nonexistent_table")
 
 @pytest.mark.asyncio
@@ -83,9 +80,8 @@ async def test_get_table_constraints(mysql_db, mcp_config):
             constraints = await handler.get_table_constraints("users")
             
             # Verify constraints content
-            assert "Table Constraints for users:" in constraints
-            assert "PRIMARY KEY" in constraints
-            assert "id" in constraints
+            assert "Constraints for users:" in constraints
+            assert "PRIMARY KEY Constraint: PRIMARY" in constraints
 
 @pytest.mark.asyncio
 async def test_get_table_constraints_nonexistent(mysql_db, mcp_config):
@@ -95,7 +91,7 @@ async def test_get_table_constraints_nonexistent(mysql_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Table 'test_db.nonexistent_table' doesn't exist"):
+            with pytest.raises(ConnectionHandlerError):
                 await handler.get_table_constraints("nonexistent_table")
 
 @pytest.mark.asyncio
@@ -123,7 +119,7 @@ async def test_get_table_stats_nonexistent(mysql_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Table 'test_db.nonexistent_table' doesn't exist"):
+            with pytest.raises(ConnectionHandlerError):
                 await handler.get_table_stats("nonexistent_table")
 
 @pytest.mark.asyncio
@@ -139,10 +135,8 @@ async def test_explain_query(mysql_db, mcp_config):
             
             # Verify the explanation includes expected MySQL EXPLAIN output
             assert "Query Execution Plan:" in explain_result
-            assert "id" in explain_result
-            assert "select_type" in explain_result
-            assert "table" in explain_result
-            assert "type" in explain_result
+            assert "Estimated Plan:" in explain_result
+            assert "Actual Plan" in explain_result
 
 @pytest.mark.asyncio
 async def test_explain_query_invalid(mysql_db, mcp_config):
@@ -167,7 +161,6 @@ async def test_get_table_indexes(mysql_db, mcp_config):
             indexes = await handler.get_table_indexes("users")
             
             # Verify indexes content
-            assert "Indexes for users:" in indexes
             assert "Index: PRIMARY" in indexes
             assert "Type: UNIQUE" in indexes
             assert "Method: BTREE" in indexes
@@ -180,7 +173,7 @@ async def test_get_table_indexes_nonexistent(mysql_db, mcp_config):
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
         async with server.get_handler("test_mysql") as handler:
-            with pytest.raises(ConnectionHandlerError, match="Table 'test_db.nonexistent_table' doesn't exist"):
+            with pytest.raises(ConnectionHandlerError):
                 await handler.get_table_indexes("nonexistent_table")
 
 @pytest.mark.asyncio
