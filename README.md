@@ -48,7 +48,41 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 
 After installation completes, skip to the "Using the Service" section.
 
-#### Option B: Manual Installation with Docker
+#### Option B: Using Python Package (Manual Setup)
+
+1. Install the package using pip:
+
+```bash
+pip install mcp-dbutils
+```
+
+2. Create a configuration file (see next section for details)
+
+3. Add this configuration to your AI client:
+
+**For Claude Desktop:**
+- Open Claude Desktop
+- Go to Settings → Developer
+- Add this configuration to the "MCP Servers" section:
+
+```json
+"dbutils": {
+  "command": "python",
+  "args": [
+    "-m",
+    "mcp_dbutils",
+    "--config",
+    "/full/path/to/your/config.yaml"
+  ]
+}
+```
+
+> **Important Notes for Python Setup:**
+> - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
+> - Make sure Python 3.10+ is installed on your system
+> - Virtual environments are recommended but not required
+
+#### Option C: Manual Installation with Docker
 
 1. Install Docker from [docker.com](https://www.docker.com/products/docker-desktop/) if you don't have it
 

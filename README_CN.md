@@ -48,7 +48,41 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 
 安装完成后，直接跳到"使用服务"部分。
 
-#### 方式B：使用Docker手动安装
+#### 方式B：使用Python包（手动设置）
+
+1. 使用pip安装软件包：
+
+```bash
+pip install mcp-dbutils
+```
+
+2. 创建配置文件（详见下一节）
+
+3. 将此配置添加到您的AI客户端：
+
+**对于Claude Desktop：**
+- 打开Claude Desktop
+- 前往设置 → 开发者
+- 在"MCP Servers"部分添加以下配置：
+
+```json
+"dbutils": {
+  "command": "python",
+  "args": [
+    "-m",
+    "mcp_dbutils",
+    "--config",
+    "/完整/路径/到您的/config.yaml"
+  ]
+}
+```
+
+> **Python设置的重要注意事项：**
+> - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
+> - 确保您的系统上安装了Python 3.10+
+> - 推荐但不强制使用虚拟环境
+
+#### 方式C：使用Docker手动安装
 
 1. 如果您没有Docker，请从[docker.com](https://www.docker.com/products/docker-desktop/)安装
 
