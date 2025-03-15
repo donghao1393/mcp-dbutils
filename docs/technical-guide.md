@@ -298,3 +298,77 @@ except Exception as e:
 - 仅支持SELECT查询以保护数据库安全
 - 自动掩盖日志中的敏感信息（如密码）
 - 在只读事务中执行查询
+
+## Communication Model and Security Architecture
+
+The MCP Database Utilities service implements a secure communication model designed to protect your data at every step. The following diagram illustrates how data flows between components while maintaining security:
+
+```mermaid
+flowchart LR
+    subgraph User["User Environment"]
+        Client["AI Client\n(Claude/Cursor)"]
+        ConfigFile["Configuration File\n(YAML)"]
+    end
+    
+    subgraph MCP["MCP Database Utilities"]
+        MCPService["MCP Service"]
+        ConnectionManager["Connection Manager"]
+        QueryProcessor["Query Processor\n(READ-ONLY)"]
+    end
+    
+    subgraph Databases["Database Layer"]
+        DB1["Database 1"]
+        DB2["Database 2"]
+        DBn["Database n"]
+    end
+    
+    %% Communication flows
+    Client-- "1. Data request\n(natural language)" -->MCPService
+    ConfigFile-. "Loads on startup\n(connection details)" .->MCPService
+    MCPService-- "2. Processes request" -->ConnectionManager
+    ConnectionManager-- "3. Opens connection\n(when needed)" -->Databases
+    ConnectionManager-- "4. Sends query\n(SELECT only)" -->QueryProcessor
+    QueryProcessor-- "5. Executes query" -->Databases
+    Databases-- "6. Returns results" -->QueryProcessor
+    QueryProcessor-- "7. Formats results" -->MCPService
+    MCPService-- "8. Delivers results" -->Client
+    ConnectionManager-- "9. Closes connection\n(after completion)" -->Databases
+    
+    %% Styling
+    classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+    
+    class User user
+    class MCP mcp
+    class Databases db
+    
+    %% Add security notes
+    style ConnectionManager stroke-dasharray: 5 5
+    style QueryProcessor stroke-dasharray: 5 5
+```
+
+### Key Security Features
+
+1. **Isolated Access Flow**:
+   - Your AI client never directly accesses your databases
+   - All requests pass through the controlled MCP service environment
+
+2. **Temporary Connections**:
+   - Database connections are only established when needed
+   - Connections are immediately closed after query execution
+   - No persistent connections that could be exploited
+
+3. **Read-Only Operations**:
+   - The Query Processor enforces strict SELECT-only operations
+   - No data modification is possible (no INSERT, UPDATE, DELETE)
+
+4. **Configuration Separation**:
+   - Connection details are isolated in a separate configuration file
+   - Credentials are never exposed to the AI model
+
+5. **Multiple Database Support**:
+   - Each database connection is managed separately
+   - Databases remain isolated from each other through the Connection Manager
+
+This architecture ensures that even if you're using the tool for multiple databases or purposes, each connection remains secure and isolated, with minimal exposure of your data.
