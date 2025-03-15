@@ -64,7 +64,11 @@ This method uses `uvx`, which is part of the Python package manager tool called 
    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-   After installation, restart your terminal or command prompt.
+   After installation, verify that uv is installed correctly:
+   ```bash
+   uv --version
+   # Should display something like: uv 0.5.5 (Homebrew 2024-11-27)
+   ```
 
 2. **Create a configuration file** (see next section for details)
 

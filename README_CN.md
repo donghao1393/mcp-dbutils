@@ -64,7 +64,11 @@ MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安�
    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-   安装后，重启您的终端或命令提示符。
+   安装后，验证uv是否正确安装：
+   ```bash
+   uv --version
+   # 应显示类似：uv 0.5.5 (Homebrew 2024-11-27)
+   ```
 
 2. **创建配置文件**（详见下一节）
 
