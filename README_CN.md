@@ -47,6 +47,26 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 uvx mcp-dbutils --config /path/to/config.yaml
 ```
 
+或使用 pip：
+```bash
+pip install mcp-dbutils
+```
+
+或使用 Docker：
+```bash
+docker run -i --rm \
+  -v /path/to/config.yaml:/app/config.yaml \
+  -v /path/to/sqlite.db:/app/sqlite.db \  # 可选：用于SQLite数据库
+  -e MCP_DEBUG=1 \  # 可选：启用调试模式
+  mcp/dbutils --config /app/config.yaml
+```
+
+> **Docker数据库连接注意事项：**
+> - 对于SQLite：使用 `-v /path/to/sqlite.db:/app/sqlite.db` 挂载数据库文件
+> - 对于主机上运行的PostgreSQL：
+>   - Mac/Windows：在配置中使用 `host.docker.internal` 作为主机
+>   - Linux：使用 `172.17.0.1`（docker0 IP）或使用 `--network="host"` 运行
+
 ### 2. 简单配置
 
 创建一个包含数据库信息的 config.yaml 文件：
@@ -78,6 +98,27 @@ connections:
       "mcp-dbutils",
       "--config",
       "/path/to/config.yaml"
+    ]
+  }
+}
+```
+
+对于Docker安装：
+```json
+"mcpServers": {
+  "dbutils": {
+    "command": "docker",
+    "args": [
+      "run",
+      "-i",
+      "--rm",
+      "-v",
+      "/path/to/config.yaml:/app/config.yaml",
+      "-v",
+      "/path/to/sqlite.db:/app/sqlite.db",  // 可选：用于SQLite数据库
+      "mcp/dbutils",
+      "--config",
+      "/app/config.yaml"
     ]
   }
 }

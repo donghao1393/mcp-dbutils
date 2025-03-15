@@ -47,6 +47,26 @@ Or using uvx (no installation needed):
 uvx mcp-dbutils --config /path/to/config.yaml
 ```
 
+Or using pip:
+```bash
+pip install mcp-dbutils
+```
+
+Or using Docker:
+```bash
+docker run -i --rm \
+  -v /path/to/config.yaml:/app/config.yaml \
+  -v /path/to/sqlite.db:/app/sqlite.db \  # Optional: for SQLite database
+  -e MCP_DEBUG=1 \  # Optional: Enable debug mode
+  mcp/dbutils --config /app/config.yaml
+```
+
+> **Note for Docker database connections:**
+> - For SQLite: Mount your database file using `-v /path/to/sqlite.db:/app/sqlite.db`
+> - For PostgreSQL running on host:
+>   - On Mac/Windows: Use `host.docker.internal` as host in config
+>   - On Linux: Use `172.17.0.1` (docker0 IP) or run with `--network="host"`
+
 ### 2. Simple Configuration
 
 Create a config.yaml file with your database information:
@@ -78,6 +98,27 @@ Add to your AI system's MCP configuration:
       "mcp-dbutils",
       "--config",
       "/path/to/config.yaml"
+    ]
+  }
+}
+```
+
+For Docker installation:
+```json
+"mcpServers": {
+  "dbutils": {
+    "command": "docker",
+    "args": [
+      "run",
+      "-i",
+      "--rm",
+      "-v",
+      "/path/to/config.yaml:/app/config.yaml",
+      "-v",
+      "/path/to/sqlite.db:/app/sqlite.db",  // Optional: for SQLite database
+      "mcp/dbutils",
+      "--config",
+      "/app/config.yaml"
     ]
   }
 }
