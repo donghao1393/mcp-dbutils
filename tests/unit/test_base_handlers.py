@@ -1,6 +1,6 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 import mcp.types as types
+from unittest.mock import AsyncMock, MagicMock, patch
 from mcp_dbutils.base import ConnectionServer, ConfigurationError
 
 # Constants for error messages - use the actual error messages from the code
