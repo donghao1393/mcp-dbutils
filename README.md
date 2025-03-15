@@ -58,6 +58,22 @@ For technical details about our security architecture, see the [Technical Guide]
 - **Simple Configuration**: Single YAML file for all your database connections
 - **Advanced Capabilities**: Table exploration, schema analysis, and query execution
 
+## System Requirements
+
+- Python 3.10 or higher
+- One of the following:
+  - **For uvx installation**: uv package manager
+  - **For Docker installation**: Docker Desktop
+  - **For Smithery installation**: Node.js 14+
+- Supported databases:
+  - SQLite 3.x
+  - PostgreSQL 12+
+  - MySQL 8+
+- Supported AI clients:
+  - Claude Desktop
+  - Cursor
+  - Any MCP-compatible client
+
 ## Getting Started
 
 ### 1. Installation Guide
@@ -257,12 +273,6 @@ MCP Database Utilities provides several tools that your AI can use:
 - [Technical Documentation](docs/technical-guide.md) - For developers and advanced users
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - Report bugs or request features
 - [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - Simplified installation and updates
-
-## Requirements
-
-- Python 3.10 or higher
-- AI system with MCP protocol support
-- One or more of: PostgreSQL, SQLite, or MySQL databases
 
 ## License
 

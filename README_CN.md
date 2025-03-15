@@ -17,11 +17,11 @@
 
 [English](README.md) | [技术指南](docs/technical-guide.md)
 
-## MCP 数据库工具是什么？
+## 什么是 MCP Database Utilities？
 
-MCP 数据库工具是一个全能型 MCP 服务，使您的 AI 能够通过安全地访问多种类型的数据库（SQLite、MySQL、PostgreSQL 等）在统一的连接配置中进行数据分析。
+MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够通过统一的连接配置安全地访问各种类型的数据库（SQLite、MySQL、PostgreSQL 等）进行数据分析。
 
-可以将其视为 AI 系统和您的数据库之间的安全桥梁，允许 AI 读取和分析您的数据，而无需直接访问数据库或冒数据被修改的风险。
+您可以将其视为 AI 系统和数据库之间的安全桥梁，允许 AI 在不直接访问数据库或冒数据修改风险的情况下读取和分析您的数据。
 
 ## 安全和隐私：我们的首要任务
 
@@ -51,12 +51,28 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
 
 有关我们安全架构的技术详情，请参阅[技术指南](docs/technical-guide.md#通信模式与安全架构)。
 
-## 为什么使用 MCP 数据库工具？
+## 为什么使用 MCP Database Utilities？
 
 - **通用 AI 支持**：适用于任何支持 MCP 协议的 AI 系统
 - **多数据库支持**：使用相同的接口连接 SQLite、MySQL、PostgreSQL
-- **简单配置**：单个 YAML 文件用于所有数据库连接
-- **高级功能**：表格探索、架构分析和查询执行
+- **简单配置**：所有数据库连接使用单个 YAML 文件
+- **高级功能**：表格浏览、架构分析和查询执行
+
+## 系统要求
+
+- Python 3.10 或更高版本
+- 以下之一：
+  - **uvx 安装方式**：uv 包管理器
+  - **Docker 安装方式**：Docker Desktop
+  - **Smithery 安装方式**：Node.js 14+
+- 支持的数据库：
+  - SQLite 3.x
+  - PostgreSQL 12+
+  - MySQL 8+
+- 支持的 AI 客户端：
+  - Claude Desktop
+  - Cursor
+  - 任何兼容 MCP 的客户端
 
 ## 开始使用
 
@@ -268,12 +284,6 @@ MCP 数据库工具提供了几个您的 AI 可以使用的工具：
 - [技术文档](docs/technical-guide.md) - 适用于开发人员和高级用户
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - 报告错误或请求功能
 - [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - 简化安装和更新
-
-## 系统要求
-
-- Python 3.10 或更高版本
-- 支持 MCP 协议的 AI 系统
-- 一个或多个：PostgreSQL、SQLite 或 MySQL 数据库
 
 ## 许可证
 
