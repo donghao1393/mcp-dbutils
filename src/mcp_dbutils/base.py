@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from datetime import datetime
 from importlib.metadata import metadata
-from typing import AsyncContextManager, Any, Dict
+from typing import Any, AsyncContextManager, Dict
 
 import mcp.server.stdio
 import mcp.types as types
@@ -14,6 +14,7 @@ from mcp.server import Server
 
 from .log import create_logger
 from .stats import ResourceStats
+
 
 class ConnectionHandlerError(Exception):
     """Base exception for connection errors"""
