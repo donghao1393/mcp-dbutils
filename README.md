@@ -1,108 +1,108 @@
-# MCP Database Utilities
+# MCP 数据库工具
 
 <!-- 项目状态徽章 -->
-[![Build Status](https://img.shields.io/github/workflow/status/donghao1393/mcp-dbutils/Quality%20Assurance?label=tests)](https://github.com/donghao1393/mcp-dbutils/actions)
-[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/donghao1393/bdd0a63ec2a816539ff8c136ceb41e48/raw/coverage.json)](https://github.com/donghao1393/mcp-dbutils/actions)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=donghao1393_mcp-dbutils&metric=alert_status)](https://sonarcloud.io/dashboard?id=donghao1393_mcp-dbutils)
+[![构建状态](https://img.shields.io/github/workflow/status/donghao1393/mcp-dbutils/Quality%20Assurance?label=tests)](https://github.com/donghao1393/mcp-dbutils/actions)
+[![覆盖率](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/donghao1393/bdd0a63ec2a816539ff8c136ceb41e48/raw/coverage.json)](https://github.com/donghao1393/mcp-dbutils/actions)
+[![质量门禁状态](https://sonarcloud.io/api/project_badges/measure?project=donghao1393_mcp-dbutils&metric=alert_status)](https://sonarcloud.io/dashboard?id=donghao1393_mcp-dbutils)
 
 <!-- 版本和安装徽章 -->
-[![PyPI version](https://img.shields.io/pypi/v/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
+[![PyPI 版本](https://img.shields.io/pypi/v/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
+[![PyPI 下载量](https://img.shields.io/pypi/dm/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
 [![Smithery](https://smithery.ai/badge/@donghao1393/mcp-dbutils)](https://smithery.ai/server/@donghao1393/mcp-dbutils)
 
 <!-- 技术规格徽章 -->
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/github/license/donghao1393/mcp-dbutils)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/donghao1393/mcp-dbutils?style=social)](https://github.com/donghao1393/mcp-dbutils/stargazers)
+[![许可证](https://img.shields.io/github/license/donghao1393/mcp-dbutils)](LICENSE)
+[![GitHub 星标](https://img.shields.io/github/stars/donghao1393/mcp-dbutils?style=social)](https://github.com/donghao1393/mcp-dbutils/stargazers)
 
-[中文文档](README_CN.md) | [Technical Guide](docs/technical-guide.md)
+[English](README.md) | [技术指南](docs/technical-guide.md)
 
-## What is MCP Database Utilities?
+## 什么是 MCP Database Utilities？
 
-MCP Database Utilities is an all-in-one MCP service that enables your AI to do data analysis by accessing versatile types of database (SQLite, MySQL, PostgreSQL, and more) within a unified connection configuration in a safe way.
+MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够通过统一的连接配置安全地访问各种类型的数据库（SQLite、MySQL、PostgreSQL 等）进行数据分析。
 
-Think of it as a secure bridge between AI systems and your databases, allowing AI to read and analyze your data without direct database access or risking data modifications.
+您可以将其视为 AI 系统和数据库之间的安全桥梁，允许 AI 在不直接访问数据库或冒数据修改风险的情况下读取和分析您的数据。
 
-## Security and Privacy: Our Top Priority
+## 安全和隐私：我们的首要任务
 
-MCP Database Utilities is built with a **security-first architecture**, making it ideal for businesses, startups, and individuals who value data protection. Our comprehensive security measures include:
+MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数据保护的企业、初创公司和个人用户。我们的全面安全措施包括：
 
-### Data Protection
+### 数据保护
 
-- **Strictly Read-Only**: All operations are limited to SELECT queries only - data cannot be modified
-- **No Direct Database Access**: AI interacts with your database through our secure service, never directly
-- **Isolated Connections**: Each database connection is managed separately and strictly isolated
-- **On-Demand Connectivity**: Connects only when needed and disconnects immediately after task completion
-- **Automatic Timeouts**: Long-running operations are automatically terminated to prevent resource abuse
+- **严格只读**：所有操作仅限于 SELECT 查询 - 数据不可被修改
+- **无直接数据库访问**：AI 通过我们的安全服务与数据库交互，永不直接连接
+- **隔离连接**：每个数据库连接单独管理并严格隔离
+- **按需连接**：仅在需要时连接，任务完成后立即断开
+- **自动超时**：长时间运行的操作会自动终止，防止资源滥用
 
-### Privacy Safeguards
+### 隐私保障
 
-- **Local Processing**: All data processing occurs on your local machine - no data sent to external servers
-- **Minimal Data Exposure**: Only requested data is returned, limiting exposure scope
-- **Credential Protection**: Connection credentials are never exposed to the AI model
-- **Sensitive Data Masking**: Passwords and connection details are automatically hidden in logs
+- **本地处理**：所有数据处理都在您的本地机器上进行 - 无数据发送至外部服务器
+- **最小数据暴露**：仅返回请求的数据，限制暴露范围
+- **凭证保护**：连接凭证永不暴露给 AI 模型
+- **敏感数据屏蔽**：密码和连接详细信息在日志中自动隐藏
 
-### Enterprise-Ready Security
+### 企业级安全
 
-- **SSL/TLS Support**: Encrypted connections to remote databases
-- **Configuration Separation**: YAML configuration files eliminate interpretation risks
-- **User-Controlled Access**: You decide which databases are accessible
-- **Secure Default Settings**: Secure by default with no additional configuration needed
+- **SSL/TLS 支持**：加密连接到远程数据库
+- **配置分离**：YAML 配置文件消除解释风险
+- **用户控制访问**：您决定哪些数据库可被访问
+- **安全默认设置**：默认安全，无需额外配置
 
-For technical details about our security architecture, see the [Technical Guide](docs/technical-guide.md#通信模式与安全架构).
+有关我们安全架构的技术详情，请参阅[技术指南](docs/technical-guide.md#通信模式与安全架构)。
 
-## Why Use MCP Database Utilities?
+## 为什么使用 MCP Database Utilities？
 
-- **Universal AI Support**: Works with any AI system that supports the MCP protocol
-- **Multiple Database Support**: Connect to SQLite, MySQL, PostgreSQL with the same interface
-- **Simple Configuration**: Single YAML file for all your database connections
-- **Advanced Capabilities**: Table exploration, schema analysis, and query execution
+- **通用 AI 支持**：适用于任何支持 MCP 协议的 AI 系统
+- **多数据库支持**：使用相同的接口连接 SQLite、MySQL、PostgreSQL
+- **简单配置**：所有数据库连接使用单个 YAML 文件
+- **高级功能**：表格浏览、架构分析和查询执行
 
-## System Requirements
+## 系统要求
 
-- Python 3.10 or higher
-- One of the following:
-  - **For uvx installation**: uv package manager
-  - **For Docker installation**: Docker Desktop
-  - **For Smithery installation**: Node.js 14+
-- Supported databases:
+- Python 3.10 或更高版本
+- 以下之一：
+  - **uvx 安装方式**：uv 包管理器
+  - **Docker 安装方式**：Docker Desktop
+  - **Smithery 安装方式**：Node.js 14+
+- 支持的数据库：
   - SQLite 3.x
   - PostgreSQL 12+
   - MySQL 8+
-- Supported AI clients:
+- 支持的 AI 客户端：
   - Claude Desktop
   - Cursor
-  - Any MCP-compatible client
+  - 任何兼容 MCP 的客户端
 
-## Getting Started
+## 开始使用
 
-### 1. Installation Guide
+### 1. 安装指南
 
-Choose **ONE** of the following methods to install:
+选择**以下一种**方法进行安装：
 
-#### Option A: Using uvx (Recommended)
+#### 方式A：使用uvx（推荐）
 
-This method uses `uvx`, which is part of the Python package manager tool called "uv". Here's how to set it up:
+此方法使用`uvx`，它是Python包管理工具"uv"的一部分。以下是设置步骤：
 
-1. **Install uv and uvx first:**
+1. **首先安装uv和uvx：**
 
-   **On macOS or Linux:**
+   **在macOS或Linux上：**
    ```bash
    curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
-   **On Windows:**
+   **在Windows上：**
    ```powershell
    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-   After installation, verify that uv is installed correctly:
+   安装后，验证uv是否正确安装：
    ```bash
    uv --version
-   # Should display something like: uv 0.5.5 (Homebrew 2024-11-27)
+   # 应显示类似：uv 0.5.5 (Homebrew 2024-11-27)
    ```
 
-2. **Create a configuration file** named `config.yaml` with your database connection details:
+2. **创建配置文件**，命名为 `config.yaml`，包含您的数据库连接详情：
 
    ```yaml
    connections:
@@ -115,17 +115,17 @@ This method uses `uvx`, which is part of the Python package manager tool called 
        password: my_password
    ```
 
-   > For advanced configuration options (SSL connections, connection pooling, etc.), 
-   > please check out our comprehensive [Configuration Examples](docs/configuration-examples.md) document.
+   > 有关高级配置选项（SSL连接、连接池等），
+   > 请查看我们全面的[配置示例集锦](docs/configuration-examples.md)文档。
 
-3. **Add this configuration to your AI client:**
+3. **将此配置添加到您的AI客户端：**
 
-**For JSON-based MCP clients:**
-- Locate and edit your client's MCP configuration file:
+**对于基于JSON的MCP客户端：**
+- 找到并编辑您客户端的MCP配置文件：
   - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
-  - **Other clients**: Refer to your client's documentation for the MCP configuration file location
-- Add the following configuration to the JSON file:
+  - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
+- 在JSON文件中添加以下配置：
 
 ```json
 "dbutils": {
@@ -133,38 +133,38 @@ This method uses `uvx`, which is part of the Python package manager tool called 
   "args": [
     "mcp-dbutils",
     "--config",
-    "/full/path/to/your/config.yaml"
+    "/完整/路径/到您的/config.yaml"
   ]
 }
 ```
 
-**For Cursor:**
-- Open Cursor
-- Go to Settings → MCP
-- Click "Add MCP Server" and fill in:
-  - Name: `Database Utility MCP`
-  - Type: `Command` (default)
-  - Command: `uvx mcp-dbutils --config /full/path/to/your/config.yaml`
+**对于Cursor：**
+- 打开Cursor
+- 前往设置 → MCP
+- 点击"添加MCP服务器"并填写：
+  - 名称：`Database Utility MCP`
+  - 类型：`Command`（默认）
+  - 命令：`uvx mcp-dbutils --config /完整/路径/到您的/config.yaml`
 
-> **Important Notes for uvx Setup:**
-> - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
-> - If you get an error about uvx not being found, make sure step 1 was completed successfully
-> - You can verify uvx is installed by typing `uvx --version` in your terminal
+> **uvx设置的重要注意事项：**
+> - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
+> - 如果收到找不到uvx的错误，请确保步骤1成功完成
+> - 您可以在终端中输入`uvx --version`来验证uvx是否已安装
 
-#### Option B: Manual Installation with Docker
+#### 方式B：使用Docker手动安装
 
-1. Install Docker from [docker.com](https://www.docker.com/products/docker-desktop/) if you don't have it
+1. 如果您没有Docker，请从[docker.com](https://www.docker.com/products/docker-desktop/)安装
 
-2. Create a configuration file (see next section for details)
+2. 创建配置文件（详见下一节）
 
-3. Add this configuration to your AI client:
+3. 将此配置添加到您的AI客户端：
 
-**For JSON-based MCP clients:**
-- Locate and edit your client's MCP configuration file:
+**对于基于JSON的MCP客户端：**
+- 找到并编辑您客户端的MCP配置文件：
   - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
-  - **Other clients**: Refer to your client's documentation for the MCP configuration file location
-- Add the following configuration to the JSON file:
+  - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
+- 在JSON文件中添加以下配置：
 
 ```json
 "dbutils": {
@@ -174,9 +174,9 @@ This method uses `uvx`, which is part of the Python package manager tool called 
     "-i",
     "--rm",
     "-v",
-    "/full/path/to/your/config.yaml:/app/config.yaml",
+    "/完整/路径/到您的/config.yaml:/app/config.yaml",
     "-v",
-    "/full/path/to/your/sqlite.db:/app/sqlite.db",  // Only needed for SQLite
+    "/完整/路径/到您的/sqlite.db:/app/sqlite.db",  // 仅SQLite数据库需要
     "mcp/dbutils",
     "--config",
     "/app/config.yaml"
@@ -184,96 +184,107 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 }
 ```
 
-**For Cursor:**
-- Open Cursor
-- Go to Settings → MCP
-- Click "Add MCP Server" and fill in:
-  - Name: `Database Utility MCP`
-  - Type: `Command` (default)
-  - Command: `docker run -i --rm -v /full/path/to/your/config.yaml:/app/config.yaml -v /full/path/to/your/sqlite.db:/app/sqlite.db mcp/dbutils --config /app/config.yaml`
 
-> **Important Notes for Docker:**
-> - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
-> - For SQLite databases, also replace the sqlite.db path with your actual database path
-> - For other database types, remove the SQLite volume line entirely
+```json
+"dbutils": {
+  "command": "docker",
+  "args": [
+    "run",
+    "-i",
+    "--rm",
+    "-v",
+    "/完整/路径/到您的/config.yaml:/app/config.yaml",
+    "-v",
+    "/完整/路径/到您的/sqlite.db:/app/sqlite.db",  // 仅SQLite数据库需要
+    "mcp/dbutils",
+    "--config",
+    "/app/config.yaml"
+  ]
+}
+```
 
-#### Option C: Using Smithery (One-Click for Claude)
+> **Docker的重要注意事项：**
+> - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
+> - 对于SQLite数据库，同样替换sqlite.db的路径为您的实际数据库路径
+> - 对于其他类型的数据库，完全删除SQLite卷行
 
-This method automatically installs AND configures the service for Claude:
+#### 方式C：使用Smithery（Claude一键配置）
+
+此方法自动安装并配置服务到Claude：
 
 ```bash
 npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
-After installation completes, skip to the "Using the Service" section.
+安装完成后，直接跳到"使用服务"部分。
 
-### 4. Using the Service
+### 4. 使用服务
 
-Once installed and configured properly, your AI can now:
-- List tables in your database
-- View table structures
-- Execute SQL queries safely
-- Analyze data across multiple databases
+正确安装和配置后，您的AI现在可以：
+- 列出数据库中的表
+- 查看表结构
+- 安全执行SQL查询
+- 跨多个数据库分析数据
 
-**To verify everything is working:**
+**验证一切正常工作：**
 
-1. Ask your AI something like: "Can you check if you're able to connect to my database?"
-2. If properly configured, the AI should reply that it can connect to the database specified in your config file
-3. Try a simple command like: "List the tables in my database"
+1. 向您的AI提问类似："你能检查一下是否可以连接到我的数据库吗？"
+2. 如果配置正确，AI应回复它可以连接到您配置文件中指定的数据库
+3. 尝试一个简单的命令，如："列出我数据库中的表"
 
-If you encounter any issues, check:
-- Your configuration file syntax is correct
-- The database connection details are accurate
-- Your AI client has the MCP server properly configured
-- Your database is accessible from your computer
+如果遇到问题，请检查：
+- 您的配置文件语法是否正确
+- 数据库连接详细信息是否准确
+- 您的AI客户端是否正确配置了MCP服务器
+- 您的数据库是否可从您的计算机访问
 
-## Example Interactions
+## 交互示例
 
-**You**: "Can you list all the tables in my my-postgres database?"
+**您**："能否列出我的 my-postgres 数据库中的所有表？"
 
-**AI**: "I'll check that for you. Here are the tables in your my-postgres database:
-- customers
-- products
-- orders
-- inventory
-- employees"
+**AI**："我来为您查看。以下是您的 my-postgres 数据库中的表：
+- customers（客户）
+- products（产品）
+- orders（订单）
+- inventory（库存）
+- employees（员工）"
 
-**You**: "What does the customers table look like?"
+**您**："customers 表的结构是什么样的？"
 
-**AI**: "The customers table has the following structure:
-- id (integer, primary key)
-- name (text)
-- email (text)
-- registration_date (date)
-- last_purchase (date)
-- total_spent (numeric)"
+**AI**："customers 表有以下结构：
+- id（整数，主键）
+- name（文本）
+- email（文本）
+- registration_date（日期）
+- last_purchase（日期）
+- total_spent（数值）"
 
-**You**: "How many customers made purchases in the last month?"
+**您**："过去一个月有多少客户进行了购买？"
 
-**AI**: "Let me run a query to find out... According to the data, 128 customers made purchases in the last month. The total value of these purchases was $25,437.82."
+**AI**："让我运行查询查找... 根据数据，过去一个月有 128 位客户进行了购买。这些购买的总价值为 25,437.82 元。"
 
-## Available Tools
+## 可用工具
 
-MCP Database Utilities provides several tools that your AI can use:
+MCP 数据库工具提供了几个您的 AI 可以使用的工具：
 
-- **dbutils-list-tables**: Lists all tables in a database
-- **dbutils-run-query**: Executes a SQL query (SELECT only)
-- **dbutils-get-stats**: Gets statistics about a table
-- **dbutils-list-constraints**: Lists table constraints
-- **dbutils-explain-query**: Gets query execution plan
-- **dbutils-get-performance**: Gets database performance metrics
-- **dbutils-analyze-query**: Analyzes queries for optimization
+- **dbutils-list-tables**：列出数据库中的所有表
+- **dbutils-run-query**：执行 SQL 查询（仅 SELECT）
+- **dbutils-get-stats**：获取有关表的统计信息
+- **dbutils-list-constraints**：列出表约束
+- **dbutils-explain-query**：获取查询执行计划
+- **dbutils-get-performance**：获取数据库性能指标
+- **dbutils-analyze-query**：分析查询以进行优化
 
-## Need More Help?
+## 需要更多帮助？
 
-- [Technical Documentation](docs/technical-guide.md) - For developers and advanced users
-- [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - Report bugs or request features
-- [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - Simplified installation and updates
+- [技术文档](docs/technical-guide.md) - 适用于开发人员和高级用户
+- [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - 报告错误或请求功能
+- [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - 简化安装和更新
 
-## Star History
+## 星标历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=donghao1393/mcp-dbutils&type=Date)](https://star-history.com/#donghao1393/mcp-dbutils&Date)
+[![星标历史图表](https://api.star-history.com/svg?repos=donghao1393/mcp-dbutils&type=Date)](https://star-history.com/#donghao1393/mcp-dbutils&Date)
 
-## License
+## 许可证
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+本项目采用 MIT 许可证 - 有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
