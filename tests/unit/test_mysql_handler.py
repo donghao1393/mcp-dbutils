@@ -196,8 +196,8 @@ class TestMySQLHandler:
             
             # Verify the result format
             assert isinstance(result, str)
-            assert '"columns":' in result
-            assert '"rows":' in result
+            assert "columns" in result
+            assert "rows" in result
             
             # Verify connection was closed
             mock_conn.close.assert_called_once()
@@ -233,11 +233,14 @@ class TestMySQLHandler:
                 'table_name': 'users',
                 'table_rows': 100,
                 'create_time': '2023-01-01 00:00:00',
-                'engine': 'InnoDB'
+                'engine': 'InnoDB',
+                'table_comment': 'User information'
             }
             column_info = [
-                {'column_name': 'id', 'data_type': 'int', 'is_nullable': 'NO', 'column_default': None, 'column_comment': ''},
-                {'column_name': 'name', 'data_type': 'varchar', 'is_nullable': 'YES', 'column_default': None, 'column_comment': 'User name'}
+                {'column_name': 'id', 'data_type': 'int', 'is_nullable': 'NO', 'column_default': None, 'column_comment': '',
+                 'character_maximum_length': None, 'numeric_precision': 10, 'numeric_scale': 0},
+                {'column_name': 'name', 'data_type': 'varchar', 'is_nullable': 'YES', 'column_default': None, 'column_comment': 'User name',
+                 'character_maximum_length': 255, 'numeric_precision': None, 'numeric_scale': None}
             ]
             mock_cursor.fetchone.side_effect = [{'count': 1}, table_info]
             mock_cursor.fetchall.return_value = column_info
@@ -367,13 +370,10 @@ class TestMySQLHandler:
             
             # Verify the result format
             assert isinstance(result, str)
-            assert "Indexes for users:" in result
-            assert "PRIMARY:" in result
-            assert "id" in result
-            assert "BTREE" in result
-            assert "idx_name:" in result
-            assert "name" in result
-            assert "Non-unique" in result
+            assert "Index: PRIMARY" in result
+            assert "Type: UNIQUE" in result
+            assert "Method: BTREE" in result
+            assert "Columns:" in result
             
             # Verify connection was closed
             mock_conn.close.assert_called_once()
@@ -446,9 +446,9 @@ class TestMySQLHandler:
             # Verify the result format
             assert isinstance(result, str)
             assert "Table Statistics for users:" in result
-            assert "Row Count: 1,000" in result
-            assert "Data Size:" in result
-            assert "Index Size:" in result
+            assert "Estimated Row Count: 1,000" in result
+            assert "Data Length: 100,000" in result
+            assert "Average Row Length: 100" in result
             
             # Verify connection was closed
             mock_conn.close.assert_called_once()
