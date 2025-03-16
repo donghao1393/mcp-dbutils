@@ -344,31 +344,6 @@ connections:
       max_size: 10  # 最大连接数
 ```
 
-## 密码处理最佳实践
-
-### 使用环境变量
-
-对于生产环境，建议使用环境变量存储敏感信息：
-
-```yaml
-connections:
-  secure-postgres:
-    type: postgres
-    host: db.example.com
-    port: 5432
-    dbname: prod_db
-    user: ${POSTGRES_USER}  # 从环境变量读取
-    password: ${POSTGRES_PASSWORD}  # 从环境变量读取
-```
-
-然后在启动时设置环境变量：
-
-```bash
-export POSTGRES_USER=prod_user
-export POSTGRES_PASSWORD=secure_password
-mcp-dbutils --config /path/to/config.yaml
-```
-
 ## 故障排除提示
 
 如果连接配置无法工作，请尝试：
