@@ -282,6 +282,8 @@ graph TD
 
 ### 数据库配置选项
 
+> **注意**: 有关全面的配置示例，包括多种数据库类型、高级设置、Docker环境和实际场景，请参见[配置示例集锦](configuration-examples.md)文档。
+
 数据库SSL配置选项：
 
 PostgreSQL SSL配置：
