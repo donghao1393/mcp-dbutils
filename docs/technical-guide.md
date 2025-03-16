@@ -278,72 +278,25 @@ graph TD
    pre-commit install
    ```
 
-## 配置系统详解
+## 高级功能
 
-### 数据库配置选项
+### 数据处理器
 
-> **注意**: 有关全面的配置示例，包括多种数据库类型、高级设置、Docker环境和实际场景，请参见[配置示例集锦](configuration-examples.md)文档。
+数据处理器负责后处理数据库查询结果，提供易读格式，并支持多种输出选项：
 
-数据库SSL配置选项：
+- 表格格式数据
+- 树状数据层次结构
+- 特殊资源类型处理（二进制数据、图像等）
 
-PostgreSQL SSL配置：
-1. 使用URL参数：
-   ```
-   postgresql://host:port/dbname?sslmode=verify-full&sslcert=/path/to/cert.pem
-   ```
-2. 使用专用SSL配置部分：
-   ```yaml
-   ssl:
-     mode: verify-full  # SSL验证模式
-     cert: /path/to/cert.pem      # 客户端证书
-     key: /path/to/key.pem        # 客户端私钥
-     root: /path/to/root.crt      # CA证书
-   ```
+### 工具定义
 
-PostgreSQL SSL模式：
-- disable: 不使用SSL
-- require: 使用SSL但不验证证书
-- verify-ca: 验证服务器证书由受信任的CA签名
-- verify-full: 验证服务器证书和主机名匹配
+MCP工具定义在`src/mcp_dbutils/tools.py`文件中，包括：
 
-MySQL SSL配置：
-1. 使用URL参数：
-   ```
-   mysql://host:port/dbname?ssl-mode=verify_identity&ssl-ca=/path/to/ca.pem
-   ```
-2. 使用专用SSL配置部分：
-   ```yaml
-   ssl:
-     mode: verify_identity  # SSL验证模式
-     ca: /path/to/ca.pem         # CA证书
-     cert: /path/to/cert.pem     # 客户端证书
-     key: /path/to/key.pem       # 客户端私钥
-   ```
-
-MySQL SSL模式：
-- disabled: 不使用SSL
-- preferred: 如果可用则使用SSL，但允许非加密连接
-- required: 始终使用SSL，但不验证服务器证书
-- verify_ca: 验证服务器证书由受信任的CA签名
-- verify_identity: 验证服务器证书和主机名匹配
-
-SQLite配置选项：
-1. 基本配置与路径：
-   ```yaml
-   type: sqlite
-   path: /path/to/db.sqlite
-   password: optional_password  # 可选加密
-   ```
-2. 使用URI参数：
-   ```yaml
-   type: sqlite
-   path: /path/to/db.sqlite?mode=ro&cache=shared
-   ```
-
-## 安全注意事项
-- 仅支持SELECT查询以保护数据库安全
-- 自动掩盖日志中的敏感信息（如密码）
-- 在只读事务中执行查询
+- `list_resources`：列出数据库资源
+- `read_resource`：读取单个表或视图内容
+- `call_tool`：执行自定义SQL查询
+- `get_schema`：获取表或视图结构
+- `get_info`：获取资源详细信息
 
 ## 故障排除指南
 

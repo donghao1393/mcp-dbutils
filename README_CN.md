@@ -106,11 +106,7 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
 
    ```yaml
    connections:
-     my-sqlite:
-       type: sqlite
-       path: /path/to/my-database.db
-       
-     my-postgres:
+     postgres:
        type: postgres
        host: localhost
        port: 5432
@@ -120,8 +116,7 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
    ```
 
    > 有关高级配置选项（SSL连接、连接池等），
-   > 请参阅我们技术指南中的[配置系统详解](docs/technical-guide.md#配置系统详解)部分
-   > 或查看我们全面的[配置示例集锦](docs/configuration-examples.md)文档。
+   > 请查看我们全面的[配置示例集锦](docs/configuration-examples.md)文档。
 
 3. **将此配置添加到您的AI客户端：**
 

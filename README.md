@@ -106,11 +106,7 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 
    ```yaml
    connections:
-     my-sqlite:
-       type: sqlite
-       path: /path/to/my-database.db
-       
-     my-postgres:
+     postgres:
        type: postgres
        host: localhost
        port: 5432
@@ -120,8 +116,7 @@ This method uses `uvx`, which is part of the Python package manager tool called 
    ```
 
    > For advanced configuration options (SSL connections, connection pooling, etc.), 
-   > please refer to the [Configuration System Details](docs/technical-guide.md#配置系统详解) section in our technical guide
-   > or check out our comprehensive [Configuration Examples](docs/configuration-examples.md) document.
+   > please check out our comprehensive [Configuration Examples](docs/configuration-examples.md) document.
 
 3. **Add this configuration to your AI client:**
 
