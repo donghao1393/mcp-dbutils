@@ -126,6 +126,7 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
 - 找到并编辑您客户端的MCP配置文件：
   - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **Cursor (Mac)**: `~/.cursor/mcp.json`
   - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
 - 在JSON文件中添加以下配置：
 
@@ -140,18 +141,10 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
 }
 ```
 
-**对于Cursor：**
-- 打开Cursor
-- 前往设置 → MCP
-- 点击"添加MCP服务器"并填写：
-  - 名称：`Database Utility MCP`
-  - 类型：`Command`（默认）
-  - 命令：`uvx mcp-dbutils --config /完整/路径/到您的/config.yaml`
-
 > **uvx设置的重要注意事项：**
 > - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
-> - 如果收到找不到uvx的错误，请确保步骤1成功完成
-> - 您可以在终端中输入`uvx --version`来验证uvx是否已安装
+> - 如果您收到uvx未找到的错误，请确保已成功完成步骤1
+> - 您可以通过在终端中输入`uv --version`来验证uvx是否已安装
 
 #### 方式B：使用Docker手动安装
 

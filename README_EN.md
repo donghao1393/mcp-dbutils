@@ -124,6 +124,7 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 - Locate and edit your client's MCP configuration file:
   - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **Cursor (Mac)**: `~/.cursor/mcp.json`
   - **Other clients**: Refer to your client's documentation for the MCP configuration file location
 - Add the following configuration to the JSON file:
 
@@ -138,18 +139,10 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 }
 ```
 
-**For Cursor:**
-- Open Cursor
-- Go to Settings → MCP
-- Click "Add MCP Server" and fill in:
-  - Name: `Database Utility MCP`
-  - Type: `Command` (default)
-  - Command: `uvx mcp-dbutils --config /full/path/to/your/config.yaml`
-
 > **Important Notes for uvx Setup:**
 > - Replace `/full/path/to/your/config.yaml` with the actual full path to your config file
 > - If you get an error about uvx not being found, make sure step 1 was completed successfully
-> - You can verify uvx is installed by typing `uvx --version` in your terminal
+> - You can verify uvx is installed by typing `uv --version` in your terminal
 
 #### Option B: Manual Installation with Docker
 
@@ -163,6 +156,7 @@ This method uses `uvx`, which is part of the Python package manager tool called 
 - Locate and edit your client's MCP configuration file:
   - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+  - **Cursor (Mac/Windows)**: `~/.cursor/mcp.json`
   - **Other clients**: Refer to your client's documentation for the MCP configuration file location
 - Add the following configuration to the JSON file:
 
