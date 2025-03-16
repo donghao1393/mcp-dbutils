@@ -19,6 +19,8 @@
 
 ## 什么是 MCP Database Utilities？
 
+![Image](https://github.com/user-attachments/assets/26c4f1a1-7b19-4bdd-b9fd-34ad198b0ce3)
+
 MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够通过统一的连接配置安全地访问各种类型的数据库（SQLite、MySQL、PostgreSQL 等）进行数据分析。
 
 您可以将其视为 AI 系统和数据库之间的安全桥梁，允许 AI 在不直接访问数据库或冒数据修改风险的情况下读取和分析您的数据。
