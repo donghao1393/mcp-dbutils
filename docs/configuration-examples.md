@@ -83,38 +83,58 @@ connections:
 
 ### URL风格配置
 
-除了使用标准配置属性外，您还可以使用数据库URL进行配置：
+除了使用标准配置属性外，您还可以使用数据库URL进行部分配置。最佳实践是将数据库连接结构放在URL中，但将敏感信息和特定参数分开配置：
 
-**PostgreSQL URL配置**：
+**PostgreSQL URL配置（推荐方式）**：
 
 ```yaml
 connections:
-  # 使用URL配置PostgreSQL
+  # 使用URL配置PostgreSQL（最佳实践）
   postgres-url:
     type: postgres
-    url: postgresql://user:password@host:5432/dbname
-    # 注意：URL中如果已提供用户名和密码，则这里不需要再定义
+    url: postgresql://host:5432/dbname
+    user: postgres_user
+    password: postgres_password
+    # 其他参数在此配置
 ```
 
-**MySQL URL配置**：
+**MySQL URL配置（推荐方式）**：
 
 ```yaml
 connections:
-  # 使用URL配置MySQL
+  # 使用URL配置MySQL（最佳实践）
   mysql-url:
     type: mysql
-    url: mysql://user:password@host:3306/dbname?charset=utf8mb4
+    url: mysql://host:3306/dbname
+    user: mysql_user
+    password: mysql_password
+    charset: utf8mb4
+```
+
+**传统URL配置方式**（不推荐用于生产环境）：
+
+虽然以下方式可行，但不建议在生产环境中使用，因为存在特殊字符解析错误的风险：
+
+```yaml
+connections:
+  legacy-url:
+    type: postgres
+    url: postgresql://user:password@host:5432/dbname?param1=value1
+    # 注意：不推荐在URL中包含凭据
 ```
 
 **何时使用URL配置vs标准配置**：
 - URL配置适合于：
-  - 当您已经有现成的数据库URL
-  - 需要在URL中包含多个参数
-  - 从环境变量中获取数据库连接字符串
+  - 当您已经有现成的数据库连接结构
+  - 需要在URL中包含特定连接参数
+  - 从其他系统迁移而来的连接配置
 - 标准配置适合于：
   - 更清晰的配置结构
   - 需要单独管理每个配置属性
   - 便于修改单个参数而不影响整体连接
+  - 更好的安全性和可维护性
+
+在任何情况下，都应避免将敏感信息（如用户名、密码）包含在URL中，而应单独在配置参数中提供。
 
 ### SSL/TLS安全连接
 
@@ -285,7 +305,7 @@ connections:
     password: dev_pass
 
   # 测试环境
-  test-postgres: 
+  test-postgres:
     type: postgres
     host: test-server.example.com
     port: 5432
@@ -354,7 +374,7 @@ connections:
     dbname: dev_db
     user: dev_user
     password: dev_pass
-    
+
   # 本地MySQL
   local-mysql:
     type: mysql
@@ -364,7 +384,7 @@ connections:
     user: dev_user
     password: dev_pass
     charset: utf8mb4
-    
+
   # 远程测试数据库（带SSL）
   remote-test:
     type: postgres
@@ -375,7 +395,7 @@ connections:
     password: test_pass
     ssl:
       mode: require  # 测试环境使用基本SSL
-      
+
   # 生产只读副本（最高安全级别）
   prod-readonly:
     type: postgres
@@ -389,4 +409,4 @@ connections:
       cert: /path/to/client-cert.pem
       key: /path/to/client-key.pem
       root: /path/to/root.crt
-``` 
+```
