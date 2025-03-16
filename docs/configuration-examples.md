@@ -325,25 +325,6 @@ connections:
     # 设置较长的超时时间，适合数据分析
 ```
 
-### 连接池配置
-
-配置数据库连接池大小（取决于数据库类型）：
-
-**PostgreSQL连接池**：
-```yaml
-connections:
-  pooled-postgres:
-    type: postgres
-    host: db.example.com
-    port: 5432
-    dbname: my_db
-    user: my_user
-    password: my_pass
-    pool:
-      min_size: 1  # 最小连接数
-      max_size: 10  # 最大连接数
-```
-
 ## 故障排除提示
 
 如果连接配置无法工作，请尝试：
