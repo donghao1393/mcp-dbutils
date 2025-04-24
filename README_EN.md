@@ -82,6 +82,7 @@ MCP Database Utilities provides several tools that your AI can use:
 
 ### Getting Started
 - [Installation Guide](docs/en/installation.md) - Detailed installation steps and configuration instructions
+- [Platform-Specific Installation Guide](docs/en/installation-platform-specific.md) - Installation instructions for different operating systems
 - [Configuration Guide](docs/en/configuration.md) - Database connection configuration examples and best practices
 - [Usage Guide](docs/en/usage.md) - Basic workflow and common usage scenarios
 
@@ -96,6 +97,7 @@ MCP Database Utilities provides several tools that your AI can use:
 - [SQLite Examples](docs/en/examples/sqlite-examples.md) - SQLite database operation examples
 - [PostgreSQL Examples](docs/en/examples/postgresql-examples.md) - PostgreSQL database operation examples
 - [MySQL Examples](docs/en/examples/mysql-examples.md) - MySQL database operation examples
+- [Advanced LLM Interactions](docs/en/examples/advanced-llm-interactions.md) - Advanced interaction examples with various LLMs
 
 ### Support & Feedback
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - Report issues or request features

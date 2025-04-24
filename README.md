@@ -64,6 +64,7 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 
 ### 入门指南
 - [安装指南](docs/zh/installation.md) - 详细的安装步骤和配置说明
+- [平台特定安装指南](docs/zh/installation-platform-specific.md) - 针对不同操作系统的安装说明
 - [配置指南](docs/zh/configuration.md) - 数据库连接配置示例和最佳实践
 - [使用指南](docs/zh/usage.md) - 基本操作流程和常见使用场景
 
@@ -78,6 +79,7 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 - [SQLite 示例](docs/zh/examples/sqlite-examples.md) - SQLite 数据库操作示例
 - [PostgreSQL 示例](docs/zh/examples/postgresql-examples.md) - PostgreSQL 数据库操作示例
 - [MySQL 示例](docs/zh/examples/mysql-examples.md) - MySQL 数据库操作示例
+- [高级 LLM 交互示例](docs/zh/examples/advanced-llm-interactions.md) - 与各类 LLM 的高级交互示例
 
 ### 支持与反馈
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - 报告问题或请求功能
