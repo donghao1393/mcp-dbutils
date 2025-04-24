@@ -8,7 +8,6 @@
 
 - Python 3.10 或更高版本
 - pip 或 uv 包管理器
-- 对于数据库连接：相应数据库的客户端库
 
 ### 使用 uv 安装（推荐）
 
@@ -71,27 +70,27 @@ uv --directory /path/to/local/mcp-dbutils run mcp-dbutils
 
 #### Ubuntu/Debian
 
-安装必要的系统依赖：
+确保安装了 Python 开发包：
 
 ```bash
 sudo apt update
-sudo apt install -y python3-dev libpq-dev default-libmysqlclient-dev
+sudo apt install -y python3-dev
 ```
 
 #### CentOS/RHEL
 
-安装必要的系统依赖：
+确保安装了 Python 开发包：
 
 ```bash
-sudo yum install -y python3-devel postgresql-devel mysql-devel
+sudo yum install -y python3-devel
 ```
 
 #### Arch Linux
 
-安装必要的系统依赖：
+确保安装了 Python：
 
 ```bash
-sudo pacman -S python-pip postgresql-libs mariadb-libs
+sudo pacman -S python-pip
 ```
 
 ## macOS 安装指南
@@ -100,7 +99,7 @@ sudo pacman -S python-pip postgresql-libs mariadb-libs
 
 - Python 3.10 或更高版本
 - pip 或 uv 包管理器
-- Homebrew（推荐，用于安装数据库客户端库）
+- Homebrew（推荐，用于安装 Python）
 
 ### 使用 uv 安装（推荐）
 
@@ -116,28 +115,17 @@ curl -sSf https://raw.githubusercontent.com/astral-sh/uv/main/install.sh | bash
 uv pip install mcp-dbutils
 ```
 
-### 使用 Homebrew 安装依赖
+### 使用 Homebrew 安装 Python
 
-如果需要连接到 PostgreSQL 或 MySQL 数据库，安装相应的客户端库：
-
-```bash
-# 对于 PostgreSQL
-brew install postgresql
-
-# 对于 MySQL
-brew install mysql-client
-```
-
-注意：安装 MySQL 客户端后，可能需要将其添加到 PATH 中：
+如果尚未安装 Python，可以使用 Homebrew 安装：
 
 ```bash
-echo 'export PATH="/usr/local/opt/mysql-client/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+brew install python
 ```
 
 ### Apple Silicon (M1/M2/M3) 特别说明
 
-对于 Apple Silicon 芯片的 Mac，某些数据库连接器可能需要特殊处理：
+对于 Apple Silicon 芯片的 Mac：
 
 1. 确保使用 ARM64 版本的 Python：
 
@@ -146,7 +134,7 @@ which python3
 # 应该显示 /opt/homebrew/bin/python3 而不是 /usr/local/bin/python3
 ```
 
-2. 如果遇到库兼容性问题，尝试使用 Rosetta 2：
+2. 如果遇到安装问题，可以尝试使用 Rosetta 2：
 
 ```bash
 arch -x86_64 uv pip install mcp-dbutils
@@ -158,7 +146,6 @@ arch -x86_64 uv pip install mcp-dbutils
 
 - Python 3.10 或更高版本
 - pip 或 uv 包管理器
-- 对于数据库连接：相应数据库的客户端库
 
 ### 使用 uv 安装（推荐）
 
@@ -191,17 +178,7 @@ python -m venv mcp-env
 pip install mcp-dbutils
 ```
 
-### 数据库客户端库安装
 
-#### PostgreSQL
-
-1. 下载并安装 PostgreSQL：https://www.postgresql.org/download/windows/
-2. 确保将 PostgreSQL bin 目录添加到 PATH 环境变量
-
-#### MySQL
-
-1. 下载并安装 MySQL Connector/C：https://dev.mysql.com/downloads/connector/c/
-2. 确保将 MySQL bin 目录添加到 PATH 环境变量
 
 ### WSL (Windows Subsystem for Linux) 安装
 
@@ -265,20 +242,22 @@ docker run -i --rm custom-mcp-dbutils
 
 ### 常见问题
 
-1. **找不到数据库驱动程序**
+1. **连接数据库时出现驱动程序错误**
 
-   确保已安装相应的数据库客户端库：
-   
+   MCP 数据库工具会根据您配置的数据库类型自动尝试导入相应的驱动程序。如果遇到驱动程序错误，您可能需要安装相应的 Python 数据库适配器：
+
    ```bash
-   # PostgreSQL
+   # 如果您需要连接 PostgreSQL
    uv pip install psycopg2-binary
-   
-   # MySQL
+
+   # 如果您需要连接 MySQL
    uv pip install mysqlclient
-   
-   # SQLite (通常已包含在 Python 中)
+
+   # 如果您需要连接 SQLite (通常已包含在 Python 中)
    uv pip install pysqlite3
    ```
+
+   注意：MCP 数据库工具本身不包含这些数据库，它只是提供与您已有数据库的连接。
 
 2. **权限错误**
 
@@ -288,7 +267,7 @@ docker run -i --rm custom-mcp-dbutils
 3. **版本兼容性问题**
 
    确保使用 Python 3.10 或更高版本：
-   
+
    ```bash
    python --version
    ```

@@ -290,6 +290,10 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 
 ### 方式 A（uvx）更新
 
+当您使用 `uvx` 命令运行 MCP 数据库工具时（如 `uvx mcp-dbutils`），它会自动使用最新版本，无需手动更新。
+
+如果您使用的是传统安装方式（非 `uvx` 命令），可以通过以下命令手动更新：
+
 ```bash
 uv pip install -U mcp-dbutils
 ```

@@ -290,6 +290,10 @@ Regular updates provide new features and security fixes. Choose the update metho
 
 ### Option A (uvx) Update
 
+When you run MCP Database Utilities using the `uvx` command (e.g., `uvx mcp-dbutils`), it automatically uses the latest version without requiring manual updates.
+
+If you're using the traditional installation method (not the `uvx` command), you can update manually with:
+
 ```bash
 uv pip install -U mcp-dbutils
 ```

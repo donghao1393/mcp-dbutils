@@ -8,7 +8,6 @@ This document provides detailed instructions for installing and configuring MCP 
 
 - Python 3.10 or higher
 - pip or uv package manager
-- For database connections: corresponding database client libraries
 
 ### Installation with uv (Recommended)
 
@@ -71,27 +70,27 @@ uv --directory /path/to/local/mcp-dbutils run mcp-dbutils
 
 #### Ubuntu/Debian
 
-Install necessary system dependencies:
+Ensure Python development package is installed:
 
 ```bash
 sudo apt update
-sudo apt install -y python3-dev libpq-dev default-libmysqlclient-dev
+sudo apt install -y python3-dev
 ```
 
 #### CentOS/RHEL
 
-Install necessary system dependencies:
+Ensure Python development package is installed:
 
 ```bash
-sudo yum install -y python3-devel postgresql-devel mysql-devel
+sudo yum install -y python3-devel
 ```
 
 #### Arch Linux
 
-Install necessary system dependencies:
+Ensure Python is installed:
 
 ```bash
-sudo pacman -S python-pip postgresql-libs mariadb-libs
+sudo pacman -S python-pip
 ```
 
 ## macOS Installation Guide
@@ -100,7 +99,7 @@ sudo pacman -S python-pip postgresql-libs mariadb-libs
 
 - Python 3.10 or higher
 - pip or uv package manager
-- Homebrew (recommended for installing database client libraries)
+- Homebrew (recommended for installing Python)
 
 ### Installation with uv (Recommended)
 
@@ -116,28 +115,17 @@ curl -sSf https://raw.githubusercontent.com/astral-sh/uv/main/install.sh | bash
 uv pip install mcp-dbutils
 ```
 
-### Installing Dependencies with Homebrew
+### Installing Python with Homebrew
 
-If you need to connect to PostgreSQL or MySQL databases, install the corresponding client libraries:
-
-```bash
-# For PostgreSQL
-brew install postgresql
-
-# For MySQL
-brew install mysql-client
-```
-
-Note: After installing the MySQL client, you may need to add it to your PATH:
+If you haven't installed Python yet, you can use Homebrew:
 
 ```bash
-echo 'export PATH="/usr/local/opt/mysql-client/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+brew install python
 ```
 
 ### Apple Silicon (M1/M2/M3) Special Notes
 
-For Macs with Apple Silicon chips, some database connectors may require special handling:
+For Macs with Apple Silicon chips:
 
 1. Ensure you're using the ARM64 version of Python:
 
@@ -146,7 +134,7 @@ which python3
 # Should show /opt/homebrew/bin/python3 instead of /usr/local/bin/python3
 ```
 
-2. If you encounter library compatibility issues, try using Rosetta 2:
+2. If you encounter installation issues, try using Rosetta 2:
 
 ```bash
 arch -x86_64 uv pip install mcp-dbutils
@@ -158,7 +146,6 @@ arch -x86_64 uv pip install mcp-dbutils
 
 - Python 3.10 or higher
 - pip or uv package manager
-- For database connections: corresponding database client libraries
 
 ### Installation with uv (Recommended)
 
@@ -191,17 +178,7 @@ python -m venv mcp-env
 pip install mcp-dbutils
 ```
 
-### Database Client Library Installation
 
-#### PostgreSQL
-
-1. Download and install PostgreSQL: https://www.postgresql.org/download/windows/
-2. Make sure to add the PostgreSQL bin directory to your PATH environment variable
-
-#### MySQL
-
-1. Download and install MySQL Connector/C: https://dev.mysql.com/downloads/connector/c/
-2. Make sure to add the MySQL bin directory to your PATH environment variable
 
 ### WSL (Windows Subsystem for Linux) Installation
 
@@ -265,20 +242,22 @@ docker run -i --rm custom-mcp-dbutils
 
 ### Common Issues
 
-1. **Database driver not found**
+1. **Database driver errors when connecting**
 
-   Make sure you have installed the appropriate database client libraries:
-   
+   MCP Database Utilities will automatically try to import the appropriate driver based on your configured database type. If you encounter driver errors, you may need to install the corresponding Python database adapter:
+
    ```bash
-   # PostgreSQL
+   # If you need to connect to PostgreSQL
    uv pip install psycopg2-binary
-   
-   # MySQL
+
+   # If you need to connect to MySQL
    uv pip install mysqlclient
-   
-   # SQLite (usually included with Python)
+
+   # If you need to connect to SQLite (usually included with Python)
    uv pip install pysqlite3
    ```
+
+   Note: MCP Database Utilities does not include these databases itself; it only provides connections to your existing databases.
 
 2. **Permission errors**
 
@@ -288,7 +267,7 @@ docker run -i --rm custom-mcp-dbutils
 3. **Version compatibility issues**
 
    Make sure you're using Python 3.10 or higher:
-   
+
    ```bash
    python --version
    ```
