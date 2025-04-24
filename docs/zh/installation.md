@@ -142,7 +142,43 @@
 npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
-安装完成后，直接跳到"使用服务"部分。
+安装完成后，直接跳到"验证安装"部分。
+
+### 方式D：离线安装
+
+如果您需要在无法访问互联网的环境中安装，或者希望使用特定版本的 MCP 数据库工具，可以使用离线安装方法：
+
+1. **获取 MCP 数据库工具源代码**：
+   - 从 GitHub 下载特定版本：`git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - 切换到所需版本：`cd mcp-dbutils && git checkout v1.x.x`（替换为实际版本号）
+   - 或者直接从 [Releases 页面](https://github.com/donghao1393/mcp-dbutils/releases) 下载源代码压缩包
+
+2. **使用 uv 直接从本地目录运行**：
+   ```bash
+   uv --directory /path/to/local/mcp-dbutils run mcp-dbutils --config /path/to/config.yaml
+   ```
+
+3. **将此配置添加到您的AI客户端**：
+
+**对于基于JSON的MCP客户端**：
+```json
+"dbutils": {
+  "command": "uv",
+  "args": [
+    "--directory",
+    "/path/to/local/mcp-dbutils",
+    "run",
+    "mcp-dbutils",
+    "--config",
+    "/path/to/config.yaml"
+  ]
+}
+```
+
+> **离线安装的重要注意事项：**
+> - 确保替换 `/path/to/local/mcp-dbutils` 为实际的本地源代码路径
+> - 确保替换 `/path/to/config.yaml` 为实际的配置文件路径
+> - 此方法不需要安装包到全局环境，直接从源代码运行
 
 ## 验证安装
 

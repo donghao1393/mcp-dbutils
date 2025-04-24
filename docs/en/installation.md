@@ -145,6 +145,42 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 
 After installation completes, skip to the "Verifying Installation" section.
 
+### Option D: Offline Installation
+
+If you need to install in an environment without internet access, or want to use a specific version of MCP Database Utilities, you can use the offline installation method:
+
+1. **Get the MCP Database Utilities source code**:
+   - Download a specific version from GitHub: `git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - Switch to the desired version: `cd mcp-dbutils && git checkout v1.x.x` (replace with actual version number)
+   - Or download the source code archive directly from the [Releases page](https://github.com/donghao1393/mcp-dbutils/releases)
+
+2. **Use uv to run directly from the local directory**:
+   ```bash
+   uv --directory /path/to/local/mcp-dbutils run mcp-dbutils --config /path/to/config.yaml
+   ```
+
+3. **Add this configuration to your AI client**:
+
+**For JSON-based MCP clients**:
+```json
+"dbutils": {
+  "command": "uv",
+  "args": [
+    "--directory",
+    "/path/to/local/mcp-dbutils",
+    "run",
+    "mcp-dbutils",
+    "--config",
+    "/path/to/config.yaml"
+  ]
+}
+```
+
+> **Important Notes for Offline Installation:**
+> - Make sure to replace `/path/to/local/mcp-dbutils` with the actual path to your local source code
+> - Make sure to replace `/path/to/config.yaml` with the actual path to your configuration file
+> - This method doesn't require installing the package globally, it runs directly from the source code
+
 ## Verifying Installation
 
 Once installed and configured properly, your AI can now:
