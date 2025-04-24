@@ -90,9 +90,12 @@ MCP Database Utilities provides several tools that your AI can use:
 - [Security Architecture](docs/en/technical/security.md) - Security features and protection mechanisms
 - [Development Guide](docs/en/technical/development.md) - Code quality and development workflow
 - [Testing Guide](docs/en/technical/testing.md) - Testing framework and best practices
+- [SonarCloud Integration](docs/en/technical/sonarcloud-integration.md) - SonarCloud and AI integration guide
 
 ### Example Documentation
 - [SQLite Examples](docs/en/examples/sqlite-examples.md) - SQLite database operation examples
+- [PostgreSQL Examples](docs/en/examples/postgresql-examples.md) - PostgreSQL database operation examples
+- [MySQL Examples](docs/en/examples/mysql-examples.md) - MySQL database operation examples
 
 ### Support & Feedback
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - Report issues or request features

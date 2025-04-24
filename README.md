@@ -72,9 +72,12 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 - [安全架构](docs/zh/technical/security.md) - 安全特性和保护机制
 - [开发指南](docs/zh/technical/development.md) - 代码质量和开发流程
 - [测试指南](docs/zh/technical/testing.md) - 测试框架和最佳实践
+- [SonarCloud 集成](docs/zh/technical/sonarcloud-integration.md) - SonarCloud 与 AI 集成指南
 
 ### 示例文档
 - [SQLite 示例](docs/zh/examples/sqlite-examples.md) - SQLite 数据库操作示例
+- [PostgreSQL 示例](docs/zh/examples/postgresql-examples.md) - PostgreSQL 数据库操作示例
+- [MySQL 示例](docs/zh/examples/mysql-examples.md) - MySQL 数据库操作示例
 
 ### 支持与反馈
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - 报告问题或请求功能
