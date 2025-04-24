@@ -15,7 +15,7 @@
 [![License](https://img.shields.io/github/license/donghao1393/mcp-dbutils)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/donghao1393/mcp-dbutils?style=social)](https://github.com/donghao1393/mcp-dbutils/stargazers)
 
-[中文文档](README_CN.md) | [Technical Guide](docs/technical-guide.md)
+[中文文档](README.md) | [Technical Guide](docs/en/technical/architecture.md)
 
 ## What is MCP Database Utilities?
 
@@ -49,7 +49,7 @@ MCP Database Utilities is built with a **security-first architecture**, making i
 - **User-Controlled Access**: You decide which databases are accessible
 - **Secure Default Settings**: Secure by default with no additional configuration needed
 
-For technical details about our security architecture, see the [Technical Guide](docs/technical-guide.md#通信模式与安全架构).
+For technical details about our security architecture, see the [Technical Guide](docs/en/technical/security.md).
 
 ## Why Use MCP Database Utilities?
 
@@ -115,8 +115,8 @@ This method uses `uvx`, which is part of the Python package manager tool called 
        password: my_password
    ```
 
-   > For advanced configuration options (SSL connections, connection pooling, etc.), 
-   > please check out our comprehensive [Configuration Examples](docs/configuration-examples.md) document.
+   > For advanced configuration options (SSL connections, connection pooling, etc.),
+   > please check out our comprehensive [Configuration Examples](docs/en/configuration.md) document.
 
 3. **Add this configuration to your AI client:**
 
@@ -260,7 +260,7 @@ MCP Database Utilities provides several tools that your AI can use:
 
 ## Need More Help?
 
-- [Technical Documentation](docs/technical-guide.md) - For developers and advanced users
+- [Technical Documentation](docs/en/technical/architecture.md) - For developers and advanced users
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - Report bugs or request features
 - [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - Simplified installation and updates
 

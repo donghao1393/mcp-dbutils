@@ -15,7 +15,7 @@
 [![许可证](https://img.shields.io/github/license/donghao1393/mcp-dbutils)](LICENSE)
 [![GitHub 星标](https://img.shields.io/github/stars/donghao1393/mcp-dbutils?style=social)](https://github.com/donghao1393/mcp-dbutils/stargazers)
 
-[English](README.md) | [技术指南](docs/technical-guide.md)
+[English](README_EN.md) | [技术指南](docs/zh/technical/architecture.md)
 
 ## 什么是 MCP Database Utilities？
 
@@ -51,7 +51,7 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
 - **用户控制访问**：您决定哪些数据库可被访问
 - **安全默认设置**：默认安全，无需额外配置
 
-有关我们安全架构的技术详情，请参阅[技术指南](docs/technical-guide.md#通信模式与安全架构)。
+有关我们安全架构的技术详情，请参阅[技术指南](docs/zh/technical/security.md)。
 
 ## 为什么使用 MCP Database Utilities？
 
@@ -118,7 +118,7 @@ MCP 数据库工具采用**安全优先的架构**设计，非常适合注重数
    ```
 
    > 有关高级配置选项（SSL连接、连接池等），
-   > 请查看我们全面的[配置示例集锦](docs/configuration-examples.md)文档。
+   > 请查看我们全面的[配置示例集锦](docs/zh/configuration.md)文档。
 
 3. **将此配置添加到您的AI客户端：**
 
@@ -272,7 +272,7 @@ MCP 数据库工具提供了几个您的 AI 可以使用的工具：
 
 ## 需要更多帮助？
 
-- [技术文档](docs/technical-guide.md) - 适用于开发人员和高级用户
+- [技术文档](docs/zh/technical/architecture.md) - 适用于开发人员和高级用户
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - 报告错误或请求功能
 - [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - 简化安装和更新
 
