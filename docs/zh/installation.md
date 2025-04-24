@@ -1,76 +1,97 @@
 # 安装指南
 
-本文档提供了安装和配置 MCP 数据库工具的详细步骤。
+本文档提供了简单易懂的步骤，帮助您安装和配置 MCP 数据库工具，让您的 AI 助手能够安全地访问和分析您的数据库。
 
-## 系统要求
+## 什么是 MCP？
 
-在安装 MCP 数据库工具之前，请确保您的系统满足以下要求：
+MCP（Model Context Protocol）是一种让 AI 应用（如 Claude）能够使用外部工具的协议。MCP 数据库工具就是这样一个工具，它允许 AI 读取您的数据库内容，但不会修改任何数据。
 
-- Python 3.10 或更高版本
-- 以下之一：
-  - **uvx 安装方式**：uv 包管理器
-  - **Docker 安装方式**：Docker Desktop
-  - **Smithery 安装方式**：Node.js 14+
-- 支持的数据库：
-  - SQLite 3.x
-  - PostgreSQL 12+
-  - MySQL 8+
-- 支持的 AI 客户端：
-  - Claude Desktop
-  - Cursor
-  - 任何兼容 MCP 的客户端
+## 安装前的准备
 
-## 安装方法
+在开始安装前，请确认您有：
 
-选择**以下一种**方法进行安装：
+- 一个支持 MCP 的 AI 应用（如 Claude Desktop、Cursor 等）
+- 至少一个您想让 AI 访问的数据库（SQLite、MySQL 或 PostgreSQL）
 
-### 方式A：使用uvx（推荐）
+## 安装方式选择
 
-此方法使用`uvx`，它是Python包管理工具"uv"的一部分。以下是设置步骤：
+我们提供四种简单的安装方式，请选择**最适合您**的一种：
 
-1. **首先安装uv和uvx：**
+| 安装方式 | 适合人群 | 优势 |
+|---------|---------|------|
+| **方式 A：使用 uvx** | 大多数用户 | 简单快捷，推荐首选 |
+| **方式 B：使用 Docker** | 喜欢容器化应用的用户 | 环境隔离，不影响系统 |
+| **方式 C：使用 Smithery** | Claude Desktop 用户 | 一键安装，最简单 |
+| **方式 D：离线安装** | 需要在无网络环境使用的用户 | 不需要网络连接 |
 
-   **在macOS或Linux上：**
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
+## 方式 A：使用 uvx 安装（推荐）
 
-   **在Windows上：**
-   ```powershell
-   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-   ```
+### 步骤 1：安装 uv 工具
 
-   安装后，验证uv是否正确安装：
-   ```bash
-   uv --version
-   # 应显示类似：uv 0.5.5 (Homebrew 2024-11-27)
-   ```
+**在 Mac 或 Linux 上**：
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-2. **创建配置文件**，命名为 `config.yaml`，包含您的数据库连接详情：
+**在 Windows 上**：
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
-   ```yaml
-   connections:
-     postgres:
-       type: postgres
-       host: localhost
-       port: 5432
-       dbname: my_database
-       user: my_user
-       password: my_password
-   ```
+安装后，请在终端中输入以下命令确认安装成功：
+```bash
+uv --version
+```
+您应该能看到类似 `uv 0.5.5` 的版本信息。
 
-   > 有关高级配置选项（SSL连接、连接池等），
-   > 请查看我们全面的[配置指南](configuration.md)文档。
+### 步骤 2：创建数据库配置文件
 
-3. **将此配置添加到您的AI客户端：**
+1. 在您的电脑上创建一个名为 `config.yaml` 的文件
+2. 将以下内容复制到文件中（根据您的数据库类型选择一种）：
 
-**对于基于JSON的MCP客户端：**
-- 找到并编辑您客户端的MCP配置文件：
-  - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-  - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
-  - **Cursor (Mac)**: `~/.cursor/mcp.json`
-  - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
-- 在JSON文件中添加以下配置：
+**SQLite 数据库示例**：
+```yaml
+connections:
+  my_sqlite:
+    type: sqlite
+    path: C:/数据库文件路径/my_database.db
+```
+
+**PostgreSQL 数据库示例**：
+```yaml
+connections:
+  my_postgres:
+    type: postgres
+    host: localhost
+    port: 5432
+    dbname: my_database
+    user: postgres_user
+    password: postgres_password
+```
+
+**MySQL 数据库示例**：
+```yaml
+connections:
+  my_mysql:
+    type: mysql
+    host: localhost
+    port: 3306
+    database: my_database
+    user: mysql_user
+    password: mysql_password
+```
+
+> 请将示例中的信息替换为您实际的数据库信息。更多配置选项请参考[配置指南](configuration.md)。
+
+### 步骤 3：配置您的 AI 应用
+
+#### Claude Desktop 配置
+
+1. 打开 Claude Desktop 应用
+2. 点击左下角的设置图标
+3. 选择 "MCP 服务器"
+4. 点击 "添加服务器"
+5. 在配置文件中添加：
 
 ```json
 "dbutils": {
@@ -78,30 +99,44 @@
   "args": [
     "mcp-dbutils",
     "--config",
-    "/完整/路径/到您的/config.yaml"
+    "C:/Users/您的用户名/config.yaml"
   ]
 }
 ```
 
-> **uvx设置的重要注意事项：**
-> - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
-> - 如果您收到uvx未找到的错误，请确保已成功完成步骤1
-> - 您可以通过在终端中输入`uv --version`来验证uvx是否已安装
+> 重要：请将 `C:/Users/您的用户名/config.yaml` 替换为您在步骤 2 中创建的配置文件的实际路径。
 
-### 方式B：使用Docker手动安装
+#### Cursor 配置
 
-1. 如果您没有Docker，请从[docker.com](https://www.docker.com/products/docker-desktop/)安装
+1. 打开 Cursor 应用
+2. 点击 "设置" → "MCP"
+3. 点击 "添加 MCP 服务器"
+4. 填写以下信息：
+   - 名称：`Database Utility MCP`
+   - 类型：`Command`（默认）
+   - 命令：`uvx mcp-dbutils --config C:/Users/您的用户名/config.yaml`
 
-2. 创建配置文件（详见[配置指南](configuration.md)）
+> 重要：请将 `C:/Users/您的用户名/config.yaml` 替换为您在步骤 2 中创建的配置文件的实际路径。
 
-3. 将此配置添加到您的AI客户端：
+## 方式 B：使用 Docker 安装
 
-**对于基于JSON的MCP客户端：**
-- 找到并编辑您客户端的MCP配置文件：
-  - **Claude Desktop (Mac)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-  - **Cline (Mac)**: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
-  - **其他客户端**：请参阅您客户端的文档以了解MCP配置文件位置
-- 在JSON文件中添加以下配置：
+### 步骤 1：安装 Docker
+
+如果您还没有安装 Docker，请从 [docker.com](https://www.docker.com/products/docker-desktop/) 下载并安装。
+
+### 步骤 2：创建数据库配置文件
+
+与方式 A 的步骤 2 相同，创建一个 `config.yaml` 文件。
+
+### 步骤 3：配置您的 AI 应用
+
+#### Claude Desktop 配置
+
+1. 打开 Claude Desktop 应用
+2. 点击左下角的设置图标
+3. 选择 "MCP 服务器"
+4. 点击 "添加服务器"
+5. 在配置文件中添加：
 
 ```json
 "dbutils": {
@@ -111,9 +146,7 @@
     "-i",
     "--rm",
     "-v",
-    "/完整/路径/到您的/config.yaml:/app/config.yaml",
-    "-v",
-    "/完整/路径/到您的/sqlite.db:/app/sqlite.db",  // 仅SQLite数据库需要
+    "C:/Users/您的用户名/config.yaml:/app/config.yaml",
     "mcp/dbutils",
     "--config",
     "/app/config.yaml"
@@ -121,142 +154,184 @@
 }
 ```
 
-**对于Cursor：**
-- 打开Cursor
-- 转到设置 → MCP
-- 点击"添加MCP服务器"并填写：
-  - 名称：`Database Utility MCP`
-  - 类型：`Command`（默认）
-  - 命令：`docker run -i --rm -v /完整/路径/到您的/config.yaml:/app/config.yaml -v /完整/路径/到您的/sqlite.db:/app/sqlite.db mcp/dbutils --config /app/config.yaml`
+> 重要：请将 `C:/Users/您的用户名/config.yaml` 替换为您在步骤 2 中创建的配置文件的实际路径。
 
-> **Docker的重要注意事项：**
-> - 将`/完整/路径/到您的/config.yaml`替换为您配置文件的实际完整路径
-> - 对于SQLite数据库，同样替换sqlite.db的路径为您的实际数据库路径
-> - 对于其他类型的数据库，完全删除SQLite卷行
+#### Cursor 配置
 
-### 方式C：使用Smithery（Claude一键配置）
+1. 打开 Cursor 应用
+2. 点击 "设置" → "MCP"
+3. 点击 "添加 MCP 服务器"
+4. 填写以下信息：
+   - 名称：`Database Utility MCP`
+   - 类型：`Command`（默认）
+   - 命令：`docker run -i --rm -v C:/Users/您的用户名/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml`
 
-此方法自动安装并配置服务到Claude：
+> 重要：请将 `C:/Users/您的用户名/config.yaml` 替换为您在步骤 2 中创建的配置文件的实际路径。
+
+## 方式 C：使用 Smithery 安装（Claude 一键配置）
+
+如果您使用 Claude Desktop，这是最简单的安装方式：
+
+1. 确保您已安装 Node.js
+2. 打开终端或命令提示符
+3. 运行以下命令：
 
 ```bash
 npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 ```
 
-安装完成后，直接跳到"验证安装"部分。
+4. 按照屏幕上的提示完成安装
 
-### 方式D：离线安装
+这种方法会自动完成所有配置，无需手动编辑任何文件。
 
-如果您需要在无法访问互联网的环境中安装，或者希望使用特定版本的 MCP 数据库工具，可以使用离线安装方法：
+## 方式 D：离线安装
 
-1. **获取 MCP 数据库工具源代码**：
-   - 从 GitHub 下载特定版本：`git clone https://github.com/donghao1393/mcp-dbutils.git`
-   - 切换到所需版本：`cd mcp-dbutils && git checkout v1.x.x`（替换为实际版本号）
-   - 或者直接从 [Releases 页面](https://github.com/donghao1393/mcp-dbutils/releases) 下载源代码压缩包
+如果您需要在无法访问互联网的环境中使用，或者想使用特定版本：
 
-2. **使用 uv 直接从本地目录运行**：
-   ```bash
-   uv --directory /path/to/local/mcp-dbutils run mcp-dbutils --config /path/to/config.yaml
-   ```
+### 步骤 1：获取源代码
 
-3. **将此配置添加到您的AI客户端**：
+在有网络的环境中：
+1. 从 GitHub 下载源代码：`git clone https://github.com/donghao1393/mcp-dbutils.git`
+2. 或从 [Releases 页面](https://github.com/donghao1393/mcp-dbutils/releases) 下载压缩包
+3. 将下载的文件复制到您的离线环境
 
-**对于基于JSON的MCP客户端**：
+### 步骤 2：创建数据库配置文件
+
+与方式 A 的步骤 2 相同，创建一个 `config.yaml` 文件。
+
+### 步骤 3：配置您的 AI 应用
+
+#### Claude Desktop 配置
+
+1. 打开 Claude Desktop 应用
+2. 点击左下角的设置图标
+3. 选择 "MCP 服务器"
+4. 点击 "添加服务器"
+5. 在配置文件中添加：
+
 ```json
 "dbutils": {
   "command": "uv",
   "args": [
     "--directory",
-    "/path/to/local/mcp-dbutils",
+    "C:/Users/您的用户名/mcp-dbutils",
     "run",
     "mcp-dbutils",
     "--config",
-    "/path/to/config.yaml"
+    "C:/Users/您的用户名/config.yaml"
   ]
 }
 ```
 
-> **离线安装的重要注意事项：**
-> - 确保替换 `/path/to/local/mcp-dbutils` 为实际的本地源代码路径
-> - 确保替换 `/path/to/config.yaml` 为实际的配置文件路径
-> - 此方法不需要安装包到全局环境，直接从源代码运行
+> 重要：请将路径替换为您实际的源代码目录和配置文件路径。
 
-## 验证安装
+## 验证安装是否成功
 
-正确安装和配置后，您的AI现在可以：
-- 列出数据库中的表
-- 查看表结构
-- 安全执行SQL查询
-- 跨多个数据库分析数据
+完成安装后，让我们来验证一切是否正常工作：
 
-**验证一切正常工作：**
+### 测试连接
 
-1. 向您的AI提问类似："你能检查一下是否可以连接到我的数据库吗？"
-2. 如果配置正确，AI应回复它可以连接到您配置文件中指定的数据库
-3. 尝试一个简单的命令，如："列出我数据库中的表"
+1. 打开您的 AI 应用（Claude Desktop 或 Cursor）
+2. 向 AI 提问：**"你能检查一下是否可以连接到我的数据库吗？"**
+3. 如果配置正确，AI 会回复它已成功连接到您的数据库
 
-如果遇到问题，请检查：
-- 您的配置文件语法是否正确
-- 数据库连接详细信息是否准确
-- 您的AI客户端是否正确配置了MCP服务器
-- 您的数据库是否可从您的计算机访问
+### 尝试简单命令
+
+成功连接后，您可以尝试以下简单命令：
+
+- **"列出我数据库中的所有表"**
+- **"描述 customers 表的结构"**
+- **"查询 products 表中价格最高的 5 个产品"**
 
 ## 常见问题解决
 
-### 1. uvx未找到
+### 问题 1：AI 无法找到 uvx 命令
 
-**问题**：配置后，AI报告"找不到uvx命令"。
+**现象**：AI 回复 "找不到 uvx 命令" 或类似错误
 
-**解决方案**：
-- 确认uv已正确安装：`uv --version`
-- 确保uv在您的PATH中
-- 尝试使用完整路径：`/path/to/uvx`
+**解决方法**：
+1. 确认 uv 已正确安装：在终端中运行 `uv --version`
+2. 如果已安装但仍报错，可能是环境变量问题：
+   - 在 Windows 上，检查 PATH 环境变量是否包含 uv 安装目录
+   - 在 Mac/Linux 上，可能需要重启终端或运行 `source ~/.bashrc` 或 `source ~/.zshrc`
 
-### 2. Docker连接问题
+### 问题 2：无法连接到数据库
 
-**问题**：使用Docker方式时无法连接到主机上的数据库。
+**现象**：AI 报告无法连接到您的数据库
 
-**解决方案**：
-- 在macOS/Windows上使用`host.docker.internal`作为主机名
-- 在Linux上使用Docker网桥IP（通常是`172.17.0.1`）
-- 或使用`--network="host"`启动Docker容器
+**解决方法**：
+1. **检查数据库是否运行**：确保您的数据库服务器已启动
+2. **验证连接信息**：仔细检查 config.yaml 中的主机名、端口、用户名和密码
+3. **检查网络设置**：
+   - 如果使用 Docker，对于本地数据库，请使用 `host.docker.internal` 作为主机名
+   - 确认防火墙未阻止连接
 
-### 3. 配置文件路径问题
+### 问题 3：配置文件路径错误
 
-**问题**：AI报告无法找到或读取配置文件。
+**现象**：AI 报告找不到配置文件
 
-**解决方案**：
-- 确保使用绝对路径而非相对路径
-- 检查文件权限，确保配置文件可读
-- 验证路径中没有特殊字符或空格
+**解决方法**：
+1. **使用绝对路径**：确保在 AI 应用配置中使用了完整的绝对路径
+2. **检查文件权限**：确保配置文件对当前用户可读
+3. **避免特殊字符**：路径中不要包含特殊字符或空格，如有必要请使用引号
 
-### 4. 数据库连接失败
+### 问题 4：SQLite 数据库路径问题
 
-**问题**：AI报告无法连接到数据库。
+**现象**：使用 SQLite 时连接失败
 
-**解决方案**：
-- 验证数据库服务器是否运行
-- 检查主机名、端口、用户名和密码是否正确
-- 确认网络防火墙允许连接
-- 对于SQLite，确保文件路径正确且可访问
+**解决方法**：
+1. **检查文件路径**：确保 SQLite 数据库文件存在且路径正确
+2. **检查权限**：确保数据库文件有读取权限
+3. **使用 Docker 时**：确保正确映射了 SQLite 文件路径
 
-## 更新
+## 更新到最新版本
 
-要更新到最新版本：
+定期更新可以获得新功能和安全修复。根据您的安装方式选择相应的更新方法：
 
-### 使用uvx的更新
+### 方式 A（uvx）更新
 
 ```bash
 uv pip install -U mcp-dbutils
 ```
 
-### 使用Docker的更新
+### 方式 B（Docker）更新
 
 ```bash
 docker pull mcp/dbutils:latest
 ```
 
-### 使用Smithery的更新
+### 方式 C（Smithery）更新
 
 ```bash
 npx -y @smithery/cli update @donghao1393/mcp-dbutils
 ```
+
+### 方式 D（离线）更新
+
+1. 在有网络的环境中下载最新版本的源代码
+2. 替换您离线环境中的源代码文件
+
+## 使用示例
+
+成功安装后，您可以尝试以下对话示例：
+
+**您**：能否列出我数据库中的所有表？
+
+**AI**：我来查看您的数据库中有哪些表。以下是您数据库中的表：
+- customers（客户）
+- products（产品）
+- orders（订单）
+- inventory（库存）
+
+**您**：customers 表的结构是什么？
+
+**AI**：customers 表有以下结构：
+- id（整数，主键）
+- name（文本）
+- email（文本）
+- registration_date（日期）
+- last_purchase（日期）
+
+**您**：过去一个月有多少客户进行了购买？
+
+**AI**：让我查询一下...根据数据，过去一个月有 28 位客户进行了购买，总购买金额为 ¥15,742.50。
