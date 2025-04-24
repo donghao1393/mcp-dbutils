@@ -96,6 +96,25 @@ flowchart LR
    - 检查用户是否可以访问所需的表和视图
    - 对于SQLite，验证文件系统权限是允许读取的
 
+### 工具和查询问题
+
+1. **查询执行失败**
+   - 检查SQL语法错误
+   - 确认表名和列名拼写正确
+   - 验证您的查询仅包含SELECT操作
+   - 对于复杂查询，尝试拆分成更简单的部分
+
+2. **性能问题**
+   - 避免没有WHERE条件的大表查询
+   - 使用LIMIT子句限制结果集大小
+   - 对于复杂的JOIN操作，考虑简化查询
+   - 使用dbutils-explain-query工具分析查询性能
+
+3. **MCP客户端集成问题**
+   - 确认MCP配置正确（命令和参数）
+   - 检查路径是绝对路径而非相对路径
+   - 验证uvx或docker能在命令行直接运行
+
 ### 日志和诊断
 
 对于高级故障排除，您可以启用详细日志记录：
@@ -138,3 +157,13 @@ MCP客户端会处理服务生成的日志。不同的MCP客户端可能在不�
 - 对于Claude Desktop：请查看Claude Desktop的应用日志
 - 对于Cursor：请查看Cursor的MCP日志部分
 - 对于其他客户端：请参考各自客户端的文档了解如何访问MCP服务日志
+
+### 获取帮助
+
+如果您在使用过程中遇到问题，以下资源可能会有所帮助：
+
+1. **项目文档**：首先查看最新的[项目文档](https://github.com/donghao1393/mcp-dbutils)以获取使用指南和已知问题
+
+2. **GitHub Issues**：搜索或[提交新issue](https://github.com/donghao1393/mcp-dbutils/issues)报告错误或请求帮助
+
+3. **GitHub Discussions**：参与[讨论区](https://github.com/donghao1393/mcp-dbutils/discussions)获取社区支持或分享使用经验
