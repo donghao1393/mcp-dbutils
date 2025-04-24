@@ -1,5 +1,5 @@
 # Python
-docs/
+docs/local/
 __pycache__/
 *.py[cod]
 *$py.class
