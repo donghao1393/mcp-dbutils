@@ -1,5 +1,7 @@
 # 使用指南
 
+*[English](../en/usage.md) | 中文 | [Français](../fr/usage.md) | [Español](../es/examples/README.md) | [العربية](../ar/examples/README.md) | [Русский](../ru/examples/README.md)*
+
 本文档提供了 MCP 数据库工具的详细使用说明，帮助您充分利用其功能与 AI 进行数据分析。
 
 ## 基本操作流程

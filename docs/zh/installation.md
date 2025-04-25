@@ -1,5 +1,7 @@
 # 安装指南
 
+*[English](../en/installation.md) | 中文 | [Français](../fr/installation.md) | [Español](../es/examples/README.md) | [العربية](../ar/examples/README.md) | [Русский](../ru/examples/README.md)*
+
 本文档提供了简单易懂的步骤，帮助您安装和配置 MCP 数据库工具，让您的 AI 助手能够安全地访问和分析您的数据库。
 
 ## 什么是 MCP？
