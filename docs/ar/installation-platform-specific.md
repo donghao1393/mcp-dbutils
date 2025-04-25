@@ -1,6 +1,6 @@
 # دليل التثبيت الخاص بالمنصات
 
-*[English](../../en/installation-platform-specific.md) | [中文](../../zh/installation-platform-specific.md) | [Français](../../fr/installation-platform-specific.md) | [Español](../../es/installation-platform-specific.md) | العربية | [Русский](../../ru/installation-platform-specific.md)*
+*[English](../en/installation-platform-specific.md) | [中文](../zh/installation-platform-specific.md) | [Français](../fr/installation-platform-specific.md) | [Español](../es/installation-platform-specific.md) | العربية | [Русский](../ru/installation-platform-specific.md)*
 
 يوفر هذا المستند تعليمات تثبيت مفصلة لـ MCP Database Utilities على أنظمة تشغيل وبيئات مختلفة.
 

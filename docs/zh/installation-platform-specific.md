@@ -1,6 +1,6 @@
 # 平台特定安装指南
 
-*[English](../../en/installation-platform-specific.md) | [中文](../../zh/installation-platform-specific.md) | [Français](../../fr/installation-platform-specific.md) | [Español](../../es/installation-platform-specific.md) | [العربية](../../ar/installation-platform-specific.md) | [Русский](../../ru/installation-platform-specific.md)*
+*[English](../en/installation-platform-specific.md) | 中文 | [Français](../fr/installation-platform-specific.md) | [Español](../es/installation-platform-specific.md) | [العربية](../ar/installation-platform-specific.md) | [Русский](../ru/installation-platform-specific.md)*
 
 本文档提供了在不同操作系统上安装和配置 MCP 数据库工具的详细指南。
 
