@@ -1,5 +1,7 @@
 # Platform-Specific Installation Guide
 
+*[English](../../en/installation-platform-specific.md) | [中文](../../zh/installation-platform-specific.md) | [Français](../../fr/installation-platform-specific.md) | [Español](../../es/installation-platform-specific.md) | [العربية](../../ar/installation-platform-specific.md) | [Русский](../../ru/installation-platform-specific.md)*
+
 This document provides detailed instructions for installing and configuring MCP Database Utilities on different operating systems.
 
 ## Linux Installation Guide

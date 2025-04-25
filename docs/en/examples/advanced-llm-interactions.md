@@ -1,5 +1,7 @@
 # Advanced LLM Interaction Examples
 
+*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
+
 This document showcases advanced interaction examples between MCP Database Utilities and various Large Language Models (LLMs), helping you fully leverage their potential for data analysis.
 
 ## Table of Contents
@@ -61,7 +63,7 @@ DeepSeek: I'll generate a detailed HTML analysis report for you. Here's the comp
             padding: 20px;
             background-color: #f9f9f9;
         }
-        
+
         /* More styles... */
     </style>
 </head>
@@ -70,7 +72,7 @@ DeepSeek: I'll generate a detailed HTML analysis report for you. Here's the comp
         <h1>Sales Data Analysis Report</h1>
         <p class="subtitle">January 2023 - December 2023</p>
     </header>
-    
+
     <section id="executive-summary">
         <h2>Executive Summary</h2>
         <div class="summary-cards">
@@ -90,9 +92,9 @@ DeepSeek: I'll generate a detailed HTML analysis report for you. Here's the comp
             </ul>
         </div>
     </section>
-    
+
     <!-- More report content... -->
-    
+
     <script>
         // Monthly sales trend chart
         const monthlySalesCtx = document.getElementById('monthly-sales-chart').getContext('2d');
@@ -114,7 +116,7 @@ DeepSeek: I'll generate a detailed HTML analysis report for you. Here's the comp
             },
             // More configuration...
         });
-        
+
         // More charts...
     </script>
 </body>
@@ -383,7 +385,7 @@ WITH electronics_customers AS (
 ),
 customer_spending AS (
     -- Calculate average spending for these customers
-    SELECT 
+    SELECT
         ec.id,
         ec.name,
         ROUND(AVG(o.total_amount), 2) AS avg_spending
@@ -394,7 +396,7 @@ customer_spending AS (
 ),
 popular_products AS (
     -- Find most frequently purchased products for these customers
-    SELECT 
+    SELECT
         ec.id AS customer_id,
         p.id AS product_id,
         p.name AS product_name,
@@ -408,7 +410,7 @@ popular_products AS (
     GROUP BY ec.id, p.id, p.name
 )
 -- Final results
-SELECT 
+SELECT
     cs.id AS customer_id,
     cs.name AS customer_name,
     cs.avg_spending,

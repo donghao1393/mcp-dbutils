@@ -1,5 +1,7 @@
 # 高级 LLM 交互示例
 
+*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
+
 本文档展示了 MCP 数据库工具与各类大型语言模型（LLM）的高级交互示例，帮助您充分发挥数据分析潜力。
 
 ## 目录
@@ -61,7 +63,7 @@ DeepSeek：我将为您生成一个详细的 HTML 分析报告。以下是完整
             padding: 20px;
             background-color: #f9f9f9;
         }
-        
+
         /* 更多样式... */
     </style>
 </head>
@@ -70,7 +72,7 @@ DeepSeek：我将为您生成一个详细的 HTML 分析报告。以下是完整
         <h1>销售数据分析报告</h1>
         <p class="subtitle">2023年1月 - 2023年12月</p>
     </header>
-    
+
     <section id="executive-summary">
         <h2>执行摘要</h2>
         <div class="summary-cards">
@@ -90,9 +92,9 @@ DeepSeek：我将为您生成一个详细的 HTML 分析报告。以下是完整
             </ul>
         </div>
     </section>
-    
+
     <!-- 更多报告内容... -->
-    
+
     <script>
         // 月度销售趋势图表
         const monthlySalesCtx = document.getElementById('monthly-sales-chart').getContext('2d');
@@ -114,7 +116,7 @@ DeepSeek：我将为您生成一个详细的 HTML 分析报告。以下是完整
             },
             // 更多配置...
         });
-        
+
         // 更多图表...
     </script>
 </body>
@@ -383,7 +385,7 @@ WITH electronics_customers AS (
 ),
 customer_spending AS (
     -- 计算这些客户的平均消费金额
-    SELECT 
+    SELECT
         ec.id,
         ec.name,
         ROUND(AVG(o.total_amount), 2) AS avg_spending
@@ -394,7 +396,7 @@ customer_spending AS (
 ),
 popular_products AS (
     -- 找出这些客户最常购买的产品
-    SELECT 
+    SELECT
         ec.id AS customer_id,
         p.id AS product_id,
         p.name AS product_name,
@@ -408,7 +410,7 @@ popular_products AS (
     GROUP BY ec.id, p.id, p.name
 )
 -- 最终结果
-SELECT 
+SELECT
     cs.id AS customer_id,
     cs.name AS customer_name,
     cs.avg_spending,
