@@ -1,6 +1,6 @@
 # Documentación de MCP Database Utilities
 
-*[English](../../en/installation.md) | [中文](../../zh/installation.md) | [Français](../../fr/installation.md) | Español | [العربية](../../ar/examples/README.md) | [Русский](../../ru/examples/README.md)*
+*[English](../../en/installation.md) | [中文](../../zh/installation.md) | [Français](../../fr/installation.md) | Español | [العربية](../../ar/installation.md) | [Русский](../../ru/installation.md)*
 
 ## Bienvenido a la Documentación en Español
 

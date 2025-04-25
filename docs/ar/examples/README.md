@@ -2,7 +2,7 @@
 
 # وثائق MCP Database Utilities
 
-*[English](../../en/installation.md) | [中文](../../zh/installation.md) | [Français](../../fr/installation.md) | [Español](../../es/installation.md) | العربية | [Русский](../../ru/examples/README.md)*
+*[English](../../en/installation.md) | [中文](../../zh/installation.md) | [Français](../../fr/installation.md) | [Español](../../es/installation.md) | العربية | [Русский](../../ru/installation.md)*
 
 ## مرحبًا بك في الوثائق العربية
 
