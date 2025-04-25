@@ -1,6 +1,6 @@
 # PostgreSQL 示例
 
-*[English](../../en/examples/postgresql-examples.md) | [中文](../../zh/examples/postgresql-examples.md) | [Français](../../fr/examples/postgresql-examples.md) | [Español](../../es/examples/postgresql-examples.md) | [العربية](../../ar/examples/postgresql-examples.md) | [Русский](../../ru/examples/postgresql-examples.md)*
+*[English](../../en/examples/postgresql-examples.md) | 中文 | [Français](../../fr/examples/postgresql-examples.md) | [Español](../../es/examples/postgresql-examples.md) | [العربية](../../ar/examples/postgresql-examples.md) | [Русский](../../ru/examples/postgresql-examples.md)*
 
 本文档提供了使用 MCP 数据库工具与 PostgreSQL 数据库交互的实用示例。这些示例展示了如何利用 PostgreSQL 的特性进行数据分析和查询优化。
 

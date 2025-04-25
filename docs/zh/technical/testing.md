@@ -1,6 +1,6 @@
 # 测试指南
 
-*[English](../../en/technical/testing.md) | [中文](../../zh/technical/testing.md) | [Français](../../fr/technical/testing.md) | [Español](../../es/technical/testing.md) | [العربية](../../ar/technical/testing.md) | [Русский](../../ru/technical/testing.md)*
+*[English](../../en/technical/testing.md) | 中文 | [Français](../../fr/technical/testing.md) | [Español](../../es/technical/testing.md) | [العربية](../../ar/technical/testing.md) | [Русский](../../ru/technical/testing.md)*
 
 ## 测试框架
 

@@ -1,6 +1,6 @@
 # SonarCloud AI 集成指南
 
-*[English](../../en/technical/sonarcloud-integration.md) | [中文](../../zh/technical/sonarcloud-integration.md) | [Français](../../fr/technical/sonarcloud-integration.md) | [Español](../../es/technical/sonarcloud-integration.md) | [العربية](../../ar/technical/sonarcloud-integration.md) | [Русский](../../ru/technical/sonarcloud-integration.md)*
+*[English](../../en/technical/sonarcloud-integration.md) | 中文 | [Français](../../fr/technical/sonarcloud-integration.md) | [Español](../../es/technical/sonarcloud-integration.md) | [العربية](../../ar/technical/sonarcloud-integration.md) | [Русский](../../ru/technical/sonarcloud-integration.md)*
 
 本文档介绍如何使用 SonarCloud 分析结果与 AI 集成，以便自动获取代码质量问题并使用 AI 辅助修复。
 

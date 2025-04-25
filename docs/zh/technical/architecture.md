@@ -1,6 +1,6 @@
 # 架构
 
-*[English](../../en/technical/architecture.md) | [中文](../../zh/technical/architecture.md) | [Français](../../fr/technical/architecture.md) | [Español](../../es/technical/architecture.md) | [العربية](../../ar/technical/architecture.md) | [Русский](../../ru/technical/architecture.md)*
+*[English](../../en/technical/architecture.md) | 中文 | [Français](../../fr/technical/architecture.md) | [Español](../../es/technical/architecture.md) | [العربية](../../ar/technical/architecture.md) | [Русский](../../ru/technical/architecture.md)*
 
 本文档描述了 MCP 数据库工具的技术架构，解释了各个组件如何交互以为 AI 助手提供安全的数据库访问。
 

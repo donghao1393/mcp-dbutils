@@ -1,6 +1,6 @@
 # MySQL 示例
 
-*[English](../../en/examples/mysql-examples.md) | [中文](../../zh/examples/mysql-examples.md) | [Français](../../fr/examples/mysql-examples.md) | [Español](../../es/examples/mysql-examples.md) | [العربية](../../ar/examples/mysql-examples.md) | [Русский](../../ru/examples/mysql-examples.md)*
+*[English](../../en/examples/mysql-examples.md) | 中文 | [Français](../../fr/examples/mysql-examples.md) | [Español](../../es/examples/mysql-examples.md) | [العربية](../../ar/examples/mysql-examples.md) | [Русский](../../ru/examples/mysql-examples.md)*
 
 本文档提供了使用 MCP 数据库工具与 MySQL 数据库交互的实用示例。这些示例展示了如何利用 MySQL 的特性进行数据分析和查询优化。
 

@@ -1,6 +1,6 @@
 # 高级 LLM 交互示例
 
-*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
+*[English](../../en/examples/advanced-llm-interactions.md) | 中文 | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
 
 本文档展示了 MCP 数据库工具与各类大型语言模型（LLM）的高级交互示例，帮助您充分发挥数据分析潜力。
 
