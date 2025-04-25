@@ -15,7 +15,7 @@
 [![许可证](https://img.shields.io/github/license/donghao1393/mcp-dbutils)](LICENSE)
 [![GitHub 星标](https://img.shields.io/github/stars/donghao1393/mcp-dbutils?style=social)](https://github.com/donghao1393/mcp-dbutils/stargazers)
 
-[English](README_EN.md) | [文档导航](#文档导航)
+[English](README_EN.md) | [Français](README_FR.md) | [Español](README_ES.md) | [العربية](README_AR.md) | [Русский](README_RU.md) | [文档导航](#文档导航)
 
 ![Image](https://github.com/user-attachments/assets/26c4f1a1-7b19-4bdd-b9fd-34ad198b0ce3)
 

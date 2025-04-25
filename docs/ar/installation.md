@@ -2,7 +2,7 @@
 
 # دليل التثبيت
 
-*[English](../en/installation.md) | [中文](../zh/installation.md) | [Français](../fr/installation.md) | [Español](../es/installation.md) | العربية | [Русский](../ru/examples/README.md)*
+*[English](../en/installation.md) | [中文](../zh/installation.md) | [Français](../fr/installation.md) | [Español](../es/installation.md) | العربية | [Русский](../ru/installation.md)*
 
 يقدم هذا المستند خطوات بسيطة وسهلة المتابعة لتثبيت وتكوين MCP Database Utilities، مما يسمح لمساعد الذكاء الاصطناعي الخاص بك بالوصول إلى قواعد البياناتك وتحليلها بأمان.
 

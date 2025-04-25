@@ -1,6 +1,6 @@
 # Guide d'Installation
 
-*[English](../en/installation.md) | [中文](../zh/installation.md) | Français | [Español](../es/examples/README.md) | [العربية](../ar/examples/README.md) | [Русский](../ru/examples/README.md)*
+*[English](../en/installation.md) | [中文](../zh/installation.md) | Français | [Español](../es/installation.md) | [العربية](../ar/installation.md) | [Русский](../ru/installation.md)*
 
 Ce document fournit des étapes simples et faciles à suivre pour installer et configurer MCP Database Utilities, permettant à votre assistant IA d'accéder et d'analyser vos bases de données en toute sécurité.
 
