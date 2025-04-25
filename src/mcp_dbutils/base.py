@@ -610,41 +610,53 @@ class ConnectionServer:
         """
         connections = []
 
-        # 获取配置中的所有连接
-        for conn_name, conn_config in self.config.connections.items():
-            db_type = conn_config.get("type", "unknown")
-            connection_info = []
+        try:
+            # 读取配置文件
+            with open(self.config_path, 'r') as f:
+                config = yaml.safe_load(f)
+                if not config or 'connections' not in config:
+                    return [types.TextContent(type="text", text="No database connections found in configuration.")]
 
-            # 添加基本信息
-            connection_info.append(f"Connection: {conn_name}")
-            connection_info.append(f"Type: {db_type}")
+                # 获取配置中的所有连接
+                for conn_name, conn_config in config['connections'].items():
+                    db_type = conn_config.get("type", "unknown")
+                    connection_info = []
 
-            # 根据数据库类型添加特定信息（排除敏感信息）
-            if db_type == "sqlite":
-                if "database" in conn_config:
-                    connection_info.append(f"Database: {conn_config['database']}")
-            elif db_type in ["mysql", "postgresql"]:
-                if "host" in conn_config:
-                    connection_info.append(f"Host: {conn_config['host']}")
-                if "port" in conn_config:
-                    connection_info.append(f"Port: {conn_config['port']}")
-                if "database" in conn_config:
-                    connection_info.append(f"Database: {conn_config['database']}")
-                if "user" in conn_config:
-                    connection_info.append(f"User: {conn_config['user']}")
-                # 不显示密码
+                    # 添加基本信息
+                    connection_info.append(f"Connection: {conn_name}")
+                    connection_info.append(f"Type: {db_type}")
 
-            # 检查连接状态（如果需要）
-            if check_status:
-                try:
-                    async with self.get_handler(conn_name) as handler:
-                        # 尝试执行一个简单查询来验证连接
-                        await handler.test_connection()
-                        connection_info.append("Status: Available")
-                except Exception as e:
-                    connection_info.append(f"Status: Unavailable ({str(e)})")
+                    # 根据数据库类型添加特定信息（排除敏感信息）
+                    if db_type == "sqlite":
+                        if "path" in conn_config:
+                            connection_info.append(f"Path: {conn_config['path']}")
+                        elif "database" in conn_config:
+                            connection_info.append(f"Database: {conn_config['database']}")
+                    elif db_type in ["mysql", "postgres", "postgresql"]:
+                        if "host" in conn_config:
+                            connection_info.append(f"Host: {conn_config['host']}")
+                        if "port" in conn_config:
+                            connection_info.append(f"Port: {conn_config['port']}")
+                        if "database" in conn_config:
+                            connection_info.append(f"Database: {conn_config['database']}")
+                        if "user" in conn_config:
+                            connection_info.append(f"User: {conn_config['user']}")
+                        # 不显示密码
 
-            connections.append("\n".join(connection_info))
+                    # 检查连接状态（如果需要）
+                    if check_status:
+                        try:
+                            async with self.get_handler(conn_name) as handler:
+                                # 尝试执行一个简单查询来验证连接
+                                await handler.test_connection()
+                                connection_info.append("Status: Available")
+                        except Exception as e:
+                            connection_info.append(f"Status: Unavailable ({str(e)})")
+
+                    connections.append("\n".join(connection_info))
+        except Exception as e:
+            self.send_log(LOG_LEVEL_ERROR, f"Error listing connections: {str(e)}")
+            return [types.TextContent(type="text", text=f"Error listing connections: {str(e)}")]
 
         if not connections:
             return [types.TextContent(type="text", text="No database connections found in configuration.")]
