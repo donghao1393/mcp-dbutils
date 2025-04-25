@@ -1,6 +1,6 @@
 # SonarCloud AI Integration Guide
 
-*[English](../../en/technical/sonarcloud-integration.md) | [中文](../../zh/technical/sonarcloud-integration.md) | [Français](../../fr/technical/sonarcloud-integration.md) | [Español](../../es/technical/sonarcloud-integration.md) | [العربية](../../ar/technical/sonarcloud-integration.md) | [Русский](../../ru/technical/sonarcloud-integration.md)*
+*English | [中文](../../zh/technical/sonarcloud-integration.md) | [Français](../../fr/technical/sonarcloud-integration.md) | [Español](../../es/technical/sonarcloud-integration.md) | [العربية](../../ar/technical/sonarcloud-integration.md) | [Русский](../../ru/technical/sonarcloud-integration.md)*
 
 This document explains how to integrate SonarCloud analysis results with AI to automatically retrieve code quality issues and use AI to assist with fixes.
 

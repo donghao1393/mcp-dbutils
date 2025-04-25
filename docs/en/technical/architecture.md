@@ -1,6 +1,6 @@
 # Architecture
 
-*[English](../../en/technical/architecture.md) | [中文](../../zh/technical/architecture.md) | [Français](../../fr/technical/architecture.md) | [Español](../../es/technical/architecture.md) | [العربية](../../ar/technical/architecture.md) | [Русский](../../ru/technical/architecture.md)*
+*English | [中文](../../zh/technical/architecture.md) | [Français](../../fr/technical/architecture.md) | [Español](../../es/technical/architecture.md) | [العربية](../../ar/technical/architecture.md) | [Русский](../../ru/technical/architecture.md)*
 
 This document describes the technical architecture of MCP Database Utilities, explaining how the various components interact to provide secure database access for AI assistants.
 

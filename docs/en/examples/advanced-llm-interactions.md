@@ -1,6 +1,6 @@
 # Advanced LLM Interaction Examples
 
-*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
+*English | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
 
 This document showcases advanced interaction examples between MCP Database Utilities and various Large Language Models (LLMs), helping you fully leverage their potential for data analysis.
 

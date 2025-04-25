@@ -2,6 +2,9 @@
 
 *English | [中文](../zh/configuration.md) | [Français](../fr/configuration.md) | [Español](../es/configuration.md) | [العربية](../ar/configuration.md) | [Русский](../ru/configuration.md)*
 
+
+*English | [中文](../zh/configuration.md) | [Français](../fr/configuration.md) | [Español](../es/configuration.md) | [العربية](../ar/configuration.md) | [Русский](../ru/configuration.md)*
+
 This document provides various configuration examples for MCP Database Utilities, from basic setups to advanced scenarios, helping you correctly configure and optimize your database connections.
 
 ## Basic Configuration

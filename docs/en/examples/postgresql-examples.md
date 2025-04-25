@@ -1,6 +1,6 @@
 # PostgreSQL Examples
 
-*[English](../../en/examples/postgresql-examples.md) | [中文](../../zh/examples/postgresql-examples.md) | [Français](../../fr/examples/postgresql-examples.md) | [Español](../../es/examples/postgresql-examples.md) | [العربية](../../ar/examples/postgresql-examples.md) | [Русский](../../ru/examples/postgresql-examples.md)*
+*English | [中文](../../zh/examples/postgresql-examples.md) | [Français](../../fr/examples/postgresql-examples.md) | [Español](../../es/examples/postgresql-examples.md) | [العربية](../../ar/examples/postgresql-examples.md) | [Русский](../../ru/examples/postgresql-examples.md)*
 
 This document provides practical examples for interacting with PostgreSQL databases using MCP Database Utilities. These examples demonstrate how to leverage PostgreSQL features for data analysis and query optimization.
 

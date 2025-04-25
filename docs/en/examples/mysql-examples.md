@@ -1,6 +1,6 @@
 # MySQL Examples
 
-*[English](../../en/examples/mysql-examples.md) | [中文](../../zh/examples/mysql-examples.md) | [Français](../../fr/examples/mysql-examples.md) | [Español](../../es/examples/mysql-examples.md) | [العربية](../../ar/examples/mysql-examples.md) | [Русский](../../ru/examples/mysql-examples.md)*
+*English | [中文](../../zh/examples/mysql-examples.md) | [Français](../../fr/examples/mysql-examples.md) | [Español](../../es/examples/mysql-examples.md) | [العربية](../../ar/examples/mysql-examples.md) | [Русский](../../ru/examples/mysql-examples.md)*
 
 This document provides practical examples for interacting with MySQL databases using MCP Database Utilities. These examples demonstrate how to leverage MySQL features for data analysis and query optimization.
 
