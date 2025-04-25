@@ -1,5 +1,7 @@
 # SonarCloud AI 集成指南
 
+*[English](../../en/technical/sonarcloud-integration.md) | [中文](../../zh/technical/sonarcloud-integration.md) | [Français](../../fr/technical/sonarcloud-integration.md) | [Español](../../es/technical/sonarcloud-integration.md) | [العربية](../../ar/technical/sonarcloud-integration.md) | [Русский](../../ru/technical/sonarcloud-integration.md)*
+
 本文档介绍如何使用 SonarCloud 分析结果与 AI 集成，以便自动获取代码质量问题并使用 AI 辅助修复。
 
 ## 功能概述
@@ -56,7 +58,7 @@ sonar-ai-fix
 2. 将内容复制给 AI（如 Claude），并请求修复建议：
    ```
    这是我项目的 SonarCloud 分析报告，请帮我分析这些问题并提供修复建议。
-   
+
    [粘贴 sonar_report.md 内容]
    ```
 
@@ -72,7 +74,7 @@ sonar-ai-fix
 2. 将内容提供给 AI 进行更详细的分析：
    ```
    这是我项目的 SonarCloud 原始分析数据，请帮我深入分析这些问题并提供修复建议。
-   
+
    [粘贴 sonar_issues.json 内容]
    ```
 

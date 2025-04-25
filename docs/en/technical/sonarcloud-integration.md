@@ -1,5 +1,7 @@
 # SonarCloud AI Integration Guide
 
+*[English](../../en/technical/sonarcloud-integration.md) | [中文](../../zh/technical/sonarcloud-integration.md) | [Français](../../fr/technical/sonarcloud-integration.md) | [Español](../../es/technical/sonarcloud-integration.md) | [العربية](../../ar/technical/sonarcloud-integration.md) | [Русский](../../ru/technical/sonarcloud-integration.md)*
+
 This document explains how to integrate SonarCloud analysis results with AI to automatically retrieve code quality issues and use AI to assist with fixes.
 
 ## Feature Overview
@@ -56,7 +58,7 @@ There are two ways to use these reports:
 2. Copy the content to an AI (like Claude) and request fix suggestions:
    ```
    This is the SonarCloud analysis report for my project. Please analyze these issues and provide fix suggestions.
-   
+
    [Paste sonar_report.md content]
    ```
 
@@ -72,7 +74,7 @@ For situations requiring more in-depth analysis, you can use the JSON data:
 2. Provide the content to AI for more detailed analysis:
    ```
    This is the raw SonarCloud analysis data for my project. Please perform an in-depth analysis of these issues and provide fix suggestions.
-   
+
    [Paste sonar_issues.json content]
    ```
 

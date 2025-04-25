@@ -1,5 +1,7 @@
 # Testing Guide
 
+*[English](../../en/technical/testing.md) | [中文](../../zh/technical/testing.md) | [Français](../../fr/technical/testing.md) | [Español](../../es/technical/testing.md) | [العربية](../../ar/technical/testing.md) | [Русский](../../ru/technical/testing.md)*
+
 ## Testing Framework
 
 MCP Database Utilities uses the following testing frameworks and tools:

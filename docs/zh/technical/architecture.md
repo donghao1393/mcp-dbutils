@@ -1,4 +1,12 @@
-# 架构设计
+# 架构
+
+*[English](../../en/technical/architecture.md) | [中文](../../zh/technical/architecture.md) | [Français](../../fr/technical/architecture.md) | [Español](../../es/technical/architecture.md) | [العربية](../../ar/technical/architecture.md) | [Русский](../../ru/technical/architecture.md)*
+
+本文档描述了 MCP 数据库工具的技术架构，解释了各个组件如何交互以为 AI 助手提供安全的数据库访问。
+
+## 架构概述
+
+MCP 数据库工具采用模块化架构设计，优先考虑安全性、隔离性和灵活性。系统由几个不同的层组成，它们共同工作以提供对数据库的安全只读访问。
 
 ## 核心概念：抽象层设计
 

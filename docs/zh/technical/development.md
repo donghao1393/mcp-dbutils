@@ -1,5 +1,9 @@
 # 开发指南
 
+*[English](../../en/technical/development.md) | [中文](../../zh/technical/development.md) | [Français](../../fr/technical/development.md) | [Español](../../es/technical/development.md) | [العربية](../../ar/technical/development.md) | [Русский](../../ru/technical/development.md)*
+
+本文档提供了有关开发流程、代码标准和为 MCP 数据库工具项目做贡献的最佳实践的详细信息。
+
 ## 代码质量
 
 ### 质量门禁

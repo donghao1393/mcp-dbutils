@@ -1,5 +1,7 @@
 # Security Architecture
 
+*[English](../../en/technical/security.md) | [中文](../../zh/technical/security.md) | [Français](../../fr/technical/security.md) | [Español](../../es/technical/security.md) | [العربية](../../ar/technical/security.md) | [Русский](../../ru/technical/security.md)*
+
 ## Communication Pattern and Security Architecture
 
 MCP Database Utilities implements a secure communication pattern designed to protect your data at every step. The following diagram illustrates how data flows between components while maintaining security:

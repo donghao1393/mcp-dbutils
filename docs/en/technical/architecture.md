@@ -1,4 +1,12 @@
-# Architecture Design
+# Architecture
+
+*[English](../../en/technical/architecture.md) | [中文](../../zh/technical/architecture.md) | [Français](../../fr/technical/architecture.md) | [Español](../../es/technical/architecture.md) | [العربية](../../ar/technical/architecture.md) | [Русский](../../ru/technical/architecture.md)*
+
+This document describes the technical architecture of MCP Database Utilities, explaining how the various components interact to provide secure database access for AI assistants.
+
+## Architecture Overview
+
+MCP Database Utilities is designed with a modular architecture that prioritizes security, isolation, and flexibility. The system consists of several distinct layers that work together to provide secure read-only access to databases.
 
 ## Core Concept: Abstraction Layer Design
 

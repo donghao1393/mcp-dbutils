@@ -1,5 +1,9 @@
 # Development Guide
 
+*[English](../../en/technical/development.md) | [中文](../../zh/technical/development.md) | [Français](../../fr/technical/development.md) | [Español](../../es/technical/development.md) | [العربية](../../ar/technical/development.md) | [Русский](../../ru/technical/development.md)*
+
+This document provides detailed information about the development process, code standards, and best practices for contributing to the MCP Database Utilities project.
+
 ## Code Quality
 
 ### Quality Gates
