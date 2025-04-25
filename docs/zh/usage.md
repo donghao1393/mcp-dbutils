@@ -15,6 +15,32 @@ MCP 数据库工具的基本操作流程如下：
 
 MCP 数据库工具提供了几个您的 AI 可以使用的工具：
 
+### dbutils-list-connections
+
+列出配置中定义的所有可用数据库连接。
+
+**示例交互**：
+
+**您**："我有哪些可用的数据库连接？"
+
+**AI**："我来为您查看可用的数据库连接。以下是我找到的连接：
+
+1. **postgres-db**
+   - 类型：PostgreSQL
+   - 主机：localhost
+   - 数据库：analytics
+   - 用户：analyst
+
+2. **sqlite-db**
+   - 类型：SQLite
+   - 路径：/path/to/database.db
+
+3. **mysql-db**
+   - 类型：MySQL
+   - 主机：db.example.com
+   - 数据库：customer_data
+   - 用户：reader"
+
 ### dbutils-list-tables
 
 列出指定数据库中的所有表。

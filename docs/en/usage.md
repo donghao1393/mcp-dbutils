@@ -15,6 +15,32 @@ The basic workflow for using MCP Database Utilities is as follows:
 
 MCP Database Utilities provides several tools that your AI can use:
 
+### dbutils-list-connections
+
+Lists all available database connections defined in your configuration.
+
+**Example Interaction**:
+
+**You**: "What database connections do I have available?"
+
+**AI**: "I'll check your available database connections. Here's what I found:
+
+1. **postgres-db**
+   - Type: PostgreSQL
+   - Host: localhost
+   - Database: analytics
+   - User: analyst
+
+2. **sqlite-db**
+   - Type: SQLite
+   - Path: /path/to/database.db
+
+3. **mysql-db**
+   - Type: MySQL
+   - Host: db.example.com
+   - Database: customer_data
+   - User: reader"
+
 ### dbutils-list-tables
 
 Lists all tables in the specified database.
