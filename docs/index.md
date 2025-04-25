@@ -8,7 +8,7 @@ Welcome to the MCP Database Utilities documentation. Please select your preferre
 - [中文 (Chinese)](zh/installation.md)
 - [Français (French)](fr/installation.md)
 - [Español (Spanish)](es/installation.md)
-- [العربية (Arabic)](ar/examples/README.md) - *Coming soon*
+- [العربية (Arabic)](ar/installation.md)
 - [Русский (Russian)](ru/examples/README.md) - *Coming soon*
 
 ## About MCP Database Utilities

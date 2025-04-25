@@ -2,13 +2,21 @@
 
 # وثائق MCP Database Utilities
 
-*[English](../../en/installation.md) | [中文](../../zh/installation.md) | [Français](../../fr/installation.md) | [Español](../../es/examples/README.md) | العربية | [Русский](../../ru/examples/README.md)*
+*[English](../../en/installation.md) | [中文](../../zh/installation.md) | [Français](../../fr/installation.md) | [Español](../../es/installation.md) | العربية | [Русский](../../ru/examples/README.md)*
 
-## قريبًا
+## مرحبًا بك في الوثائق العربية
 
-الوثائق باللغة العربية قيد التطوير وستكون متاحة قريبًا.
+مرحبًا بك في وثائق MCP Database Utilities باللغة العربية. ستساعدك هذه الوثائق على استخدام MCP Database Utilities للوصول إلى قواعد البيانات الخاصة بك وتحليلها بأمان باستخدام مساعدي الذكاء الاصطناعي.
 
-في الوقت الحالي، يمكنك الرجوع إلى الوثائق باللغة [الإنجليزية](../../en/installation.md) أو [الفرنسية](../../fr/installation.md).
+## الأدلة الرئيسية
+
+- [دليل التثبيت](../installation.md) - تعليمات مفصلة لتثبيت وتكوين MCP Database Utilities
+- [دليل التكوين](../configuration.md) - أمثلة التكوين وأفضل الممارسات
+- [دليل الاستخدام](../usage.md) - سير العمل الأساسي وسيناريوهات الاستخدام الشائعة
+
+## أمثلة حسب نوع قاعدة البيانات
+
+- [أمثلة SQLite](sqlite-examples.md) - أمثلة عملية للعمل مع قواعد بيانات SQLite
 
 ## الميزات الرئيسية
 
