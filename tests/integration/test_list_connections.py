@@ -13,17 +13,22 @@ from mcp_dbutils.log import create_logger
 # 创建测试用的 logger
 logger = create_logger("test-list-connections", True)  # debug=True 以显示所有日志
 
+
 @pytest.mark.asyncio
 async def test_list_connections_tool(postgres_db, sqlite_db, mcp_config):
     """Test the list_connections tool with multiple database connections"""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml") as tmp:
         yaml.dump(mcp_config, tmp)
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams
-        client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
-        server_to_client_send, server_to_client_recv = anyio.create_memory_object_stream[types.JSONRPCMessage](10)
+        client_to_server_send, client_to_server_recv = (
+            anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
+        )
+        server_to_client_send, server_to_client_recv = (
+            anyio.create_memory_object_stream[types.JSONRPCMessage](10)
+        )
 
         # Start server in background
         server_task = asyncio.create_task(
@@ -31,7 +36,7 @@ async def test_list_connections_tool(postgres_db, sqlite_db, mcp_config):
                 client_to_server_recv,
                 server_to_client_send,
                 server.server.create_initialization_options(),
-                raise_exceptions=True
+                raise_exceptions=True,
             )
         )
 
@@ -61,7 +66,9 @@ async def test_list_connections_tool(postgres_db, sqlite_db, mcp_config):
                 assert "Status:" not in result.content[0].text
 
                 # Test list_connections tool with status checking
-                result = await client.call_tool("dbutils-list-connections", {"check_status": True})
+                result = await client.call_tool(
+                    "dbutils-list-connections", {"check_status": True}
+                )
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
 
@@ -82,20 +89,25 @@ async def test_list_connections_tool(postgres_db, sqlite_db, mcp_config):
             await server_to_client_send.aclose()
             await server_to_client_recv.aclose()
 
+
 @pytest.mark.asyncio
 async def test_list_connections_empty_config():
     """Test the list_connections tool with an empty configuration"""
     # Create an empty config
     empty_config = {"connections": {}}
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml") as tmp:
         yaml.dump(empty_config, tmp)
         tmp.flush()
         server = ConnectionServer(config_path=tmp.name)
 
         # Create bidirectional streams
-        client_to_server_send, client_to_server_recv = anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
-        server_to_client_send, server_to_client_recv = anyio.create_memory_object_stream[types.JSONRPCMessage](10)
+        client_to_server_send, client_to_server_recv = (
+            anyio.create_memory_object_stream[types.JSONRPCMessage | Exception](10)
+        )
+        server_to_client_send, server_to_client_recv = (
+            anyio.create_memory_object_stream[types.JSONRPCMessage](10)
+        )
 
         # Start server in background
         server_task = asyncio.create_task(
@@ -103,7 +115,7 @@ async def test_list_connections_empty_config():
                 client_to_server_recv,
                 server_to_client_send,
                 server.server.create_initialization_options(),
-                raise_exceptions=True
+                raise_exceptions=True,
             )
         )
 
@@ -117,7 +129,10 @@ async def test_list_connections_empty_config():
                 result = await client.call_tool("dbutils-list-connections", {})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
-                assert "No database connections found in configuration" in result.content[0].text
+                assert (
+                    "No database connections found in configuration"
+                    in result.content[0].text
+                )
 
         finally:
             # Cleanup
