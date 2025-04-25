@@ -1,6 +1,6 @@
 # Interacciones Avanzadas con LLM
 
-*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | Español | [العربية](../../ar/examples/advanced-llm-interactions.md) | [Русский](../../ru/examples/advanced-llm-interactions.md)*
+*[English](../en/examples/advanced-llm-interactions.md) | [中文](../zh/examples/advanced-llm-interactions.md) | [Français](../fr/examples/advanced-llm-interactions.md) | Español | [العربية](../ar/examples/advanced-llm-interactions.md) | [Русский](../ru/examples/advanced-llm-interactions.md)*
 
 Este documento presenta ejemplos avanzados de interacciones entre grandes modelos de lenguaje (LLM) y bases de datos a través de MCP Database Utilities. Estos ejemplos muestran cómo los LLM pueden realizar análisis de datos complejos, generar visualizaciones y proporcionar insights profundos.
 
@@ -33,7 +33,7 @@ Este documento presenta ejemplos avanzados de interacciones entre grandes modelo
 
 1. **Estacionalidad**: Las ventas de Q4 son consistentemente más altas (temporada navideña), mientras que Q3 muestra una caída estacional.
 
-2. **Lanzamientos de Productos**: 
+2. **Lanzamientos de Productos**:
    - El lanzamiento del Producto X en Q1 2022 estableció una base sólida
    - La nueva gama premium en Q4 2023 generó un aumento del 56.7%
 

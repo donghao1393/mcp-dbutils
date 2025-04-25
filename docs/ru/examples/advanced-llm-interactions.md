@@ -1,6 +1,6 @@
 # Продвинутые взаимодействия с LLM
 
-*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | [العربية](../../ar/examples/advanced-llm-interactions.md) | Русский*
+*[English](../en/examples/advanced-llm-interactions.md) | [中文](../zh/examples/advanced-llm-interactions.md) | [Français](../fr/examples/advanced-llm-interactions.md) | [Español](../es/examples/advanced-llm-interactions.md) | [العربية](../ar/examples/advanced-llm-interactions.md) | Русский*
 
 Этот документ представляет продвинутые примеры взаимодействия между большими языковыми моделями (LLM) и базами данных через MCP Database Utilities. Эти примеры демонстрируют, как LLM могут проводить сложный анализ данных, создавать визуализации и предоставлять глубокие выводы.
 
@@ -33,7 +33,7 @@
 
 1. **Сезонность**: Продажи в Q4 стабильно выше (праздничный сезон), в то время как Q3 показывает сезонный спад.
 
-2. **Запуски продуктов**: 
+2. **Запуски продуктов**:
    - Запуск продукта X в Q1 2022 заложил прочную основу
    - Новая премиум-линейка в Q4 2023 привела к росту на 56.7%
 

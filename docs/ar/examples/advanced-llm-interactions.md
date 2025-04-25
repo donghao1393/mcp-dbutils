@@ -1,6 +1,6 @@
 # تفاعلات متقدمة مع نماذج اللغة الكبيرة
 
-*[English](../../en/examples/advanced-llm-interactions.md) | [中文](../../zh/examples/advanced-llm-interactions.md) | [Français](../../fr/examples/advanced-llm-interactions.md) | [Español](../../es/examples/advanced-llm-interactions.md) | العربية | [Русский](../../ru/examples/advanced-llm-interactions.md)*
+*[English](../en/examples/advanced-llm-interactions.md) | [中文](../zh/examples/advanced-llm-interactions.md) | [Français](../fr/examples/advanced-llm-interactions.md) | [Español](../es/examples/advanced-llm-interactions.md) | العربية | [Русский](../ru/examples/advanced-llm-interactions.md)*
 
 يقدم هذا المستند أمثلة متقدمة للتفاعلات بين نماذج اللغة الكبيرة (LLM) وقواعد البيانات من خلال MCP Database Utilities. توضح هذه الأمثلة كيف يمكن لنماذج اللغة الكبيرة إجراء تحليلات بيانات معقدة، وإنشاء تصورات، وتقديم رؤى عميقة.
 
@@ -33,7 +33,7 @@
 
 1. **الموسمية**: مبيعات الربع الرابع أعلى باستمرار (موسم الأعياد)، بينما يظهر الربع الثالث انخفاضًا موسميًا.
 
-2. **إطلاق المنتجات**: 
+2. **إطلاق المنتجات**:
    - إطلاق المنتج X في الربع الأول 2022 أسس قاعدة قوية
    - المجموعة الفاخرة الجديدة في الربع الرابع 2023 ولدت زيادة بنسبة 56.7%
 
