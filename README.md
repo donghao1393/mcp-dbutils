@@ -93,6 +93,7 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 
 MCP 数据库工具提供了多种工具，使 AI 能够与您的数据库交互：
 
+- **dbutils-list-connections**：列出配置中的所有可用数据库连接
 - **dbutils-list-tables**：列出数据库中的所有表
 - **dbutils-run-query**：执行 SQL 查询（仅 SELECT）
 - **dbutils-get-stats**：获取表统计信息

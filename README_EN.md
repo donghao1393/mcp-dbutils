@@ -73,6 +73,7 @@ We offer multiple installation methods, including uvx, Docker, and Smithery. For
 
 MCP Database Utilities provides several tools that your AI can use:
 
+- **dbutils-list-connections**: Lists all available database connections in your configuration
 - **dbutils-list-tables**: Lists all tables in a database
 - **dbutils-run-query**: Executes a SQL query (SELECT only)
 - **dbutils-get-stats**: Gets statistics about a table
