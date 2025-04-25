@@ -8,6 +8,19 @@
 
 该集成方案通过以下步骤工作：
 
+```mermaid
+graph TD
+    A[代码开发] --> B[SonarCloud 分析]
+    B --> C{检测到问题?}
+    C -->|是| D[AI 分析问题]
+    D --> E[修复建议]
+    E --> F[实施修复]
+    F --> A
+    C -->|否| G[AI 优化分析]
+    G --> H[优化建议]
+    H --> A
+```
+
 1. GitHub Actions 工作流在 CI/CD 过程中运行 SonarCloud 分析
 2. 分析完成后，工作流提取 SonarCloud 问题并生成两种格式的报告：
    - JSON 格式：包含完整的原始数据，适合 AI 深入分析

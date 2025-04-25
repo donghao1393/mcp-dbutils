@@ -8,6 +8,19 @@ This document explains how to integrate SonarCloud analysis results with AI to a
 
 This integration works through the following steps:
 
+```mermaid
+graph TD
+    A[Code Development] --> B[SonarCloud Analysis]
+    B --> C{Issues Detected?}
+    C -->|Yes| D[AI Analysis of Issues]
+    D --> E[Fix Suggestions]
+    E --> F[Implement Fixes]
+    F --> A
+    C -->|No| G[AI Optimization Analysis]
+    G --> H[Optimization Suggestions]
+    H --> A
+```
+
 1. GitHub Actions workflow runs SonarCloud analysis during the CI/CD process
 2. After analysis is complete, the workflow extracts SonarCloud issues and generates reports in two formats:
    - JSON format: Contains complete raw data, suitable for in-depth AI analysis
