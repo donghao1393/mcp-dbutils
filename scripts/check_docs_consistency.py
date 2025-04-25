@@ -169,16 +169,13 @@ def check_document_structure(files_by_lang: Dict[str, List[Path]]) -> List[Tuple
                 content = f.read()
                 # 提取标题结构
                 headings = re.findall(r'^(#+)\s+(.*?)$', content, re.MULTILINE)
-                lang_structure = [(len(h[0]), h[1]) for h in headings]
 
-                # 只检查主要标题（H1和H2）的结构
-                zh_main_headings = [h for h in zh_structures[rel_path_str] if h[0] <= 2]
-                lang_main_headings = [h for h in lang_structure if h[0] <= 2]
+                # 检查是否至少有一个H1标题
+                h1_headings = [h for h in headings if len(h[0]) == 1]
+                if not h1_headings:
+                    issues.append((str(file_path), "文档缺少H1标题"))
 
-                if len(zh_main_headings) != len(lang_main_headings):
-                    issues.append((str(file_path), f"主要标题(H1/H2)数量与中文版本不一致 ({len(lang_main_headings)} vs {len(zh_main_headings)})"))
-
-                # 不再检查所有标题的数量是否一致，允许不同语言版本有不同的子标题结构
+                # 不再检查标题数量和结构是否一致，允许不同语言版本有不同的标题结构
 
     return issues
 
