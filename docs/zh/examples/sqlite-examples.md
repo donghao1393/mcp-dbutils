@@ -1,5 +1,7 @@
 # SQLite 示例
 
+*[English](../../en/examples/sqlite-examples.md) | [中文](../../zh/examples/sqlite-examples.md) | [Français](../../fr/examples/sqlite-examples.md) | [Español](../../es/examples/sqlite-examples.md) | [العربية](../../ar/examples/sqlite-examples.md) | [Русский](../../ru/examples/sqlite-examples.md)*
+
 本文档提供了使用 MCP 数据库工具操作 SQLite 数据库的实用示例。
 
 ## 基本配置

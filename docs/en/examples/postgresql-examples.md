@@ -1,5 +1,7 @@
 # PostgreSQL Examples
 
+*[English](../../en/examples/postgresql-examples.md) | [中文](../../zh/examples/postgresql-examples.md) | [Français](../../fr/examples/postgresql-examples.md) | [Español](../../es/examples/postgresql-examples.md) | [العربية](../../ar/examples/postgresql-examples.md) | [Русский](../../ru/examples/postgresql-examples.md)*
+
 This document provides practical examples for interacting with PostgreSQL databases using MCP Database Utilities. These examples demonstrate how to leverage PostgreSQL features for data analysis and query optimization.
 
 ## Basic Query Examples
@@ -7,9 +9,9 @@ This document provides practical examples for interacting with PostgreSQL databa
 ### Listing All Tables
 
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 ```
 
@@ -32,9 +34,9 @@ SELECT * FROM customers LIMIT 10;
 SELECT * FROM customers WHERE city = 'New York' AND status = 'active';
 
 -- Sorting queries
-SELECT customer_id, name, registration_date 
-FROM customers 
-ORDER BY registration_date DESC 
+SELECT customer_id, name, registration_date
+FROM customers
+ORDER BY registration_date DESC
 LIMIT 20;
 ```
 
@@ -46,20 +48,20 @@ PostgreSQL provides powerful JSON processing capabilities for directly querying 
 
 ```sql
 -- Query specific properties from JSON fields
-SELECT 
-  id, 
+SELECT
+  id,
   name,
   preferences->>'theme' AS theme,
   preferences->>'language' AS language
 FROM users;
 
 -- Filter using JSON conditions
-SELECT * FROM products 
-WHERE attributes->>'color' = 'red' 
+SELECT * FROM products
+WHERE attributes->>'color' = 'red'
 AND CAST(attributes->>'weight' AS INTEGER) < 100;
 
 -- Using JSON arrays
-SELECT * FROM orders 
+SELECT * FROM orders
 WHERE items @> '[{"product_id": 123}]'::jsonb;
 ```
 
@@ -72,12 +74,12 @@ PostgreSQL's full-text search capabilities efficiently search text content:
 SELECT to_tsvector('english', description) FROM products;
 
 -- Use full-text search query
-SELECT title, description 
-FROM products 
+SELECT title, description
+FROM products
 WHERE to_tsvector('english', description) @@ to_tsquery('english', 'comfortable & durable');
 
 -- Full-text search with ranking
-SELECT title, description, 
+SELECT title, description,
        ts_rank(to_tsvector('english', description), to_tsquery('english', 'comfortable & durable')) AS rank
 FROM products
 WHERE to_tsvector('english', description) @@ to_tsquery('english', 'comfortable & durable')
@@ -112,7 +114,7 @@ Window functions perform calculations without changing the result set row count:
 
 ```sql
 -- Calculate product ranking by category
-SELECT 
+SELECT
   name,
   category,
   price,
@@ -120,14 +122,14 @@ SELECT
 FROM products;
 
 -- Calculate moving average
-SELECT 
+SELECT
   date,
   sales,
   AVG(sales) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS weekly_avg
 FROM daily_sales;
 
 -- Calculate cumulative sum
-SELECT 
+SELECT
   date,
   sales,
   SUM(sales) OVER (ORDER BY date) AS cumulative_sales
@@ -141,7 +143,7 @@ CTEs simplify complex queries:
 ```sql
 -- Use CTE to find high-value customers
 WITH high_value_customers AS (
-  SELECT 
+  SELECT
     customer_id,
     SUM(amount) AS total_spent
   FROM orders
@@ -159,9 +161,9 @@ WITH RECURSIVE org_hierarchy AS (
   SELECT id, name, manager_id, 1 AS level
   FROM employees
   WHERE manager_id IS NULL
-  
+
   UNION ALL
-  
+
   -- Recursive query: find each employee's subordinates
   SELECT e.id, e.name, e.manager_id, oh.level + 1
   FROM employees e
@@ -222,7 +224,7 @@ Analyze sales trends over the past 12 months:
 
 ```sql
 -- Monthly sales statistics
-SELECT 
+SELECT
   DATE_TRUNC('month', order_date) AS month,
   SUM(amount) AS monthly_sales,
   COUNT(DISTINCT customer_id) AS unique_customers,
@@ -234,20 +236,20 @@ ORDER BY month;
 
 -- Calculate year-over-year growth
 WITH monthly_sales AS (
-  SELECT 
+  SELECT
     DATE_TRUNC('month', order_date) AS month,
     SUM(amount) AS sales
   FROM orders
   WHERE order_date >= CURRENT_DATE - INTERVAL '24 months'
   GROUP BY DATE_TRUNC('month', order_date)
 )
-SELECT 
+SELECT
   current_year.month,
   current_year.sales AS current_sales,
   previous_year.sales AS previous_sales,
   (current_year.sales - previous_year.sales) / previous_year.sales * 100 AS growth_percent
 FROM monthly_sales current_year
-JOIN monthly_sales previous_year 
+JOIN monthly_sales previous_year
   ON current_year.month = previous_year.month + INTERVAL '1 year'
 WHERE current_year.month >= CURRENT_DATE - INTERVAL '12 months'
 ORDER BY current_year.month;
@@ -260,7 +262,7 @@ Segment customers based on purchasing behavior:
 ```sql
 -- RFM (Recency, Frequency, Monetary) analysis
 WITH customer_rfm AS (
-  SELECT 
+  SELECT
     customer_id,
     CURRENT_DATE - MAX(order_date) AS recency,
     COUNT(*) AS frequency,
@@ -270,14 +272,14 @@ WITH customer_rfm AS (
   GROUP BY customer_id
 ),
 rfm_scores AS (
-  SELECT 
+  SELECT
     customer_id,
     NTILE(5) OVER (ORDER BY recency DESC) AS r_score,
     NTILE(5) OVER (ORDER BY frequency) AS f_score,
     NTILE(5) OVER (ORDER BY monetary) AS m_score
   FROM customer_rfm
 )
-SELECT 
+SELECT
   customer_id,
   r_score,
   f_score,
@@ -293,7 +295,7 @@ Analyze inventory status and restocking needs:
 
 ```sql
 -- Identify products that need restocking
-SELECT 
+SELECT
   p.id,
   p.name,
   p.category,
@@ -304,8 +306,8 @@ SELECT
 FROM products p
 JOIN inventory i ON p.id = i.product_id
 LEFT JOIN (
-  SELECT 
-    product_id, 
+  SELECT
+    product_id,
     SUM(quantity) AS pending_orders
   FROM order_items oi
   JOIN orders o ON oi.order_id = o.id
