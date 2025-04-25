@@ -50,21 +50,21 @@ async def test_list_connections_tool(postgres_db, sqlite_db, mcp_config):
                 result = await client.call_tool("dbutils-list-connections", {})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
-                
+
                 # Check that both connections are listed
                 assert "Connection: test_pg" in result.content[0].text
-                assert "Type: postgresql" in result.content[0].text
+                assert "Type: postgres" in result.content[0].text
                 assert "Connection: test_sqlite" in result.content[0].text
                 assert "Type: sqlite" in result.content[0].text
-                
+
                 # Check that no status is shown when check_status is False
                 assert "Status:" not in result.content[0].text
-                
+
                 # Test list_connections tool with status checking
                 result = await client.call_tool("dbutils-list-connections", {"check_status": True})
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
-                
+
                 # Check that status is shown when check_status is True
                 assert "Status: Available" in result.content[0].text
 
@@ -87,7 +87,7 @@ async def test_list_connections_empty_config():
     """Test the list_connections tool with an empty configuration"""
     # Create an empty config
     empty_config = {"connections": {}}
-    
+
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         yaml.dump(empty_config, tmp)
         tmp.flush()
