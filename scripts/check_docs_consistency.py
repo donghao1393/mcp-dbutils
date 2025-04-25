@@ -137,45 +137,32 @@ def check_language_links(files_by_lang: Dict[str, List[Path]]) -> List[Tuple[str
     return issues
 
 def check_document_structure(files_by_lang: Dict[str, List[Path]]) -> List[Tuple[str, str]]:
-    """检查文档结构的一致性（标题层级等）"""
+    """检查文档结构的基本一致性和空文档"""
     issues = []
 
-    # 获取中文文档的结构作为参考
-    if "zh" not in files_by_lang:
-        return issues
+    # 我们不再需要中文文档作为参考，直接检查每个文档本身
 
-    zh_structures = {}
-    for file_path in files_by_lang["zh"]:
-        relative_path = get_relative_path(file_path, Path("docs/zh"))
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            # 提取标题结构
-            headings = re.findall(r'^(#+)\s+(.*?)$', content, re.MULTILINE)
-            zh_structures[str(relative_path)] = [(len(h[0]), h[1]) for h in headings]
-
-    # 检查其他语言的结构
+    # 检查所有语言的文档
     for lang in LANGUAGES:
-        if lang == "zh" or lang not in files_by_lang:
+        if lang not in files_by_lang:
             continue
 
         for file_path in files_by_lang[lang]:
-            relative_path = get_relative_path(file_path, Path(f"docs/{lang}"))
-            rel_path_str = str(relative_path)
-
-            if rel_path_str not in zh_structures:
-                continue  # 中文版本中没有对应文件
-
+            # 我们不再需要比较相对路径，只需检查文档本身
             with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                # 提取标题结构
-                headings = re.findall(r'^(#+)\s+(.*?)$', content, re.MULTILINE)
+                content = f.read().strip()
+
+                # 检查文档是否为空或几乎为空（占位符文档）
+                if not content:
+                    issues.append((str(file_path), "文档为空"))
+                elif len(content) < 100:  # 如果内容少于100个字符，可能是占位符
+                    issues.append((str(file_path), f"文档内容过少，可能是占位符文档 ({len(content)} 字符)"))
 
                 # 检查是否至少有一个H1标题
+                headings = re.findall(r'^(#+)\s+(.*?)$', content, re.MULTILINE)
                 h1_headings = [h for h in headings if len(h[0]) == 1]
                 if not h1_headings:
                     issues.append((str(file_path), "文档缺少H1标题"))
-
-                # 不再检查标题数量和结构是否一致，允许不同语言版本有不同的标题结构
 
     return issues
 
