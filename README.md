@@ -85,6 +85,13 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 - [MySQL 示例](docs/zh/examples/mysql-examples.md) - MySQL 数据库操作示例
 - [高级 LLM 交互示例](docs/zh/examples/advanced-llm-interactions.md) - 与各类 LLM 的高级交互示例
 
+### 多语言文档
+- **英语** - [English Documentation](docs/en/)
+- **法语** - [Documentation Française](docs/fr/)
+- **西班牙语** - [Documentación en Español](docs/es/)
+- **阿拉伯语** - [التوثيق باللغة العربية](docs/ar/)
+- **俄语** - [Документация на русском](docs/ru/)
+
 ### 支持与反馈
 - [GitHub Issues](https://github.com/donghao1393/mcp-dbutils/issues) - 报告问题或请求功能
 - [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - 简化安装和更新

@@ -105,6 +105,13 @@
 - [أمثلة MySQL](docs/ar/examples/mysql-examples.md) - أمثلة عمليات قاعدة بيانات MySQL
 - [تفاعلات LLM المتقدمة](docs/ar/examples/advanced-llm-interactions.md) - أمثلة تفاعل متقدمة مع LLM المختلفة
 
+### الوثائق متعددة اللغات
+- **الإنجليزية** - [English Documentation](docs/en/)
+- **الصينية** - [中文文档](docs/zh/)
+- **الفرنسية** - [Documentation Française](docs/fr/)
+- **الإسبانية** - [Documentación en Español](docs/es/)
+- **الروسية** - [Документация на русском](docs/ru/)
+
 ### الدعم والتعليقات
 - [مشكلات GitHub](https://github.com/donghao1393/mcp-dbutils/issues) - الإبلاغ عن المشكلات أو طلب الميزات
 - [Smithery](https://smithery.ai/server/@donghao1393/mcp-dbutils) - تثبيت وتحديثات مبسطة
