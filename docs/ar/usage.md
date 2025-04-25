@@ -2,7 +2,7 @@
 
 # دليل الاستخدام
 
-*[English](../en/usage.md) | [中文](../zh/usage.md) | [Français](../fr/usage.md) | [Español](../es/usage.md) | العربية | [Русский](../ru/examples/README.md)*
+*[English](../en/usage.md) | [中文](../zh/usage.md) | [Français](../fr/usage.md) | [Español](../es/usage.md) | العربية | [Русский](../ru/usage.md)*
 
 يقدم هذا المستند تعليمات مفصلة لاستخدام MCP Database Utilities، مما يساعدك على الاستفادة الكاملة من قدراتها لتحليل البيانات باستخدام الذكاء الاصطناعي.
 

@@ -2,7 +2,7 @@
 
 # أمثلة SQLite
 
-*[English](../../en/examples/sqlite-examples.md) | [中文](../../zh/examples/sqlite-examples.md) | [Français](../../fr/examples/sqlite-examples.md) | [Español](../../es/examples/sqlite-examples.md) | العربية | [Русский](../../ru/examples/README.md)*
+*[English](../../en/examples/sqlite-examples.md) | [中文](../../zh/examples/sqlite-examples.md) | [Français](../../fr/examples/sqlite-examples.md) | [Español](../../es/examples/sqlite-examples.md) | العربية | [Русский](../../ru/examples/sqlite-examples.md)*
 
 يقدم هذا المستند أمثلة عملية للعمل مع قواعد بيانات SQLite باستخدام MCP Database Utilities.
 

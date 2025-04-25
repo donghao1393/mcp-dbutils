@@ -2,7 +2,7 @@
 
 # دليل التكوين
 
-*[English](../en/configuration.md) | [中文](../zh/configuration.md) | [Français](../fr/configuration.md) | [Español](../es/configuration.md) | العربية | [Русский](../ru/examples/README.md)*
+*[English](../en/configuration.md) | [中文](../zh/configuration.md) | [Français](../fr/configuration.md) | [Español](../es/configuration.md) | العربية | [Русский](../ru/configuration.md)*
 
 يقدم هذا المستند أمثلة تكوين متنوعة لـ MCP Database Utilities، من التكوينات الأساسية إلى السيناريوهات المتقدمة، مما يساعدك على تكوين وتحسين اتصالات قاعدة البيانات الخاصة بك بشكل صحيح.
 

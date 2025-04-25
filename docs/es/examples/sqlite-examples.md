@@ -1,6 +1,6 @@
 # Ejemplos de SQLite
 
-*[English](../../en/examples/sqlite-examples.md) | [中文](../../zh/examples/sqlite-examples.md) | [Français](../../fr/examples/sqlite-examples.md) | Español | [العربية](../../ar/examples/README.md) | [Русский](../../ru/examples/README.md)*
+*[English](../../en/examples/sqlite-examples.md) | [中文](../../zh/examples/sqlite-examples.md) | [Français](../../fr/examples/sqlite-examples.md) | Español | [العربية](../../ar/examples/sqlite-examples.md) | [Русский](../../ru/examples/sqlite-examples.md)*
 
 Este documento proporciona ejemplos prácticos para trabajar con bases de datos SQLite usando MCP Database Utilities.
 
