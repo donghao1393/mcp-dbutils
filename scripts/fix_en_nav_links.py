@@ -9,6 +9,7 @@ import os
 import re
 from pathlib import Path
 
+
 def fix_en_nav_links(docs_root: Path) -> int:
     """修复英文文档中的语言导航链接"""
     fixed_count = 0

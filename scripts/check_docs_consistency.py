@@ -5,9 +5,9 @@
 用途：检查多语言文档的结构一致性，确保所有语言版本符合项目标准
 """
 
+import argparse
 import re
 import sys
-import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -104,7 +104,7 @@ def check_language_links(files_by_lang: Dict[str, List[Path]]) -> List[Tuple[str
                 # 检查当前语言是否为纯文本
                 lang_text = LANGUAGE_NAMES.get(lang, lang)
 
-                if f"[{lang_text}]" in nav_line and not f"[{lang_text}] " in nav_line:
+                if f"[{lang_text}]" in nav_line and f"[{lang_text}] " not in nav_line:
                     issues.append((str(file_path), f"当前语言'{lang_text}'不应该是链接"))
                 elif lang_text not in nav_line:
                     issues.append((str(file_path), f"语言导航链接中缺少当前语言'{lang_text}'"))

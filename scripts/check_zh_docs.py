@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
+
 def check_zh_docs(docs_root: Path) -> List[Tuple[str, str]]:
     """检查所有中文文档的一致性"""
     issues = []
