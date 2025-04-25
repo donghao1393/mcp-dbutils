@@ -4,6 +4,55 @@
 
 يفصل هذا المستند بنية الأمان لـ MCP Database Utilities، موضحًا الآليات والمبادئ التي تضمن وصولًا آمنًا إلى قواعد البيانات لمساعدي الذكاء الاصطناعي.
 
+## نموذج الاتصال وبنية الأمان
+
+ينفذ MCP Database Utilities نموذج اتصال آمن مصمم لحماية بياناتك في كل خطوة. يوضح الرسم البياني التالي كيفية تدفق البيانات بين المكونات مع الحفاظ على الأمان:
+
+```mermaid
+flowchart LR
+    subgraph User["بيئة المستخدم"]
+        Client["عميل الذكاء الاصطناعي<br>(Claude/Cursor)"]
+        ConfigFile["ملف التكوين<br>(YAML)"]
+    end
+
+    subgraph MCP["MCP Database Utilities"]
+        MCPService["خدمة MCP"]
+        ConnectionManager["مدير الاتصالات"]
+        QueryProcessor["معالج الاستعلامات<br>(للقراءة فقط)"]
+    end
+
+    subgraph Databases["طبقة قاعدة البيانات"]
+        DB1["قاعدة البيانات 1"]
+        DB2["قاعدة البيانات 2"]
+        DBn["قاعدة البيانات n"]
+    end
+
+    %% تدفق الاتصال
+    Client-- "الخطوة 1:<br>طلب البيانات<br>(لغة طبيعية)" -->MCPService
+    ConfigFile-. "تحميل عند البدء<br>(تفاصيل الاتصال)" .->MCPService
+    MCPService-- "الخطوة 2:<br>معالجة الطلب" -->ConnectionManager
+    ConnectionManager-- "الخطوة 3:<br>فتح الاتصال<br>(عند الطلب)" -->Databases
+    ConnectionManager-- "الخطوة 4:<br>إرسال الاستعلام<br>(SELECT فقط)" -->QueryProcessor
+    QueryProcessor-- "الخطوة 5:<br>تنفيذ الاستعلام" -->Databases
+    Databases-- "الخطوة 6:<br>إرجاع النتائج" -->QueryProcessor
+    QueryProcessor-- "الخطوة 7:<br>تنسيق النتائج" -->MCPService
+    MCPService-- "الخطوة 8:<br>نقل النتائج" -->Client
+    ConnectionManager-- "الخطوة 9:<br>إغلاق الاتصال<br>(بعد الاكتمال)" -->Databases
+
+    %% الأنماط
+    classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+
+    class User user
+    class MCP mcp
+    class Databases db
+
+    %% ملاحظات الأمان
+    style ConnectionManager stroke-dasharray: 5 5
+    style QueryProcessor stroke-dasharray: 5 5
+```
+
 ## مبادئ الأمان
 
 تم تصميم MCP Database Utilities مع وضع الأمان كأولوية قصوى، باتباع هذه المبادئ الأساسية:
@@ -30,18 +79,18 @@
 def validate_query(query):
     # تحليل نحوي للاستعلام
     parsed_query = sql_parser.parse(query)
-    
+
     # التحقق من نوع الاستعلام
     if not parsed_query.is_select():
         raise SecurityException("يُسمح فقط باستعلامات SELECT")
-    
+
     # التحقق من البنود الخطرة
     if parsed_query.has_dangerous_clauses():
         raise SecurityException("تم اكتشاف بنود غير مسموح بها")
-    
+
     # تحقق خاص بقاعدة البيانات
     db_adapter.validate_read_only(query)
-    
+
     return parsed_query
 ```
 

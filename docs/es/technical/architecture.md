@@ -8,41 +8,28 @@ Este documento describe la arquitectura técnica de MCP Database Utilities, expl
 
 MCP Database Utilities está diseñado con una arquitectura modular que prioriza la seguridad, el aislamiento y la flexibilidad. El sistema está compuesto por varias capas distintas que trabajan juntas para proporcionar acceso seguro de solo lectura a bases de datos.
 
+## Concepto Fundamental: Diseño de Capas de Abstracción
+
+```mermaid
+graph TD
+  Client[Cliente] --> DatabaseServer[Servidor de Base de Datos]
+  subgraph Servidor MCP
+    DatabaseServer
+    DatabaseHandler[Gestor de Base de Datos]
+    PostgresHandler[Gestor PostgreSQL]
+    SQLiteHandler[Gestor SQLite]
+    MySQLHandler[Gestor MySQL]
+    DatabaseServer --> DatabaseHandler
+    DatabaseHandler --> PostgresHandler
+    DatabaseHandler --> SQLiteHandler
+    DatabaseHandler --> MySQLHandler
+  end
+  PostgresHandler --> PostgreSQL[(PostgreSQL)]
+  SQLiteHandler --> SQLite[(SQLite)]
+  MySQLHandler --> MySQL[(MySQL)]
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Cliente IA (Claude, etc.)                │
-└───────────────────────────────┬─────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       Protocolo MCP                          │
-└───────────────────────────────┬─────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   MCP Database Utilities                     │
-│                                                             │
-│  ┌─────────────────┐    ┌──────────────┐    ┌────────────┐  │
-│  │ Gestor MCP      │◄──►│ Gestor de    │◄──►│ Gestor     │  │
-│  │ (API Tools)     │    │ Consultas    │    │ SQL        │  │
-│  └─────────────────┘    └──────────────┘    └────────────┘  │
-│           ▲                     ▲                  ▲        │
-│           │                     │                  │        │
-│           ▼                     ▼                  ▼        │
-│  ┌─────────────────┐    ┌──────────────┐    ┌────────────┐  │
-│  │ Gestor de       │    │ Gestor de    │    │ Adaptadores │  │
-│  │ Conexiones      │    │ Caché        │    │ de Base de  │  │
-│  │                 │    │              │    │ Datos       │  │
-│  └─────────────────┘    └──────────────┘    └────────────┘  │
-│           │                                       │        │
-└───────────┼───────────────────────────────────────┼────────┘
-            │                                       │
-            ▼                                       ▼
-┌───────────────────────┐                 ┌─────────────────────┐
-│  Archivo Configuración │                 │  Bases de Datos     │
-│       (YAML)           │                 │                     │
-└───────────────────────┘                 └─────────────────────┘
-```
+
+El diseño de capas de abstracción es un concepto fundamental en la arquitectura de MCP Database Utilities. Al igual que un mando a distancia universal puede controlar diferentes dispositivos, el usuario solo necesita conocer las operaciones básicas, sin entender la complejidad subyacente.
 
 ## Componentes Principales
 

@@ -4,6 +4,55 @@
 
 Этот документ детализирует архитектуру безопасности MCP Database Utilities, объясняя механизмы и принципы, обеспечивающие безопасный доступ к базам данных для ИИ-ассистентов.
 
+## Модель коммуникации и архитектура безопасности
+
+MCP Database Utilities реализует безопасную модель коммуникации, разработанную для защиты ваших данных на каждом этапе. Следующая диаграмма иллюстрирует, как данные перемещаются между компонентами с сохранением безопасности:
+
+```mermaid
+flowchart LR
+    subgraph User["Среда пользователя"]
+        Client["ИИ-клиент<br>(Claude/Cursor)"]
+        ConfigFile["Конфигурационный файл<br>(YAML)"]
+    end
+
+    subgraph MCP["MCP Database Utilities"]
+        MCPService["MCP-сервис"]
+        ConnectionManager["Менеджер соединений"]
+        QueryProcessor["Процессор запросов<br>(Только чтение)"]
+    end
+
+    subgraph Databases["Слой баз данных"]
+        DB1["База данных 1"]
+        DB2["База данных 2"]
+        DBn["База данных n"]
+    end
+
+    %% Поток коммуникации
+    Client-- "Шаг 1:<br>Запрос данных<br>(Естественный язык)" -->MCPService
+    ConfigFile-. "Загружается при запуске<br>(Детали соединения)" .->MCPService
+    MCPService-- "Шаг 2:<br>Обработка запроса" -->ConnectionManager
+    ConnectionManager-- "Шаг 3:<br>Открытие соединения<br>(По требованию)" -->Databases
+    ConnectionManager-- "Шаг 4:<br>Отправка запроса<br>(Только SELECT)" -->QueryProcessor
+    QueryProcessor-- "Шаг 5:<br>Выполнение запроса" -->Databases
+    Databases-- "Шаг 6:<br>Возврат результатов" -->QueryProcessor
+    QueryProcessor-- "Шаг 7:<br>Форматирование результатов" -->MCPService
+    MCPService-- "Шаг 8:<br>Передача результатов" -->Client
+    ConnectionManager-- "Шаг 9:<br>Закрытие соединения<br>(После завершения)" -->Databases
+
+    %% Стили
+    classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+
+    class User user
+    class MCP mcp
+    class Databases db
+
+    %% Примечания по безопасности
+    style ConnectionManager stroke-dasharray: 5 5
+    style QueryProcessor stroke-dasharray: 5 5
+```
+
 ## Принципы безопасности
 
 MCP Database Utilities спроектирован с безопасностью в качестве высшего приоритета, следуя этим основным принципам:
@@ -30,18 +79,18 @@ MCP Database Utilities спроектирован с безопасностью 
 def validate_query(query):
     # Синтаксический анализ запроса
     parsed_query = sql_parser.parse(query)
-    
+
     # Проверка типа запроса
     if not parsed_query.is_select():
         raise SecurityException("Разрешены только SELECT-запросы")
-    
+
     # Проверка опасных конструкций
     if parsed_query.has_dangerous_clauses():
         raise SecurityException("Обнаружены неразрешенные конструкции")
-    
+
     # Проверка, специфичная для базы данных
     db_adapter.validate_read_only(query)
-    
+
     return parsed_query
 ```
 

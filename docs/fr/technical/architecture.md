@@ -8,41 +8,28 @@ Ce document décrit l'architecture technique de MCP Database Utilities, expliqua
 
 MCP Database Utilities est conçu selon une architecture modulaire qui privilégie la sécurité, l'isolation et la flexibilité. Le système est composé de plusieurs couches distinctes qui travaillent ensemble pour fournir un accès sécurisé en lecture seule aux bases de données.
 
+## Concept Fondamental: Conception en Couches d'Abstraction
+
+```mermaid
+graph TD
+  Client[Client] --> DatabaseServer[Serveur de Base de Données]
+  subgraph Serveur MCP
+    DatabaseServer
+    DatabaseHandler[Gestionnaire de Base de Données]
+    PostgresHandler[Gestionnaire PostgreSQL]
+    SQLiteHandler[Gestionnaire SQLite]
+    MySQLHandler[Gestionnaire MySQL]
+    DatabaseServer --> DatabaseHandler
+    DatabaseHandler --> PostgresHandler
+    DatabaseHandler --> SQLiteHandler
+    DatabaseHandler --> MySQLHandler
+  end
+  PostgresHandler --> PostgreSQL[(PostgreSQL)]
+  SQLiteHandler --> SQLite[(SQLite)]
+  MySQLHandler --> MySQL[(MySQL)]
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Client IA (Claude, etc.)                 │
-└───────────────────────────────┬─────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       Protocole MCP                          │
-└───────────────────────────────┬─────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   MCP Database Utilities                     │
-│                                                             │
-│  ┌─────────────────┐    ┌──────────────┐    ┌────────────┐  │
-│  │ Gestionnaire MCP│◄──►│ Gestionnaire │◄──►│ Gestionnaire│  │
-│  │   (API Tools)   │    │ de Requêtes  │    │    SQL     │  │
-│  └─────────────────┘    └──────────────┘    └────────────┘  │
-│           ▲                     ▲                  ▲        │
-│           │                     │                  │        │
-│           ▼                     ▼                  ▼        │
-│  ┌─────────────────┐    ┌──────────────┐    ┌────────────┐  │
-│  │  Gestionnaire   │    │ Gestionnaire │    │ Adaptateurs │  │
-│  │ de Connexions   │    │  de Cache    │    │ de Base de  │  │
-│  │                 │    │              │    │  Données    │  │
-│  └─────────────────┘    └──────────────┘    └────────────┘  │
-│           │                                       │        │
-└───────────┼───────────────────────────────────────┼────────┘
-            │                                       │
-            ▼                                       ▼
-┌───────────────────────┐                 ┌─────────────────────┐
-│  Fichier Configuration │                 │  Bases de Données   │
-│       (YAML)           │                 │                     │
-└───────────────────────┘                 └─────────────────────┘
-```
+
+La conception en couches d'abstraction est un concept fondamental de l'architecture de MCP Database Utilities. Tout comme une télécommande universelle peut contrôler différents appareils, l'utilisateur n'a besoin de connaître que les opérations de base, sans comprendre la complexité sous-jacente.
 
 ## Composants Principaux
 

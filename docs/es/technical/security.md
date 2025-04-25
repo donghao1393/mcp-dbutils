@@ -4,6 +4,55 @@
 
 Este documento detalla la arquitectura de seguridad de MCP Database Utilities, explicando los mecanismos y principios que garantizan un acceso seguro a las bases de datos para los asistentes de IA.
 
+## Modelo de Comunicación y Arquitectura de Seguridad
+
+MCP Database Utilities implementa un modelo de comunicación seguro diseñado para proteger sus datos en cada paso. El siguiente diagrama ilustra cómo fluyen los datos entre los componentes mientras se mantiene la seguridad:
+
+```mermaid
+flowchart LR
+    subgraph User["Entorno del Usuario"]
+        Client["Cliente IA<br>(Claude/Cursor)"]
+        ConfigFile["Archivo de Configuración<br>(YAML)"]
+    end
+
+    subgraph MCP["MCP Database Utilities"]
+        MCPService["Servicio MCP"]
+        ConnectionManager["Gestor de Conexiones"]
+        QueryProcessor["Procesador de Consultas<br>(Solo Lectura)"]
+    end
+
+    subgraph Databases["Capa de Base de Datos"]
+        DB1["Base de Datos 1"]
+        DB2["Base de Datos 2"]
+        DBn["Base de Datos n"]
+    end
+
+    %% Flujo de Comunicación
+    Client-- "Paso 1:<br>Solicitud de Datos<br>(Lenguaje Natural)" -->MCPService
+    ConfigFile-. "Cargado al Inicio<br>(Detalles de Conexión)" .->MCPService
+    MCPService-- "Paso 2:<br>Procesamiento de Solicitud" -->ConnectionManager
+    ConnectionManager-- "Paso 3:<br>Apertura de Conexión<br>(Bajo Demanda)" -->Databases
+    ConnectionManager-- "Paso 4:<br>Envío de Consulta<br>(Solo SELECT)" -->QueryProcessor
+    QueryProcessor-- "Paso 5:<br>Ejecución de Consulta" -->Databases
+    Databases-- "Paso 6:<br>Devolución de Resultados" -->QueryProcessor
+    QueryProcessor-- "Paso 7:<br>Formateo de Resultados" -->MCPService
+    MCPService-- "Paso 8:<br>Transmisión de Resultados" -->Client
+    ConnectionManager-- "Paso 9:<br>Cierre de Conexión<br>(Después de Completar)" -->Databases
+
+    %% Estilos
+    classDef user fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef mcp fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef db fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+
+    class User user
+    class MCP mcp
+    class Databases db
+
+    %% Notas de Seguridad
+    style ConnectionManager stroke-dasharray: 5 5
+    style QueryProcessor stroke-dasharray: 5 5
+```
+
 ## Principios de Seguridad
 
 MCP Database Utilities ha sido diseñado con la seguridad como prioridad absoluta, siguiendo estos principios fundamentales:
@@ -30,18 +79,18 @@ Todas las interacciones con las bases de datos están limitadas a operaciones de
 def validate_query(query):
     # Análisis sintáctico de la consulta
     parsed_query = sql_parser.parse(query)
-    
+
     # Verificación del tipo de consulta
     if not parsed_query.is_select():
         raise SecurityException("Solo se permiten consultas SELECT")
-    
+
     # Verificación de cláusulas peligrosas
     if parsed_query.has_dangerous_clauses():
         raise SecurityException("Se detectaron cláusulas no permitidas")
-    
+
     # Verificación específica de la base de datos
     db_adapter.validate_read_only(query)
-    
+
     return parsed_query
 ```
 
