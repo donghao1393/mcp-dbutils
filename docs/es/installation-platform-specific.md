@@ -1,6 +1,6 @@
 # Guía de Instalación Específica por Plataforma
 
-*[English](../en/installation-platform-specific.md) | [中文](../zh/installation-platform-specific.md) | [Français](../fr/installation-platform-specific.md) | Español | [العربية](../ar/installation-platform-specific.md) | [Русский](../ru/installation-platform-specific.md)*
+*[English](../../en/installation-platform-specific.md) | [中文](../../zh/installation-platform-specific.md) | [Français](../../fr/installation-platform-specific.md) | Español | [العربية](../../ar/installation-platform-specific.md) | [Русский](../../ru/installation-platform-specific.md)*
 
 Este documento proporciona instrucciones detalladas de instalación para MCP Database Utilities en diferentes sistemas operativos y entornos.
 
