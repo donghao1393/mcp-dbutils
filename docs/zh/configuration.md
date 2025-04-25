@@ -1,6 +1,6 @@
 # 配置指南
 
-*[English](../en/configuration.md) | 中文 | [Français](../fr/configuration.md) | [Español](../es/examples/README.md) | [العربية](../ar/examples/README.md) | [Русский](../ru/examples/README.md)*
+*[English](../en/configuration.md) | 中文 | [Français](../fr/configuration.md) | [Español](../es/configuration.md) | [العربية](../ar/configuration.md) | [Русский](../ru/configuration.md)*
 
 本文档提供了MCP数据库工具的各种配置示例，从基础配置到高级场景，帮助您正确设置和优化数据库连接。
 

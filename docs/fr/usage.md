@@ -1,6 +1,6 @@
 # Guide d'Utilisation
 
-*[English](../en/usage.md) | [中文](../zh/usage.md) | Français | [Español](../es/examples/README.md) | [العربية](../ar/examples/README.md) | [Русский](../ru/examples/README.md)*
+*[English](../en/usage.md) | [中文](../zh/usage.md) | Français | [Español](../es/usage.md) | [العربية](../ar/usage.md) | [Русский](../ru/usage.md)*
 
 Ce document fournit des instructions détaillées pour utiliser MCP Database Utilities, vous aidant à exploiter pleinement ses capacités pour l'analyse de données avec l'IA.
 

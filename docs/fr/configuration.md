@@ -1,6 +1,6 @@
 # Guide de Configuration
 
-*[English](../en/configuration.md) | [中文](../zh/configuration.md) | Français | [Español](../es/examples/README.md) | [العربية](../ar/examples/README.md) | [Русский](../ru/examples/README.md)*
+*[English](../en/configuration.md) | [中文](../zh/configuration.md) | Français | [Español](../es/configuration.md) | [العربية](../ar/configuration.md) | [Русский](../ru/configuration.md)*
 
 Ce document fournit divers exemples de configuration pour MCP Database Utilities, des configurations de base aux scénarios avancés, vous aidant à configurer et optimiser correctement vos connexions de base de données.
 
