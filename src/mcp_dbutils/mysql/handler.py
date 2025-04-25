@@ -33,11 +33,11 @@ class MySQLHandler(ConnectionHandler):
 
     async def _check_table_exists(self, cursor, table_name: str) -> None:
         """检查表是否存在
-        
+
         Args:
             cursor: 数据库游标
             table_name: 表名
-            
+
         Raises:
             ConnectionHandlerError: 如果表不存在
         """
@@ -47,19 +47,19 @@ class MySQLHandler(ConnectionHandler):
             WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
         """, (self.config.database, table_name))
         table_exists = cursor.fetchone()
-        
+
         # Handle different formats of cursor results (dict or tuple)
         if not table_exists:
             raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
-        
+
         # If fetchone returns a dictionary (dictionary=True was used)
         if isinstance(table_exists, dict) and 'count' in table_exists and table_exists['count'] == 0:
             raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
-        
+
         # If fetchone returns a tuple
         if isinstance(table_exists, tuple) and table_exists[0] == 0:
             raise ConnectionHandlerError(f"Table '{self.config.database}.{table_name}' doesn't exist")
-    
+
     async def get_tables(self) -> list[types.Resource]:
         """Get all table resources"""
         try:
@@ -67,7 +67,7 @@ class MySQLHandler(ConnectionHandler):
             conn = mysql.connector.connect(**conn_params)
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         TABLE_NAME as table_name,
                         TABLE_COMMENT as description
                     FROM information_schema.tables
@@ -98,7 +98,7 @@ class MySQLHandler(ConnectionHandler):
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Get column information
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         COLUMN_NAME as column_name,
                         DATA_TYPE as data_type,
                         IS_NULLABLE as is_nullable,
@@ -151,7 +151,7 @@ class MySQLHandler(ConnectionHandler):
                 # Check if the query is a SELECT statement
                 sql_upper = sql.strip().upper()
                 is_select = sql_upper.startswith("SELECT")
-                
+
                 # Only set read-only transaction for SELECT statements
                 if is_select:
                     cur.execute("SET TRANSACTION READ ONLY")
@@ -188,12 +188,12 @@ class MySQLHandler(ConnectionHandler):
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
-                
+
                 # Get table information and comment
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         TABLE_COMMENT as table_comment
-                    FROM information_schema.tables 
+                    FROM information_schema.tables
                     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
                 """, (self.config.database, table_name))
                 table_info = cur.fetchone()
@@ -201,7 +201,7 @@ class MySQLHandler(ConnectionHandler):
 
                 # Get column information
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         COLUMN_NAME as column_name,
                         DATA_TYPE as data_type,
                         COLUMN_DEFAULT as column_default,
@@ -222,14 +222,14 @@ class MySQLHandler(ConnectionHandler):
                     f"Comment: {table_comment or 'No comment'}\n",
                     COLUMNS_HEADER
                 ]
-                
+
                 for col in columns:
                     col_info = [
                         f"  {col['column_name']} ({col['data_type']})",
                         f"    Nullable: {col['is_nullable']}",
                         f"    Default: {col['column_default'] or 'None'}"
                     ]
-                    
+
                     if col['character_maximum_length']:
                         col_info.append(f"    Max Length: {col['character_maximum_length']}")
                     if col['numeric_precision']:
@@ -238,12 +238,12 @@ class MySQLHandler(ConnectionHandler):
                         col_info.append(f"    Scale: {col['numeric_scale']}")
                     if col['column_comment']:
                         col_info.append(f"    Comment: {col['column_comment']}")
-                        
+
                     description.extend(col_info)
                     description.append("")  # Empty line between columns
-                
+
                 return "\n".join(description)
-                
+
         except mysql.connector.Error as e:
             error_msg = f"Failed to get table description: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -265,7 +265,7 @@ class MySQLHandler(ConnectionHandler):
                 if result:
                     return result['Create Table']
                 return f"Failed to get DDL for table {table_name}"
-                
+
         except mysql.connector.Error as e:
             error_msg = f"Failed to get table DDL: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -286,7 +286,7 @@ class MySQLHandler(ConnectionHandler):
 
                 # Get index information
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         INDEX_NAME as index_name,
                         COLUMN_NAME as column_name,
                         NON_UNIQUE as non_unique,
@@ -305,7 +305,7 @@ class MySQLHandler(ConnectionHandler):
                 current_index = None
                 formatted_indexes = []
                 index_info = []
-                
+
                 for idx in indexes:
                     if current_index != idx['index_name']:
                         if index_info:
@@ -320,14 +320,14 @@ class MySQLHandler(ConnectionHandler):
                         ]
                         if idx['index_comment']:
                             index_info.insert(1, f"Comment: {idx['index_comment']}")
-                    
+
                     index_info.append(f"  - {idx['column_name']}")
 
                 if index_info:
                     formatted_indexes.extend(index_info)
 
                 return "\n".join(formatted_indexes)
-                
+
         except mysql.connector.Error as e:
             error_msg = f"Failed to get index information: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -345,10 +345,10 @@ class MySQLHandler(ConnectionHandler):
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
-                
+
                 # Get table statistics
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         TABLE_ROWS as table_rows,
                         AVG_ROW_LENGTH as avg_row_length,
                         DATA_LENGTH as data_length,
@@ -364,7 +364,7 @@ class MySQLHandler(ConnectionHandler):
 
                 # Get column statistics
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         COLUMN_NAME as column_name,
                         DATA_TYPE as data_type,
                         COLUMN_TYPE as column_type
@@ -413,21 +413,21 @@ class MySQLHandler(ConnectionHandler):
             with conn.cursor(dictionary=True) as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
-                
+
                 # Get constraint information
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         k.CONSTRAINT_NAME as constraint_name,
                         t.CONSTRAINT_TYPE as constraint_type,
                         k.COLUMN_NAME as column_name,
                         k.REFERENCED_TABLE_NAME as referenced_table_name,
                         k.REFERENCED_COLUMN_NAME as referenced_column_name
                     FROM information_schema.key_column_usage k
-                    JOIN information_schema.table_constraints t 
+                    JOIN information_schema.table_constraints t
                         ON k.CONSTRAINT_NAME = t.CONSTRAINT_NAME
                         AND k.TABLE_SCHEMA = t.TABLE_SCHEMA
                         AND k.TABLE_NAME = t.TABLE_NAME
-                    WHERE k.TABLE_SCHEMA = %s 
+                    WHERE k.TABLE_SCHEMA = %s
                         AND k.TABLE_NAME = %s
                     ORDER BY t.CONSTRAINT_TYPE, k.CONSTRAINT_NAME, k.ORDINAL_POSITION
                 """, (self.config.database, table_name))
@@ -451,7 +451,7 @@ class MySQLHandler(ConnectionHandler):
                             f"\n{con['constraint_type']} Constraint: {con['constraint_name']}",
                             COLUMNS_HEADER
                         ]
-                    
+
                     col_info = f"  - {con['column_name']}"
                     if con['referenced_table_name']:
                         col_info += f" -> {con['referenced_table_name']}.{con['referenced_column_name']}"
@@ -493,7 +493,7 @@ class MySQLHandler(ConnectionHandler):
                 ]
                 for row in explain_result:
                     output.append(str(row['EXPLAIN']))
-                
+
                 output.extend([
                     "\nActual Plan (ANALYZE):",
                     "----------------------"
@@ -507,6 +507,26 @@ class MySQLHandler(ConnectionHandler):
             error_msg = f"Failed to explain query: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
+        finally:
+            if conn:
+                conn.close()
+
+    async def test_connection(self) -> bool:
+        """Test database connection
+
+        Returns:
+            bool: True if connection is successful, False otherwise
+        """
+        conn = None
+        try:
+            conn_params = self.config.get_connection_params()
+            conn = mysql.connector.connect(**conn_params)
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                return True
+        except mysql.connector.Error as e:
+            self.log("error", f"Connection test failed: {str(e)}")
+            return False
         finally:
             if conn:
                 conn.close()

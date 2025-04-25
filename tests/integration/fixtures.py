@@ -18,44 +18,47 @@ from mcp_dbutils.base import ConnectionHandler
 
 class _TestConnectionHandler(ConnectionHandler):
     """Test implementation of ConnectionHandler"""
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # 禁用自动记录统计信息
         self.stats.record_connection_start = MagicMock()
         self.stats.record_connection_end = MagicMock()
-    
+
     @property
     def db_type(self) -> str:
         return "test"
-        
+
     async def get_tables(self):
         return []
-        
+
     async def get_schema(self, table_name: str):
         return ""
-        
+
     async def _execute_query(self, sql: str):
         return ""
-        
+
     async def get_table_description(self, table_name: str):
         return ""
-        
+
     async def get_table_ddl(self, table_name: str):
         return ""
-        
+
     async def get_table_indexes(self, table_name: str):
         return ""
-        
+
     async def get_table_stats(self, table_name: str):
         return ""
-        
+
     async def get_table_constraints(self, table_name: str):
         return ""
-        
+
     async def explain_query(self, sql: str):
         return ""
-        
+
+    async def test_connection(self) -> bool:
+        return True
+
     async def cleanup(self):
         pass
 
@@ -89,13 +92,13 @@ def mysql_db():
         dbname="test_db",
         root_password="root_pass"
     )
-    
+
     with mysql_container as mysql:
         mysql.start()
-        
+
         # 使用内置的_connect方法等待MySQL完全准备就绪
         mysql._connect()
-        
+
         # 使用mysql-connector-python建立连接
         import mysql.connector as mysql_connector
         conn = mysql_connector.connect(
@@ -105,7 +108,7 @@ def mysql_db():
             password="test_pass",
             database="test_db"
         )
-        
+
         try:
             # 执行数据库初始化脚本
             with conn.cursor() as cursor:
@@ -153,7 +156,7 @@ async def postgres_db() -> AsyncGenerator[Dict[str, str], None]:
                 email TEXT UNIQUE
             );
 
-            INSERT INTO users (name, email) VALUES 
+            INSERT INTO users (name, email) VALUES
                 ('Alice', 'alice@test.com'),
                 ('Bob', 'bob@test.com');
         """)
@@ -190,7 +193,7 @@ async def sqlite_db() -> AsyncGenerator[Dict[str, str], None]:
                 );
             """)
             await db.execute("""
-                INSERT INTO products (name, price) VALUES 
+                INSERT INTO products (name, price) VALUES
                     ('Widget', 9.99),
                     ('Gadget', 19.99);
             """)

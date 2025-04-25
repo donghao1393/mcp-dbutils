@@ -74,14 +74,14 @@ class ConnectionHandler(ABC):
 
     def send_log(self, level: str, message: str):
         """通过MCP发送日志消息和写入stderr
-        
+
         Args:
             level: 日志级别 (debug/info/notice/warning/error/critical/alert/emergency)
             message: 日志内容
         """
         # 本地stderr日志
         self.log(level, message)
-        
+
         # MCP日志通知
         if self._session and hasattr(self._session, 'request_context'):
             self._session.request_context.session.send_log_message(
@@ -200,6 +200,15 @@ class ConnectionHandler(ABC):
         pass
 
     @abstractmethod
+    async def test_connection(self) -> bool:
+        """Test database connection
+
+        Returns:
+            bool: True if connection is successful, False otherwise
+        """
+        pass
+
+    @abstractmethod
     async def cleanup(self):
         """Cleanup resources"""
         pass
@@ -217,7 +226,7 @@ class ConnectionHandler(ABC):
         """
         try:
             self.stats.record_query()
-            
+
             if tool_name == "dbutils-describe-table":
                 result = await self.get_table_description(table_name)
             elif tool_name == "dbutils-get-ddl":
@@ -234,11 +243,11 @@ class ConnectionHandler(ABC):
                 result = await self.explain_query(sql)
             else:
                 raise ValueError(f"Unknown tool: {tool_name}")
-                
+
             self.stats.update_memory_usage(result)
             self.send_log(LOG_LEVEL_INFO, f"Resource stats: {json.dumps(self.stats.to_dict())}")
             return f"[{self.db_type}]\n{result}"
-            
+
         except Exception as e:
             self.stats.record_error(e.__class__.__name__)
             self.send_log(LOG_LEVEL_ERROR, f"Tool error - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}")
@@ -269,14 +278,14 @@ class ConnectionServer:
 
     def send_log(self, level: str, message: str):
         """通过MCP发送日志消息和写入stderr
-        
+
         Args:
             level: 日志级别 (debug/info/notice/warning/error/critical/alert/emergency)
             message: 日志内容
         """
         # 本地stderr日志
         self.logger(level, message)
-        
+
         # MCP日志通知
         if hasattr(self.server, 'session') and self.server.session:
             try:
@@ -301,13 +310,13 @@ class ConnectionServer:
 
     def _get_config_or_raise(self, connection: str) -> dict:
         """读取配置文件并验证连接配置
-        
+
         Args:
             connection: 连接名称
-            
+
         Returns:
             dict: 连接配置
-            
+
         Raises:
             ConfigurationError: 如果配置文件格式不正确或连接不存在
         """
@@ -318,29 +327,29 @@ class ConnectionServer:
             if connection not in config['connections']:
                 available_connections = list(config['connections'].keys())
                 raise ConfigurationError(f"Connection not found: {connection}. Available connections: {available_connections}")
-            
+
             db_config = config['connections'][connection]
-            
+
             if 'type' not in db_config:
                 raise ConfigurationError("Database configuration must include 'type' field")
-                
+
             return db_config
-            
+
     def _create_handler_for_type(self, db_type: str, connection: str) -> ConnectionHandler:
         """基于数据库类型创建相应的处理器
-        
+
         Args:
             db_type: 数据库类型
             connection: 连接名称
-            
+
         Returns:
             ConnectionHandler: 数据库连接处理器
-            
+
         Raises:
             ConfigurationError: 如果数据库类型不支持或导入失败
         """
         self.send_log(LOG_LEVEL_DEBUG, f"Creating handler for database type: {db_type}")
-        
+
         try:
             if db_type == 'sqlite':
                 from .sqlite.handler import SQLiteHandler
@@ -371,7 +380,7 @@ class ConnectionServer:
         """
         # Read configuration file and validate connection
         db_config = self._get_config_or_raise(connection)
-        
+
         # Create appropriate handler based on database type
         handler = None
         try:
@@ -384,23 +393,38 @@ class ConnectionServer:
 
             handler.stats.record_connection_start()
             self.send_log(LOG_LEVEL_DEBUG, f"Handler created successfully for {connection}")
-            
+
             yield handler
         finally:
             if handler:
                 self.send_log(LOG_LEVEL_DEBUG, f"Cleaning up handler for {connection}")
                 handler.stats.record_connection_end()
-                
+
                 if hasattr(handler, 'cleanup') and callable(handler.cleanup):
                     await handler.cleanup()
 
     def _get_available_tools(self) -> list[types.Tool]:
         """返回所有可用的数据库工具列表
-        
+
         Returns:
             list[types.Tool]: 工具列表
         """
         return [
+            types.Tool(
+                name="dbutils-list-connections",
+                description="List all available database connections defined in the configuration",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "check_status": {
+                            "type": "boolean",
+                            "description": "Whether to check connection status (may be slow with many connections)",
+                            "default": False
+                        }
+                    },
+                    "required": []
+                }
+            ),
             types.Tool(
                 name="dbutils-run-query",
                 description="Execute read-only SQL query on database connection",
@@ -574,13 +598,66 @@ class ConnectionServer:
                 }
             )
         ]
-        
+
+    async def _handle_list_connections(self, check_status: bool = False) -> list[types.TextContent]:
+        """处理列出数据库连接工具调用
+
+        Args:
+            check_status: 是否检查连接状态
+
+        Returns:
+            list[types.TextContent]: 数据库连接列表
+        """
+        connections = []
+
+        # 获取配置中的所有连接
+        for conn_name, conn_config in self.config.connections.items():
+            db_type = conn_config.get("type", "unknown")
+            connection_info = []
+
+            # 添加基本信息
+            connection_info.append(f"Connection: {conn_name}")
+            connection_info.append(f"Type: {db_type}")
+
+            # 根据数据库类型添加特定信息（排除敏感信息）
+            if db_type == "sqlite":
+                if "database" in conn_config:
+                    connection_info.append(f"Database: {conn_config['database']}")
+            elif db_type in ["mysql", "postgresql"]:
+                if "host" in conn_config:
+                    connection_info.append(f"Host: {conn_config['host']}")
+                if "port" in conn_config:
+                    connection_info.append(f"Port: {conn_config['port']}")
+                if "database" in conn_config:
+                    connection_info.append(f"Database: {conn_config['database']}")
+                if "user" in conn_config:
+                    connection_info.append(f"User: {conn_config['user']}")
+                # 不显示密码
+
+            # 检查连接状态（如果需要）
+            if check_status:
+                try:
+                    async with self.get_handler(conn_name) as handler:
+                        # 尝试执行一个简单查询来验证连接
+                        await handler.test_connection()
+                        connection_info.append("Status: Available")
+                except Exception as e:
+                    connection_info.append(f"Status: Unavailable ({str(e)})")
+
+            connections.append("\n".join(connection_info))
+
+        if not connections:
+            return [types.TextContent(type="text", text="No database connections found in configuration.")]
+
+        result = "Available database connections:\n\n" + "\n\n".join(connections)
+        return [types.TextContent(type="text", text=result)]
+
     async def _handle_list_tables(self, connection: str) -> list[types.TextContent]:
         """处理列表表格工具调用
-        
+
         Args:
             connection: 数据库连接名称
-            
+
         Returns:
             list[types.TextContent]: 表格列表
         """
@@ -589,7 +666,7 @@ class ConnectionServer:
             if not tables:
                 # 空表列表的情况也返回数据库类型
                 return [types.TextContent(type="text", text=f"[{handler.db_type}] No tables found")]
-            
+
             formatted_tables = "\n".join([
                 f"Table: {table.name}\n" +
                 f"URI: {table.uri}\n" +
@@ -599,17 +676,17 @@ class ConnectionServer:
             ])
             # 添加数据库类型前缀
             return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{formatted_tables}")]
-            
+
     async def _handle_run_query(self, connection: str, sql: str) -> list[types.TextContent]:
         """处理运行查询工具调用
-        
+
         Args:
             connection: 数据库连接名称
             sql: SQL查询语句
-            
+
         Returns:
             list[types.TextContent]: 查询结果
-            
+
         Raises:
             ConfigurationError: 如果SQL为空或非SELECT语句
         """
@@ -623,81 +700,81 @@ class ConnectionServer:
         async with self.get_handler(connection) as handler:
             result = await handler.execute_query(sql)
             return [types.TextContent(type="text", text=result)]
-            
+
     async def _handle_table_tools(self, name: str, connection: str, table: str) -> list[types.TextContent]:
         """处理表相关工具调用
-        
+
         Args:
             name: 工具名称
             connection: 数据库连接名称
             table: 表名
-            
+
         Returns:
             list[types.TextContent]: 工具执行结果
-            
+
         Raises:
             ConfigurationError: 如果表名为空
         """
         if not table:
             raise ConfigurationError(EMPTY_TABLE_NAME_ERROR)
-        
+
         async with self.get_handler(connection) as handler:
             result = await handler.execute_tool_query(name, table_name=table)
             return [types.TextContent(type="text", text=result)]
-            
+
     async def _handle_explain_query(self, connection: str, sql: str) -> list[types.TextContent]:
         """处理解释查询工具调用
-        
+
         Args:
             connection: 数据库连接名称
             sql: SQL查询语句
-            
+
         Returns:
             list[types.TextContent]: 查询解释
-            
+
         Raises:
             ConfigurationError: 如果SQL为空
         """
         if not sql:
             raise ConfigurationError(EMPTY_QUERY_ERROR)
-        
+
         async with self.get_handler(connection) as handler:
             result = await handler.execute_tool_query("dbutils-explain-query", sql=sql)
             return [types.TextContent(type="text", text=result)]
-            
+
     async def _handle_performance(self, connection: str) -> list[types.TextContent]:
         """处理性能统计工具调用
-        
+
         Args:
             connection: 数据库连接名称
-            
+
         Returns:
             list[types.TextContent]: 性能统计
         """
         async with self.get_handler(connection) as handler:
             performance_stats = handler.stats.get_performance_stats()
             return [types.TextContent(type="text", text=f"[{handler.db_type}]\n{performance_stats}")]
-            
+
     async def _handle_analyze_query(self, connection: str, sql: str) -> list[types.TextContent]:
         """处理查询分析工具调用
-        
+
         Args:
             connection: 数据库连接名称
             sql: SQL查询语句
-            
+
         Returns:
             list[types.TextContent]: 查询分析结果
-            
+
         Raises:
             ConfigurationError: 如果SQL为空
         """
         if not sql:
             raise ConfigurationError(EMPTY_QUERY_ERROR)
-        
+
         async with self.get_handler(connection) as handler:
             # First get the execution plan
             explain_result = await handler.explain_query(sql)
-            
+
             # Then execute the actual query to measure performance
             start_time = datetime.now()
             if sql.lower().startswith("select"):
@@ -707,7 +784,7 @@ class ConnectionServer:
                     # If query fails, we still provide the execution plan
                     self.send_log(LOG_LEVEL_ERROR, f"Query execution failed during analysis: {str(e)}")
             duration = (datetime.now() - start_time).total_seconds()
-            
+
             # Combine analysis results
             analysis = [
                 f"[{handler.db_type}] Query Analysis",
@@ -718,22 +795,22 @@ class ConnectionServer:
                 "Execution Plan:",
                 explain_result
             ]
-            
+
             # Add optimization suggestions
             suggestions = self._get_optimization_suggestions(explain_result, duration)
             if suggestions:
                 analysis.append("\nOptimization Suggestions:")
                 analysis.extend(suggestions)
-                
+
             return [types.TextContent(type="text", text="\n".join(analysis))]
-            
+
     def _get_optimization_suggestions(self, explain_result: str, duration: float) -> list[str]:
         """根据执行计划和耗时获取优化建议
-        
+
         Args:
             explain_result: 执行计划
             duration: 查询耗时（秒）
-            
+
         Returns:
             list[str]: 优化建议列表
         """
@@ -746,7 +823,7 @@ class ConnectionServer:
             suggestions.append("- Query is slow, consider optimizing or adding caching")
         if "temporary" in explain_result.lower():
             suggestions.append("- Query creates temporary tables, consider restructuring")
-            
+
         return suggestions
 
     def _setup_handlers(self):
@@ -782,9 +859,14 @@ class ConnectionServer:
 
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
+            # Special case for list-connections which doesn't require a connection
+            if name == "dbutils-list-connections":
+                check_status = arguments.get("check_status", False)
+                return await self._handle_list_connections(check_status)
+
             if "connection" not in arguments:
                 raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
-            
+
             connection = arguments["connection"]
 
             if name == "dbutils-list-tables":

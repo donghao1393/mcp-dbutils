@@ -165,7 +165,7 @@ class PostgreSQLHandler(ConnectionHandler):
                         (quote_ident(table_schema) || '.' || quote_ident(table_name))::regclass,
                         'pg_class'
                     ) as table_comment
-                    FROM information_schema.tables 
+                    FROM information_schema.tables
                     WHERE table_name = %s
                 """, (table_name,))
                 table_info = cur.fetchone()
@@ -173,7 +173,7 @@ class PostgreSQLHandler(ConnectionHandler):
 
                 # 获取列信息
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         column_name,
                         data_type,
                         column_default,
@@ -197,14 +197,14 @@ class PostgreSQLHandler(ConnectionHandler):
                     f"Comment: {table_comment or 'No comment'}\n",
                     COLUMNS_HEADER
                 ]
-                
+
                 for col in columns:
                     col_info = [
                         f"  {col[0]} ({col[1]})",
                         f"    Nullable: {col[3]}",
                         f"    Default: {col[2] or 'None'}"
                     ]
-                    
+
                     if col[4]:  # character_maximum_length
                         col_info.append(f"    Max Length: {col[4]}")
                     if col[5]:  # numeric_precision
@@ -213,12 +213,12 @@ class PostgreSQLHandler(ConnectionHandler):
                         col_info.append(f"    Scale: {col[6]}")
                     if col[7]:  # column_comment
                         col_info.append(f"    Comment: {col[7]}")
-                        
+
                     description.extend(col_info)
                     description.append("")  # Empty line between columns
-                
+
                 return "\n".join(description)
-                
+
         except psycopg2.Error as e:
             error_msg = f"Failed to get index information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -236,7 +236,7 @@ class PostgreSQLHandler(ConnectionHandler):
             with conn.cursor() as cur:
                 # 获取列定义
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         column_name,
                         data_type,
                         column_default,
@@ -252,7 +252,7 @@ class PostgreSQLHandler(ConnectionHandler):
 
                 # 获取约束
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         conname as constraint_name,
                         pg_get_constraintdef(c.oid) as constraint_def
                     FROM pg_constraint c
@@ -263,12 +263,12 @@ class PostgreSQLHandler(ConnectionHandler):
 
                 # 构建CREATE TABLE语句
                 ddl = [f"CREATE TABLE {table_name} ("]
-                
+
                 # 添加列定义
                 column_defs = []
                 for col in columns:
                     col_def = [f"    {col[0]} {col[1]}"]
-                    
+
                     if col[4]:  # character_maximum_length
                         col_def[0] = f"{col_def[0]}({col[4]})"
                     elif col[5]:  # numeric_precision
@@ -276,24 +276,24 @@ class PostgreSQLHandler(ConnectionHandler):
                             col_def[0] = f"{col_def[0]}({col[5]},{col[6]})"
                         else:
                             col_def[0] = f"{col_def[0]}({col[5]})"
-                            
+
                     if col[2]:  # default
                         col_def.append(f"DEFAULT {col[2]}")
                     if col[3] == 'NO':  # not null
                         col_def.append("NOT NULL")
-                        
+
                     column_defs.append(" ".join(col_def))
-                
+
                 # 添加约束定义
                 for con in constraints:
                     column_defs.append(f"    CONSTRAINT {con[0]} {con[1]}")
-                
+
                 ddl.append(",\n".join(column_defs))
                 ddl.append(");")
-                
+
                 # 添加注释
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         c.column_name,
                         col_description(
                             (quote_ident(table_schema) || '.' || quote_ident(table_name))::regclass,
@@ -307,15 +307,15 @@ class PostgreSQLHandler(ConnectionHandler):
                     WHERE c.table_name = %s
                 """, (table_name,))
                 comments = cur.fetchall()
-                
+
                 for comment in comments:
                     if comment[2]:  # table comment
                         ddl.append(f"\nCOMMENT ON TABLE {table_name} IS '{comment[2]}';")
                     if comment[1]:  # column comment
                         ddl.append(f"COMMENT ON COLUMN {table_name}.{comment[0]} IS '{comment[1]}';")
-                
+
                 return "\n".join(ddl)
-                
+
         except psycopg2.Error as e:
             error_msg = f"Failed to get table DDL: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -336,7 +336,7 @@ class PostgreSQLHandler(ConnectionHandler):
                     SELECT
                         i.relname as index_name,
                         a.attname as column_name,
-                        CASE 
+                        CASE
                             WHEN ix.indisprimary THEN 'PRIMARY KEY'
                             WHEN ix.indisunique THEN 'UNIQUE'
                             ELSE 'INDEX'
@@ -362,7 +362,7 @@ class PostgreSQLHandler(ConnectionHandler):
                 current_index = None
                 formatted_indexes = []
                 index_info = []
-                
+
                 for idx in indexes:
                     if current_index != idx[0]:
                         if index_info:
@@ -377,14 +377,14 @@ class PostgreSQLHandler(ConnectionHandler):
                         ]
                         if idx[5]:  # index comment
                             index_info.insert(1, f"Comment: {idx[5]}")
-                    
+
                     index_info.append(f"  - {idx[1]}")
 
                 if index_info:
                     formatted_indexes.extend(index_info)
 
                 return "\n".join(formatted_indexes)
-                
+
         except psycopg2.Error as e:
             error_msg = f"Failed to get index information: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
@@ -402,7 +402,7 @@ class PostgreSQLHandler(ConnectionHandler):
             with conn.cursor() as cur:
                 # Get table statistics
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         c.reltuples::bigint as row_estimate,
                         pg_size_pretty(pg_total_relation_size(c.oid)) as total_size,
                         pg_size_pretty(pg_table_size(c.oid)) as table_size,
@@ -428,8 +428,8 @@ class PostgreSQLHandler(ConnectionHandler):
                         s.n_distinct as distinct_values,
                         pg_column_size(a.attname::text) as approx_width
                     FROM pg_stats s
-                    JOIN pg_attribute a ON a.attrelid = %s::regclass 
-                        AND a.attnum > 0 
+                    JOIN pg_attribute a ON a.attrelid = %s::regclass
+                        AND a.attnum > 0
                         AND a.attname = s.attname
                     WHERE s.schemaname = 'public'
                     AND s.tablename = %s
@@ -522,10 +522,10 @@ class PostgreSQLHandler(ConnectionHandler):
 
                     if con[4]:  # is_deferrable
                         output.append(f"    Deferrable: {'Deferred' if con[5] else 'Immediate'}")
-                    
+
                     if con[6]:  # comment
                         output.append(f"    Comment: {con[6]}")
-                    
+
                     output.append("")  # Empty line between constraints
 
                 return "\n".join(output)
@@ -567,7 +567,7 @@ class PostgreSQLHandler(ConnectionHandler):
                     "----------------"
                 ]
                 output.extend(line[0] for line in regular_plan)
-                
+
                 output.extend([
                     "\nActual Plan (ANALYZE):",
                     "----------------------"
@@ -580,6 +580,26 @@ class PostgreSQLHandler(ConnectionHandler):
             error_msg = f"Failed to explain query: [Code: {e.pgcode}] {e.pgerror or str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
+        finally:
+            if conn:
+                conn.close()
+
+    async def test_connection(self) -> bool:
+        """Test database connection
+
+        Returns:
+            bool: True if connection is successful, False otherwise
+        """
+        conn = None
+        try:
+            conn_params = self.config.get_connection_params()
+            conn = psycopg2.connect(**conn_params)
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                return True
+        except psycopg2.Error as e:
+            self.log("error", f"Connection test failed: [Code: {e.pgcode}] {e.pgerror or str(e)}")
+            return False
         finally:
             if conn:
                 conn.close()
