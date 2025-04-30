@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: MCP Database Utilities Discussions
+    url: https://github.com/donghao1393/mcp-dbutils/discussions
+    about: Please ask and answer questions here.
+  - name: MCP Database Utilities Documentation
+    url: https://github.com/donghao1393/mcp-dbutils/tree/main/docs
+    about: Check the documentation for usage information.
