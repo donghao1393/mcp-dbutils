@@ -62,6 +62,7 @@ class MySQLHandler(ConnectionHandler):
 
     async def get_tables(self) -> list[types.Resource]:
         """Get all table resources"""
+        conn = None
         try:
             conn_params = self.config.get_connection_params()
             conn = mysql.connector.connect(**conn_params)
