@@ -67,6 +67,7 @@ class PostgreSQLHandler(ConnectionHandler):
 
     async def get_schema(self, table_name: str) -> str:
         """Get table schema information"""
+        conn = None
         try:
             conn_params = self.config.get_connection_params()
             conn = psycopg2.connect(**conn_params)
