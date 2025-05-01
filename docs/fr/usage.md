@@ -19,7 +19,7 @@ MCP Database Utilities fournit plusieurs outils que votre IA peut utiliser :
 
 ### dbutils-list-connections
 
-Liste toutes les connexions de base de données disponibles définies dans votre configuration.
+Liste toutes les connexions de base de données disponibles avec des informations détaillées, notamment le type de base de données, l'hôte, le port et le nom de la base de données, tout en masquant les informations sensibles comme les mots de passe. Le paramètre optionnel check_status permet de vérifier si chaque connexion est disponible, bien que cela puisse augmenter le temps de réponse. Utilisez cet outil lorsque vous devez comprendre les ressources de base de données disponibles ou diagnostiquer des problèmes de connexion.
 
 **Exemple d'Interaction** :
 
@@ -45,7 +45,7 @@ Liste toutes les connexions de base de données disponibles définies dans votre
 
 ### dbutils-list-tables
 
-Liste toutes les tables dans la base de données spécifiée.
+Liste toutes les tables dans la connexion de base de données spécifiée avec les noms de tables, les URI et les descriptions disponibles, regroupées par type de base de données pour une identification facile. Cet outil est utile pour explorer la structure de la base de données et comprendre quelles tables sont disponibles pour l'analyse.
 
 **Exemple d'Interaction** :
 
@@ -60,7 +60,7 @@ Liste toutes les tables dans la base de données spécifiée.
 
 ### dbutils-run-query
 
-Exécute des requêtes SQL sur la base de données spécifiée (opérations SELECT uniquement).
+Exécute des requêtes SQL en lecture seule (SELECT uniquement) sur la base de données spécifiée, avec prise en charge de requêtes complexes, notamment JOIN, GROUP BY et fonctions d'agrégation, renvoyant des résultats structurés avec des noms de colonnes et des lignes de données. Cet outil est essentiel pour extraire des informations spécifiques des bases de données et effectuer des analyses personnalisées.
 
 **Exemple d'Interaction** :
 
@@ -68,9 +68,79 @@ Exécute des requêtes SQL sur la base de données spécifiée (opérations SELE
 
 **IA** : "Laissez-moi vérifier cela pour vous. Selon les données, il y a eu 42 nouvelles inscriptions de clients au cours des 30 derniers jours."
 
+### dbutils-describe-table
+
+Fournit des informations détaillées sur la structure d'une table, notamment les noms de colonnes, les types de données, la nullabilité, les valeurs par défaut et les commentaires dans un format facile à lire. Cet outil est particulièrement utile pour comprendre le schéma d'une table avant d'exécuter des requêtes ou d'analyser des données.
+
+**Exemple d'Interaction** :
+
+**Vous** : "Décrivez la structure de la table clients."
+
+**IA** : "Voici la structure de la table clients :
+| Colonne | Type | Nullable | Défaut | Description |
+|---------|------|----------|--------|-------------|
+| id | INTEGER | Non | NULL | Identifiant unique du client |
+| nom | VARCHAR(100) | Non | NULL | Nom complet du client |
+| email | VARCHAR(100) | Non | NULL | Adresse email (unique) |
+| date_inscription | DATE | Non | CURRENT_DATE | Date d'inscription |
+| derniere_connexion | TIMESTAMP | Oui | NULL | Horodatage de la dernière connexion |
+| statut | ENUM | Non | 'actif' | Statut du compte (actif, inactif, suspendu) |"
+
+### dbutils-get-ddl
+
+Récupère l'instruction DDL (Data Definition Language) complète pour créer la table spécifiée, y compris toutes les définitions de colonnes, contraintes et index. Cet outil est utile pour comprendre la définition exacte d'une table ou pour recréer une structure de table similaire dans un autre environnement.
+
+**Exemple d'Interaction** :
+
+**Vous** : "Montrez-moi le DDL pour la table commandes."
+
+**IA** : "Voici l'instruction DDL pour la table commandes :
+```sql
+CREATE TABLE commandes (
+  order_id INT PRIMARY KEY AUTO_INCREMENT,
+  customer_id INT NOT NULL,
+  order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount > 0),
+  status VARCHAR(20) NOT NULL DEFAULT 'en attente',
+  FOREIGN KEY (customer_id) REFERENCES clients(id)
+);
+
+CREATE INDEX idx_order_date ON commandes(order_date);
+CREATE INDEX idx_customer_id ON commandes(customer_id);
+```"
+
+### dbutils-list-indexes
+
+Liste tous les index sur la table spécifiée, y compris les noms d'index, les types (unique/non unique), les méthodes d'index et les colonnes incluses, regroupés par nom d'index. Cet outil est utile pour comprendre comment une table est indexée, ce qui peut aider à optimiser les requêtes et à améliorer les performances.
+
+**Exemple d'Interaction** :
+
+**Vous** : "Quels index existent sur la table produits ?"
+
+**IA** : "Voici les index sur la table produits :
+1. **pk_product_id** (Primaire)
+   - Colonnes : product_id
+   - Type : B-tree
+   - Unique : Oui
+
+2. **idx_category** (Secondaire)
+   - Colonnes : category_id
+   - Type : B-tree
+   - Unique : Non
+
+3. **idx_product_name** (Secondaire)
+   - Colonnes : name
+   - Type : B-tree
+   - Unique : Non
+
+4. **idx_price_category** (Secondaire)
+   - Colonnes : price, category_id
+   - Type : B-tree
+   - Unique : Non"
+
 ### dbutils-get-stats
 
-Obtient des statistiques sur une table, telles que le nombre de lignes, la taille et les statistiques de colonnes.
+Récupère des informations statistiques sur la table, notamment le nombre estimé de lignes, la longueur moyenne des lignes, la taille des données et la taille de l'index. Ces statistiques sont utiles pour comprendre la volumétrie des données et planifier des optimisations de performance.
 
 **Exemple d'Interaction** :
 
@@ -86,7 +156,7 @@ Obtient des statistiques sur une table, telles que le nombre de lignes, la taill
 
 ### dbutils-list-constraints
 
-Liste les contraintes pour une table, telles que les clés primaires, les clés étrangères, etc.
+Liste toutes les contraintes sur la table, y compris les clés primaires, les clés étrangères, les contraintes uniques et les contraintes de vérification, avec les tables et colonnes référencées pour les clés étrangères. Cet outil est utile pour comprendre les relations entre les tables et les règles d'intégrité des données.
 
 **Exemple d'Interaction** :
 
@@ -100,7 +170,7 @@ Liste les contraintes pour une table, telles que les clés primaires, les clés 
 
 ### dbutils-explain-query
 
-Obtient le plan d'exécution de la requête et les estimations de coût.
+Fournit le plan d'exécution d'une requête SQL, montrant comment le moteur de base de données traitera la requête, y compris les méthodes d'accès, les types de jointure et les coûts estimés. Cet outil est essentiel pour comprendre et optimiser les performances des requêtes complexes.
 
 **Exemple d'Interaction** :
 
@@ -114,7 +184,7 @@ Obtient le plan d'exécution de la requête et les estimations de coût.
 
 ### dbutils-get-performance
 
-Obtient des métriques de performance de la base de données.
+Récupère les métriques de performance pour la connexion à la base de données, notamment le nombre de requêtes, le temps d'exécution moyen, l'utilisation de la mémoire et les statistiques d'erreur. Ces informations sont précieuses pour surveiller la santé de la base de données et identifier les goulots d'étranglement potentiels.
 
 **Exemple d'Interaction** :
 
@@ -128,7 +198,7 @@ Obtient des métriques de performance de la base de données.
 
 ### dbutils-analyze-query
 
-Analyse les performances des requêtes SQL et fournit des suggestions d'optimisation.
+Analyse les caractéristiques de performance d'une requête SQL, fournissant un plan d'exécution, un temps d'exécution réel et des recommandations d'optimisation spécifiques. Cet outil va au-delà de l'explication simple en identifiant les problèmes potentiels et en suggérant des améliorations concrètes pour accélérer l'exécution des requêtes.
 
 **Exemple d'Interaction** :
 
