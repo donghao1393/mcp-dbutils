@@ -159,12 +159,12 @@ class TestConnectionServerTools:
 
         # Verify the first tool is dbutils-list-connections
         assert tools[0].name == "dbutils-list-connections"
-        assert "List all available database connections" in tools[0].description
+        assert "Lists all available database connections" in tools[0].description
 
         # Verify dbutils-run-query is also in the tools
         run_query_tools = [tool for tool in tools if tool.name == "dbutils-run-query"]
         assert len(run_query_tools) == 1
-        assert "Execute read-only SQL query" in run_query_tools[0].description
+        assert "Executes read-only SQL queries" in run_query_tools[0].description
 
         # Check that all tools have the required properties
         for tool in tools:
