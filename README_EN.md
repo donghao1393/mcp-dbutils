@@ -73,14 +73,19 @@ We offer multiple installation methods, including uvx, Docker, and Smithery. For
 
 MCP Database Utilities provides several tools that your AI can use:
 
-- **dbutils-list-connections**: Lists all available database connections in your configuration
-- **dbutils-list-tables**: Lists all tables in a database
-- **dbutils-run-query**: Executes a SQL query (SELECT only)
-- **dbutils-get-stats**: Gets statistics about a table
-- **dbutils-list-constraints**: Lists table constraints
-- **dbutils-explain-query**: Gets query execution plan
-- **dbutils-get-performance**: Gets database performance metrics
-- **dbutils-analyze-query**: Analyzes queries for optimization
+- **dbutils-list-connections**: Lists all available database connections with detailed information including database type, host, port, and database name, while hiding sensitive information like passwords.
+- **dbutils-list-tables**: Lists all tables in the specified database connection with table names, URIs, and available descriptions, grouped by database type for easy identification.
+- **dbutils-run-query**: Executes read-only SQL queries (SELECT only) with support for complex queries including JOINs, GROUP BY, and aggregate functions, returning structured results with column names and data rows.
+- **dbutils-describe-table**: Provides detailed information about a table's structure, including column names, data types, nullability, default values, and comments in an easy-to-read format.
+- **dbutils-get-ddl**: Retrieves the complete DDL (Data Definition Language) statement for creating the specified table, including all column definitions, constraints, and indexes.
+- **dbutils-list-indexes**: Lists all indexes on the specified table, including index names, types (unique/non-unique), index methods, and included columns, grouped by index name.
+- **dbutils-get-stats**: Retrieves statistical information about the table, including estimated row count, average row length, data size, and index size.
+- **dbutils-list-constraints**: Lists all constraints on the table, including primary keys, foreign keys, unique constraints, and check constraints, with referenced tables and columns for foreign keys.
+- **dbutils-explain-query**: Provides the execution plan for a SQL query, showing how the database engine will process the query, including access methods, join types, and estimated costs.
+- **dbutils-get-performance**: Retrieves performance metrics for the database connection, including query count, average execution time, memory usage, and error statistics.
+- **dbutils-analyze-query**: Analyzes the performance characteristics of a SQL query, providing execution plan, actual execution time, and specific optimization recommendations.
+
+For detailed descriptions and usage examples of these tools, see the [Usage Guide](docs/en/usage.md).
 
 
 

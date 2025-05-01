@@ -100,14 +100,17 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 
 MCP 数据库工具提供了多种工具，使 AI 能够与您的数据库交互：
 
-- **dbutils-list-connections**：列出配置中的所有可用数据库连接
-- **dbutils-list-tables**：列出数据库中的所有表
-- **dbutils-run-query**：执行 SQL 查询（仅 SELECT）
-- **dbutils-get-stats**：获取表统计信息
-- **dbutils-list-constraints**：列出表约束
-- **dbutils-explain-query**：获取查询执行计划
-- **dbutils-get-performance**：获取数据库性能指标
-- **dbutils-analyze-query**：分析查询以进行优化
+- **dbutils-list-connections**：列出配置中的所有可用数据库连接，包括数据库类型、主机、端口和数据库名称等详细信息，同时隐藏密码等敏感信息。
+- **dbutils-list-tables**：列出指定数据库连接中的所有表，包括表名、URI和可用的表描述，按数据库类型分组以便于识别。
+- **dbutils-run-query**：执行只读SQL查询（仅SELECT），支持包括JOIN、GROUP BY和聚合函数在内的复杂查询，返回包含列名和数据行的结构化结果。
+- **dbutils-describe-table**：提供表结构的详细信息，包括列名、数据类型、是否可为空、默认值和注释，以易于阅读的格式呈现。
+- **dbutils-get-ddl**：获取创建指定表的完整DDL（数据定义语言）语句，包括所有列定义、约束和索引。
+- **dbutils-list-indexes**：列出指定表上的所有索引，包括索引名称、类型（唯一/非唯一）、索引方法和包含的列，按索引名称分组。
+- **dbutils-get-stats**：获取表的统计信息，包括估计行数、平均行长度、数据大小和索引大小。
+- **dbutils-list-constraints**：列出表上的所有约束，包括主键、外键、唯一约束和检查约束，对于外键约束还显示引用的表和列。
+- **dbutils-explain-query**：获取SQL查询的执行计划，显示数据库引擎将如何处理查询，包括访问方法、连接类型和估计成本。
+- **dbutils-get-performance**：获取数据库连接的性能指标，包括查询计数、平均执行时间、内存使用情况和错误统计。
+- **dbutils-analyze-query**：分析SQL查询的性能特性，提供执行计划、实际执行时间和具体的优化建议。
 
 有关这些工具的详细说明和使用示例，请参阅[使用指南](docs/zh/usage.md)。
 

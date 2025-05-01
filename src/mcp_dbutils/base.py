@@ -444,7 +444,7 @@ class ConnectionServer:
         return [
             types.Tool(
                 name="dbutils-list-connections",
-                description="List all available database connections defined in the configuration",
+                description="Lists all available database connections defined in the configuration with detailed information including database type, host, port, and database name, while hiding sensitive information like passwords. The optional check_status parameter allows verifying if each connection is available, though this may increase response time. Use this tool when you need to understand available database resources or diagnose connection issues.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -459,7 +459,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-run-query",
-                description="Execute read-only SQL query on database connection",
+                description="Executes read-only SQL queries on the specified database connection. For security, only SELECT statements are supported. Returns structured results with column names and data rows. Supports complex queries including JOINs, GROUP BY, ORDER BY, and aggregate functions. Use this tool when you need to analyze data, validate hypotheses, or extract specific information. Query execution is protected by resource limits and timeouts to prevent system resource overuse.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -477,7 +477,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-list-tables",
-                description="List all available tables in the specified database connection",
+                description="Lists all tables in the specified database connection. Results include table names, URIs, and available table descriptions. Results are grouped by database type and clearly labeled for easy identification. Use this tool when you need to understand database structure or locate specific tables. Only works within the allowed connection scope.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -491,7 +491,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-describe-table",
-                description="Get detailed information about a table's structure",
+                description="Provides detailed information about a table's structure, including column names, data types, nullability, default values, and comments. Results are formatted as an easy-to-read hierarchy that clearly displays all column attributes. Use this tool when you need to understand table structure in depth, analyze data models, or prepare queries. Supports all major database types with consistent output format.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -509,7 +509,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-get-ddl",
-                description="Get DDL statement for creating the table",
+                description="Retrieves the complete DDL (Data Definition Language) statement for creating the specified table. Returns the original CREATE TABLE statement including all column definitions, constraints, indexes, and table options. This tool is valuable when you need to understand the complete table structure, replicate table structure, or perform database migrations. Note that DDL statement format varies by database type.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -527,7 +527,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-list-indexes",
-                description="List all indexes on the specified table",
+                description="Lists all indexes on the specified table, including index names, types (unique/non-unique), index methods (e.g., B-tree), and included columns. Results are grouped by index name, clearly showing the structure of multi-column indexes. Use this tool when you need to optimize query performance, understand table access patterns, or diagnose performance issues.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -545,7 +545,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-get-stats",
-                description="Get table statistics like row count and size",
+                description="Retrieves statistical information about the table, including estimated row count, average row length, data size, index size, and column information. These statistics are valuable for understanding table size, growth trends, and storage characteristics. Use this tool when you need to perform capacity planning, performance optimization, or database maintenance. Note that the precision and availability of statistics may vary by database type.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -563,7 +563,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-list-constraints",
-                description="List all constraints (primary key, foreign keys, etc) on the table",
+                description="Lists all constraints on the table, including primary keys, foreign keys, unique constraints, and check constraints. Results are grouped by constraint type, clearly showing constraint names and involved columns. For foreign key constraints, referenced tables and columns are also displayed. Use this tool when you need to understand data integrity rules, table relationships, or data validation logic.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -581,7 +581,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-explain-query",
-                description="Get execution plan for a SQL query",
+                description="Provides the execution plan for a SQL query, showing how the database engine will process the query. Returns detailed execution plan including access methods, join types, sort operations, and estimated costs. Also provides actual execution statistics where available. Use this tool when you need to optimize query performance, understand complex query behavior, or diagnose slow queries. Note that execution plan format varies by database type.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -599,7 +599,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-get-performance",
-                description="Get database performance statistics",
+                description="Retrieves performance metrics for the database connection, including query count, average execution time, memory usage, and error statistics. These metrics reflect the resource usage of the current session and help monitor and optimize database operations. Use this tool when you need to evaluate query efficiency, identify performance bottlenecks, or monitor resource usage.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -613,7 +613,7 @@ class ConnectionServer:
             ),
             types.Tool(
                 name="dbutils-analyze-query",
-                description="Analyze a SQL query for performance",
+                description="Analyzes the performance characteristics of a SQL query, providing execution plan, actual execution time, and optimization suggestions. The tool executes the query (SELECT statements only) and measures performance, then provides specific optimization recommendations based on the results, such as adding indexes, restructuring join conditions, or adjusting query structure. Use this tool when you need to improve query performance, understand performance bottlenecks, or learn query optimization techniques.",
                 inputSchema={
                     "type": "object",
                     "properties": {

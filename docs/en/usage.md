@@ -2,9 +2,6 @@
 
 *English | [中文](../zh/usage.md) | [Français](../fr/usage.md) | [Español](../es/usage.md) | [العربية](../ar/usage.md) | [Русский](../ru/usage.md)*
 
-
-*English | [中文](../zh/usage.md) | [Français](../fr/usage.md) | [Español](../es/usage.md) | [العربية](../ar/usage.md) | [Русский](../ru/usage.md)*
-
 This document provides detailed instructions for using the MCP Database Utilities, helping you fully leverage its capabilities for data analysis with AI.
 
 ## Basic Workflow
@@ -22,7 +19,7 @@ MCP Database Utilities provides several tools that your AI can use:
 
 ### dbutils-list-connections
 
-Lists all available database connections defined in your configuration.
+Lists all available database connections defined in the configuration with detailed information including database type, host, port, and database name, while hiding sensitive information like passwords. The optional check_status parameter allows verifying if each connection is available, though this may increase response time. Use this tool when you need to understand available database resources or diagnose connection issues.
 
 **Example Interaction**:
 
@@ -48,7 +45,7 @@ Lists all available database connections defined in your configuration.
 
 ### dbutils-list-tables
 
-Lists all tables in the specified database.
+Lists all tables in the specified database connection with table names, URIs, and available descriptions. Results are grouped by database type and clearly labeled for easy identification. Use this tool when you need to understand database structure or locate specific tables. Only works within the allowed connection scope.
 
 **Example Interaction**:
 
@@ -63,7 +60,7 @@ Lists all tables in the specified database.
 
 ### dbutils-run-query
 
-Executes SQL queries on the specified database (SELECT operations only).
+Executes read-only SQL queries on the specified database connection. For security, only SELECT statements are supported. Returns structured results with column names and data rows. Supports complex queries including JOINs, GROUP BY, ORDER BY, and aggregate functions. Use this tool when you need to analyze data, validate hypotheses, or extract specific information. Query execution is protected by resource limits and timeouts to prevent system resource overuse.
 
 **Example Interaction**:
 
@@ -71,9 +68,49 @@ Executes SQL queries on the specified database (SELECT operations only).
 
 **AI**: "Let me check that for you. According to the data, there have been 42 new customer registrations in the last 30 days."
 
+### dbutils-describe-table
+
+Provides detailed information about a table's structure, including column names, data types, nullability, default values, and comments. Results are formatted as an easy-to-read hierarchy that clearly displays all column attributes. Use this tool when you need to understand table structure in depth, analyze data models, or prepare queries. Supports all major database types with consistent output format.
+
+**Example Interaction**:
+
+**You**: "Describe the structure of the customers table."
+
+**AI**: "The customers table has the following structure:
+- id: integer, primary key, not null, auto-increment
+- name: varchar(100), not null
+- email: varchar(100), unique, not null
+- registration_date: date, not null, default: current_date
+- status: enum('active','inactive','suspended'), default: 'active'
+- last_login: timestamp, nullable"
+
+### dbutils-get-ddl
+
+Retrieves the complete DDL (Data Definition Language) statement for creating the specified table. Returns the original CREATE TABLE statement including all column definitions, constraints, indexes, and table options. This tool is valuable when you need to understand the complete table structure, replicate table structure, or perform database migrations. Note that DDL statement format varies by database type.
+
+**Example Interaction**:
+
+**You**: "Get the DDL for the products table."
+
+**AI**: "Here's the DDL statement for the products table:
+```sql
+CREATE TABLE products (
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2) NOT NULL,
+  category_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_category (category_id),
+  CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES categories(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```"
+
 ### dbutils-get-stats
 
-Gets statistics about a table, such as row count, size, and column statistics.
+Retrieves statistical information about the table, including estimated row count, average row length, data size, index size, and column information. These statistics are valuable for understanding table size, growth trends, and storage characteristics. Use this tool when you need to perform capacity planning, performance optimization, or database maintenance. Note that the precision and availability of statistics may vary by database type.
 
 **Example Interaction**:
 
@@ -87,9 +124,38 @@ Gets statistics about a table, such as row count, size, and column statistics.
   * category: 8 distinct categories
   * price: average $45.99, min $5.99, max $299.99"
 
+### dbutils-list-indexes
+
+Lists all indexes on the specified table, including index names, types (unique/non-unique), index methods (e.g., B-tree), and included columns. Results are grouped by index name, clearly showing the structure of multi-column indexes. Use this tool when you need to optimize query performance, understand table access patterns, or diagnose performance issues.
+
+**Example Interaction**:
+
+**You**: "List all indexes on the orders table."
+
+**AI**: "The orders table has the following indexes:
+1. **PRIMARY** (Primary Key Index)
+   - Column: order_id
+   - Type: Unique
+   - Method: B-tree
+
+2. **idx_customer** (Regular Index)
+   - Column: customer_id
+   - Type: Non-unique
+   - Method: B-tree
+
+3. **idx_order_date** (Regular Index)
+   - Column: order_date
+   - Type: Non-unique
+   - Method: B-tree
+
+4. **idx_status_created** (Composite Index)
+   - Columns: status, created_at
+   - Type: Non-unique
+   - Method: B-tree"
+
 ### dbutils-list-constraints
 
-Lists constraints for a table, such as primary keys, foreign keys, etc.
+Lists all constraints on the table, including primary keys, foreign keys, unique constraints, and check constraints. Results are grouped by constraint type, clearly showing constraint names and involved columns. For foreign key constraints, referenced tables and columns are also displayed. Use this tool when you need to understand data integrity rules, table relationships, or data validation logic.
 
 **Example Interaction**:
 
@@ -103,7 +169,7 @@ Lists constraints for a table, such as primary keys, foreign keys, etc.
 
 ### dbutils-explain-query
 
-Gets the query execution plan and cost estimates.
+Provides the execution plan for a SQL query, showing how the database engine will process the query. Returns detailed execution plan including access methods, join types, sort operations, and estimated costs. Also provides actual execution statistics where available. Use this tool when you need to optimize query performance, understand complex query behavior, or diagnose slow queries. Note that execution plan format varies by database type.
 
 **Example Interaction**:
 
@@ -117,7 +183,7 @@ Gets the query execution plan and cost estimates.
 
 ### dbutils-get-performance
 
-Gets database performance metrics.
+Retrieves performance metrics for the database connection, including query count, average execution time, memory usage, and error statistics. These metrics reflect the resource usage of the current session and help monitor and optimize database operations. Use this tool when you need to evaluate query efficiency, identify performance bottlenecks, or monitor resource usage.
 
 **Example Interaction**:
 
@@ -131,7 +197,7 @@ Gets database performance metrics.
 
 ### dbutils-analyze-query
 
-Analyzes SQL query performance and provides optimization suggestions.
+Analyzes the performance characteristics of a SQL query, providing execution plan, actual execution time, and optimization suggestions. The tool executes the query (SELECT statements only) and measures performance, then provides specific optimization recommendations based on the results, such as adding indexes, restructuring join conditions, or adjusting query structure. Use this tool when you need to improve query performance, understand performance bottlenecks, or learn query optimization techniques.
 
 **Example Interaction**:
 
