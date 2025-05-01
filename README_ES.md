@@ -73,14 +73,19 @@ Ofrecemos múltiples métodos de instalación, incluyendo uvx, Docker y Smithery
 
 MCP Database Utilities proporciona varias herramientas que tu IA puede usar:
 
-- **dbutils-list-connections**: Lista todas las conexiones de base de datos disponibles en tu configuración
-- **dbutils-list-tables**: Lista todas las tablas en una base de datos
-- **dbutils-run-query**: Ejecuta una consulta SQL (solo SELECT)
-- **dbutils-get-stats**: Obtiene estadísticas sobre una tabla
-- **dbutils-list-constraints**: Lista las restricciones de una tabla
-- **dbutils-explain-query**: Obtiene el plan de ejecución de la consulta
-- **dbutils-get-performance**: Obtiene métricas de rendimiento de la base de datos
-- **dbutils-analyze-query**: Analiza consultas para optimización
+- **dbutils-list-connections**: Lista todas las conexiones de base de datos disponibles con información detallada, incluyendo tipo de base de datos, host, puerto y nombre de base de datos, mientras oculta información sensible como contraseñas.
+- **dbutils-list-tables**: Lista todas las tablas en la conexión de base de datos especificada con nombres de tablas, URIs y descripciones disponibles, agrupadas por tipo de base de datos para fácil identificación.
+- **dbutils-run-query**: Ejecuta consultas SQL de solo lectura (solo SELECT) con soporte para consultas complejas, incluyendo JOINs, GROUP BY y funciones de agregación, devolviendo resultados estructurados con nombres de columnas y filas de datos.
+- **dbutils-describe-table**: Proporciona información detallada sobre la estructura de una tabla, incluyendo nombres de columnas, tipos de datos, nulabilidad, valores predeterminados y comentarios en un formato fácil de leer.
+- **dbutils-get-ddl**: Recupera la declaración DDL (Lenguaje de Definición de Datos) completa para crear la tabla especificada, incluyendo todas las definiciones de columnas, restricciones e índices.
+- **dbutils-list-indexes**: Lista todos los índices en la tabla especificada, incluyendo nombres de índices, tipos (único/no único), métodos de índice y columnas incluidas, agrupados por nombre de índice.
+- **dbutils-get-stats**: Recupera información estadística sobre la tabla, incluyendo recuento estimado de filas, longitud promedio de fila, tamaño de datos y tamaño de índice.
+- **dbutils-list-constraints**: Lista todas las restricciones en la tabla, incluyendo claves primarias, claves foráneas, restricciones únicas y restricciones de verificación, con tablas y columnas referenciadas para claves foráneas.
+- **dbutils-explain-query**: Proporciona el plan de ejecución para una consulta SQL, mostrando cómo el motor de base de datos procesará la consulta, incluyendo métodos de acceso, tipos de unión y costos estimados.
+- **dbutils-get-performance**: Recupera métricas de rendimiento para la conexión de base de datos, incluyendo recuento de consultas, tiempo promedio de ejecución, uso de memoria y estadísticas de errores.
+- **dbutils-analyze-query**: Analiza las características de rendimiento de una consulta SQL, proporcionando plan de ejecución, tiempo real de ejecución y recomendaciones específicas de optimización.
+
+Para descripciones detalladas y ejemplos de uso de estas herramientas, consulta la [Guía de Uso](docs/es/usage.md).
 
 ## Documentación
 

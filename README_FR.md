@@ -73,14 +73,19 @@ Nous proposons plusieurs méthodes d'installation, notamment uvx, Docker et Smit
 
 MCP Database Utilities fournit plusieurs outils que votre IA peut utiliser :
 
-- **dbutils-list-connections** : Liste toutes les connexions de base de données disponibles dans votre configuration
-- **dbutils-list-tables** : Liste toutes les tables d'une base de données
-- **dbutils-run-query** : Exécute une requête SQL (SELECT uniquement)
-- **dbutils-get-stats** : Obtient des statistiques sur une table
-- **dbutils-list-constraints** : Liste les contraintes de table
-- **dbutils-explain-query** : Obtient le plan d'exécution de la requête
-- **dbutils-get-performance** : Obtient des métriques de performance de la base de données
-- **dbutils-analyze-query** : Analyse les requêtes pour l'optimisation
+- **dbutils-list-connections** : Liste toutes les connexions de base de données disponibles avec des informations détaillées, notamment le type de base de données, l'hôte, le port et le nom de la base de données, tout en masquant les informations sensibles comme les mots de passe.
+- **dbutils-list-tables** : Liste toutes les tables de la connexion de base de données spécifiée avec les noms de tables, les URI et les descriptions disponibles, regroupées par type de base de données pour une identification facile.
+- **dbutils-run-query** : Exécute des requêtes SQL en lecture seule (SELECT uniquement) avec prise en charge de requêtes complexes, notamment JOIN, GROUP BY et fonctions d'agrégation, renvoyant des résultats structurés avec des noms de colonnes et des lignes de données.
+- **dbutils-describe-table** : Fournit des informations détaillées sur la structure d'une table, notamment les noms de colonnes, les types de données, la nullabilité, les valeurs par défaut et les commentaires dans un format facile à lire.
+- **dbutils-get-ddl** : Récupère l'instruction DDL (Data Definition Language) complète pour créer la table spécifiée, y compris toutes les définitions de colonnes, contraintes et index.
+- **dbutils-list-indexes** : Liste tous les index sur la table spécifiée, y compris les noms d'index, les types (unique/non unique), les méthodes d'index et les colonnes incluses, regroupés par nom d'index.
+- **dbutils-get-stats** : Récupère des informations statistiques sur la table, notamment le nombre estimé de lignes, la longueur moyenne des lignes, la taille des données et la taille de l'index.
+- **dbutils-list-constraints** : Liste toutes les contraintes sur la table, y compris les clés primaires, les clés étrangères, les contraintes uniques et les contraintes de vérification, avec les tables et colonnes référencées pour les clés étrangères.
+- **dbutils-explain-query** : Fournit le plan d'exécution d'une requête SQL, montrant comment le moteur de base de données traitera la requête, y compris les méthodes d'accès, les types de jointure et les coûts estimés.
+- **dbutils-get-performance** : Obtient des métriques de performance de la base de données, notamment le nombre de requêtes, le temps d'exécution moyen, l'utilisation de la mémoire et les statistiques d'erreur.
+- **dbutils-analyze-query** : Analyse les caractéristiques de performance d'une requête SQL, fournissant un plan d'exécution, un temps d'exécution réel et des recommandations d'optimisation spécifiques.
+
+Pour des descriptions détaillées et des exemples d'utilisation de ces outils, consultez le [Guide d'utilisation](docs/fr/usage.md).
 
 ## Documentation
 
