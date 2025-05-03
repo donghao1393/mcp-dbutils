@@ -257,14 +257,64 @@ Recomendaciones para una configuración segura:
    ```
 
 4. **Configure Tiempos de Espera Apropiados**:
+
+   MCP Database Utilities proporciona tres parámetros de tiempo de espera configurables para garantizar la seguridad de las conexiones a la base de datos y el uso eficiente de los recursos:
+
+   **Tiempo de Espera de Consulta (query_timeout)**:
+   - **Propósito**: Limita el tiempo máximo que puede ejecutarse una consulta SQL. Las consultas que excedan este tiempo se terminarán automáticamente.
+   - **Unidad**: Segundos
+   - **Valor predeterminado**: 60 segundos
+   - **Casos de uso**: Evita que las consultas complejas o las consultas de tablas grandes consuman recursos excesivos
+   - **Recomendaciones**:
+     - Consultas regulares: 30-60 segundos
+     - Consultas de análisis de datos: 300-600 segundos
+     - Generación de informes: Hasta 1800 segundos
+
+   **Tiempo de Espera de Conexión (connection_timeout)**:
+   - **Propósito**: Limita el tiempo máximo de espera para establecer una conexión a la base de datos. Se devolverán errores de conexión si no se puede establecer una conexión dentro de este tiempo.
+   - **Unidad**: Segundos
+   - **Valor predeterminado**: 10 segundos
+   - **Casos de uso**: Útil en entornos de red inestables o cuando la carga de la base de datos es alta
+   - **Recomendaciones**:
+     - Bases de datos locales: 5-10 segundos
+     - Bases de datos remotas: 15-30 segundos
+     - Entornos de alta carga: Hasta 60 segundos
+
+   **Tiempo de Espera de Inactividad (idle_timeout)**:
+   - **Propósito**: Define cuánto tiempo puede permanecer inactiva una conexión antes de cerrarse automáticamente. Esto ayuda a liberar recursos de conexión no utilizados.
+   - **Unidad**: Segundos
+   - **Valor predeterminado**: 300 segundos (5 minutos)
+   - **Casos de uso**: Gestiona las conexiones inactivas en el pool de conexiones
+   - **Recomendaciones**:
+     - Uso de alta frecuencia: 600-1200 segundos
+     - Uso general: 300-600 segundos
+     - Uso de baja frecuencia: 60-180 segundos
+
+   **Relaciones entre Parámetros**:
+   - Típicamente idle_timeout > query_timeout > connection_timeout
+   - Si sus consultas necesitan ejecutarse durante mucho tiempo, asegúrese de que query_timeout sea lo suficientemente largo
+   - Si idle_timeout es demasiado corto, puede causar creación y destrucción frecuente de conexiones, afectando el rendimiento
+
+   **Ejemplo de Configuración**:
    ```yaml
    connections:
-     timeout-example:
-       # ...
-       query_timeout: 30  # segundos
-       connection_timeout: 10  # segundos
-       idle_timeout: 300  # segundos
+     analytics-db:
+       type: postgres
+       host: analytics.example.com
+       port: 5432
+       dbname: analytics
+       user: analyst
+       password: secure_password
+       # Configuración de tiempos de espera (todos los valores en segundos)
+       query_timeout: 300     # Permite consultas analíticas de larga duración
+       connection_timeout: 15  # Tiempo de espera para conexión a base de datos remota
+       idle_timeout: 600      # Mantiene las conexiones activas para consultas frecuentes
    ```
+
+   **Notas Importantes**:
+   - Establecer tiempos de espera demasiado cortos puede interrumpir consultas legítimas
+   - Establecer tiempos de espera demasiado largos puede desperdiciar recursos y crear riesgos potenciales de seguridad
+   - Ajuste estos valores según su caso de uso específico y el rendimiento de su base de datos
 
 ### Monitoreo y Auditoría
 
