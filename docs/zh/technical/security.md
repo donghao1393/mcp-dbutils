@@ -74,6 +74,12 @@ flowchart LR
    - 每个数据库连接单独管理
    - 数据库通过连接管理器相互隔离
 
+6. **自动超时机制**:
+   - 查询超时防止长时间运行的查询消耗资源
+   - 连接超时确保数据库连接得到适当管理
+   - 空闲超时自动关闭不活动的连接
+   - 全局超时限制会话的总持续时间
+
 这种架构确保即使您将该工具用于多个数据库或用途，每个连接仍然保持安全和隔离，最大限度地减少数据暴露。
 
 ## 故障排除指南
@@ -117,6 +123,11 @@ flowchart LR
    - 检查路径是绝对路径而非相对路径
    - 验证uvx或docker能在命令行直接运行
 
+4. **超时问题**
+   - 运行时间过长的查询可能会被超时设置终止
+   - 在连接设置中配置适当的超时值
+   - 对于长时间运行的分析查询，请增加查询超时值
+
 ### 日志和诊断
 
 对于高级故障排除，您可以启用详细日志记录：
@@ -159,6 +170,50 @@ MCP客户端会处理服务生成的日志。不同的MCP客户端可能在不�
 - 对于Claude Desktop：请查看Claude Desktop的应用日志
 - 对于Cursor：请查看Cursor的MCP日志部分
 - 对于其他客户端：请参考各自客户端的文档了解如何访问MCP服务日志
+
+### 安全最佳实践
+
+为确保使用MCP数据库工具时的最高安全级别：
+
+1. **使用只读账户**：
+   ```sql
+   -- PostgreSQL示例
+   CREATE ROLE readonly_user WITH LOGIN PASSWORD 'secure_password';
+   GRANT CONNECT ON DATABASE analytics TO readonly_user;
+   GRANT USAGE ON SCHEMA public TO readonly_user;
+   GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user;
+   ```
+
+2. **启用SSL/TLS**：
+   ```yaml
+   connections:
+     secure-db:
+       # ...
+       ssl:
+         mode: verify-full
+         # ...
+   ```
+
+3. **限制表访问**：
+   ```yaml
+   connections:
+     limited-access:
+       # ...
+       allowed_tables:
+         - public.products
+         - public.categories
+         - analytics.sales
+   ```
+
+4. **配置适当的超时**：
+   ```yaml
+   connections:
+     timeout-example:
+       # ...
+       query_timeout: 30  # 秒
+       connection_timeout: 10  # 秒
+       idle_timeout: 300  # 秒
+   ```
 
 ### 获取帮助
 
