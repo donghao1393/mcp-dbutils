@@ -226,6 +226,69 @@ class TestMySQLServer:
             assert any('Connection close error' in call[0][1] for call in warning_calls)
 
     @pytest.mark.asyncio
+    async def test_call_tool_unknown(self, mock_mysql_config):
+        """Test calling unknown tool"""
+        # Setup
+        with patch.object(MySQLServer, "__init__", return_value=None):
+            server = MySQLServer(None)
+            server.config = mock_mysql_config
+            server.log = MagicMock()
+
+            # Execute and verify
+            with pytest.raises(ValueError, match="未知工具"):
+                await server.call_tool("unknown", {})
+
+    @pytest.mark.asyncio
+    async def test_call_tool_query_with_pool_error(self, mock_mysql_config):
+        """Test calling query tool with pool error"""
+        # Setup
+        with patch.object(MySQLServer, "__init__", return_value=None):
+            server = MySQLServer(None)
+            server.config = mock_mysql_config
+
+            # Mock pool with error
+            mock_pool = MagicMock()
+            mock_pool.get_connection.side_effect = Exception("Pool error")
+            server.pool = mock_pool
+            server.log = MagicMock()
+
+            # Execute
+            result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
+
+            # Verify
+            assert len(result) == 1
+            assert result[0].type == "text"
+            assert "Pool error" in result[0].text
+
+            # Verify error log was called
+            error_calls = [call for call in server.log.call_args_list if call[0][0] == 'error']
+            assert any('Pool error' in call[0][1] for call in error_calls)
+
+    @pytest.mark.asyncio
+    async def test_call_tool_query_with_cursor_error(self, mock_mysql_config, mock_pool, mock_connection):
+        """Test calling query tool with cursor error"""
+        # Setup
+        mock_connection.cursor.side_effect = Exception("Cursor error")
+
+        with patch.object(MySQLServer, "__init__", return_value=None):
+            server = MySQLServer(None)
+            server.config = mock_mysql_config
+            server.pool = mock_pool
+            server.log = MagicMock()
+
+            # Execute
+            result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
+
+            # Verify
+            assert len(result) == 1
+            assert result[0].type == "text"
+            assert "Cursor error" in result[0].text
+
+            # Verify error log was called
+            error_calls = [call for call in server.log.call_args_list if call[0][0] == 'error']
+            assert any('Cursor error' in call[0][1] for call in error_calls)
+
+    @pytest.mark.asyncio
     async def test_call_tool_invalid_name(self, mock_mysql_config):
         """Test calling invalid tool"""
         # Setup
