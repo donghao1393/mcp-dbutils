@@ -598,6 +598,51 @@ class TestMySQLHandler:
         handler.log.assert_any_call('debug', 'MySQL handler cleanup complete')
 
     @pytest.mark.asyncio
+    async def test_cleanup_with_connection(self, handler):
+        """Test cleanup method with active connection"""
+        # Mock the handler.stats.to_dict method
+        handler.stats.to_dict.return_value = {'queries': 10, 'errors': 0}
+
+        # Mock connection
+        mock_conn = MagicMock()
+        handler._connection = mock_conn
+
+        # Call the method
+        await handler.cleanup()
+
+        # Verify connection was closed
+        mock_conn.close.assert_called_once()
+        assert handler._connection is None
+
+        # Verify logs
+        handler.log.assert_any_call('info', 'Final MySQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        handler.log.assert_any_call('debug', 'Closing MySQL connection')
+        handler.log.assert_any_call('debug', 'MySQL handler cleanup complete')
+
+    @pytest.mark.asyncio
+    async def test_cleanup_with_connection_error(self, handler):
+        """Test cleanup method with connection error"""
+        # Mock the handler.stats.to_dict method
+        handler.stats.to_dict.return_value = {'queries': 10, 'errors': 0}
+
+        # Mock connection with error on close
+        mock_conn = MagicMock()
+        mock_conn.close.side_effect = Exception("Connection close error")
+        handler._connection = mock_conn
+
+        # Call the method
+        await handler.cleanup()
+
+        # Verify connection close was attempted
+        mock_conn.close.assert_called_once()
+
+        # Verify logs
+        handler.log.assert_any_call('info', 'Final MySQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        handler.log.assert_any_call('debug', 'Closing MySQL connection')
+        handler.log.assert_any_call('warning', 'Error closing MySQL connection: Connection close error')
+        handler.log.assert_any_call('debug', 'MySQL handler cleanup complete')
+
+    @pytest.mark.asyncio
     async def test_special_character_password(self):
         """Test handling of special characters in password"""
         # Create a handler with a password containing special characters

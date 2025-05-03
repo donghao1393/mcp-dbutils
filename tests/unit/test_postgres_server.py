@@ -21,7 +21,7 @@ def mock_postgres_config():
     config.user = "test_user"
     config.password = "test_password"
     config.debug = False
-    
+
     # Mock the get_connection_params method
     config.get_connection_params.return_value = {
         "host": "localhost",
@@ -30,7 +30,7 @@ def mock_postgres_config():
         "user": "test_user",
         "password": "test_password"
     }
-    
+
     # Mock the get_masked_connection_info method
     config.get_masked_connection_info.return_value = {
         "host": "localhost",
@@ -39,7 +39,7 @@ def mock_postgres_config():
         "user": "test_user",
         "password": "********"
     }
-    
+
     return config
 
 
@@ -73,22 +73,22 @@ def mock_pool(mock_connection):
 
 class TestPostgreSQLServer:
     """Test PostgreSQL server implementation"""
-    
+
     def test_init(self, mock_postgres_config):
         """Test server initialization"""
         # Skip actual initialization and test the class structure
         with patch.object(PostgreSQLServer, "__init__", return_value=None) as mock_init:
             server = PostgreSQLServer(mock_postgres_config)
             mock_init.assert_called_once_with(mock_postgres_config)
-            
+
             # Manually set attributes that would be set in __init__
             server.config = mock_postgres_config
             server.pool = MagicMock(spec=SimpleConnectionPool)
-            
+
             # Verify
             assert server.config == mock_postgres_config
             assert hasattr(server, "pool")
-    
+
     @pytest.mark.asyncio
     async def test_list_resources(self, mock_postgres_config, mock_pool, mock_cursor):
         """Test listing resources"""
@@ -98,16 +98,16 @@ class TestPostgreSQLServer:
             ("products", None)
         ]
         mock_cursor.fetchall.return_value = mock_tables
-        
+
         with patch.object(PostgreSQLServer, "__init__", return_value=None):
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.pool = mock_pool
             server.log = MagicMock()
-            
+
             # Execute
             resources = await server.list_resources()
-            
+
             # Verify
             assert len(resources) == 2
             assert resources[0].name == "users schema"
@@ -121,7 +121,7 @@ class TestPostgreSQLServer:
             mock_cursor.fetchall.assert_called_once()
             # Verify putconn was called, but don't check the exact argument
             mock_pool.putconn.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_read_resource(self, mock_postgres_config, mock_pool, mock_cursor):
         """Test reading resource"""
@@ -133,25 +133,25 @@ class TestPostgreSQLServer:
         mock_constraints = [
             ("pk_users", "p")  # p is for primary key in PostgreSQL
         ]
-        
+
         # Configure mock cursor to return different results for different queries
         def mock_execute(query, params=None):
             if "columns" in query:
                 mock_cursor.fetchall.return_value = mock_columns
             elif "constraint" in query:
                 mock_cursor.fetchall.return_value = mock_constraints
-        
+
         mock_cursor.execute.side_effect = mock_execute
-        
+
         with patch.object(PostgreSQLServer, "__init__", return_value=None):
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.pool = mock_pool
             server.log = MagicMock()
-            
+
             # Execute
             result = await server.read_resource("postgres://localhost/users/schema")
-            
+
             # Verify
             result_dict = eval(result)  # Convert string representation to dict
             assert len(result_dict["columns"]) == 2
@@ -163,39 +163,39 @@ class TestPostgreSQLServer:
             assert mock_cursor.execute.call_count == 2
             # Verify putconn was called, but don't check the exact argument
             mock_pool.putconn.assert_called_once()
-    
+
     def test_get_tools(self, mock_postgres_config):
         """Test getting tools"""
         # Setup
         with patch.object(PostgreSQLServer, "__init__", return_value=None):
             server = PostgreSQLServer(None)
-            
+
             # Execute
             tools = server.get_tools()
-            
+
             # Verify
             assert len(tools) == 1
             assert tools[0].name == "query"
             assert "SQL" in tools[0].description
             assert "sql" in tools[0].inputSchema["properties"]
             assert "sql" in tools[0].inputSchema["required"]
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_query(self, mock_postgres_config, mock_pool, mock_cursor):
         """Test calling query tool"""
         # Setup
         mock_cursor.description = [("id",), ("name",)]
         mock_cursor.fetchall.return_value = [(1, "Test User")]
-        
+
         with patch.object(PostgreSQLServer, "__init__", return_value=None):
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.pool = mock_pool
             server.log = MagicMock()
-            
+
             # Execute
             result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
-            
+
             # Verify
             assert len(result) == 1
             assert result[0].type == "text"
@@ -208,38 +208,38 @@ class TestPostgreSQLServer:
             assert mock_cursor.execute.call_count >= 2  # BEGIN TRANSACTION + query + ROLLBACK
             # Verify putconn was called, but don't check the exact argument
             mock_pool.putconn.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_with_connection(self, mock_postgres_config, mock_cursor):
         """Test calling query tool with specific connection"""
         # Setup
         mock_cursor.description = [("id",), ("name",)]
         mock_cursor.fetchall.return_value = [(1, "Test User")]
-        
+
         with patch.object(PostgreSQLServer, "__init__", return_value=None), \
              patch("psycopg2.connect") as mock_connect, \
              patch.object(PostgreSQLConfig, "from_yaml") as mock_from_yaml:
-            
+
             mock_connection = MagicMock()
             mock_connection.cursor.return_value = mock_cursor
             mock_connect.return_value = mock_connection
-            
+
             mock_config = MagicMock(spec=PostgreSQLConfig)
             mock_config.get_connection_params.return_value = {"host": "test_host"}
             mock_config.get_masked_connection_info.return_value = {"host": "test_host"}
             mock_from_yaml.return_value = mock_config
-            
+
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.config_path = "/path/to/config.yaml"
             server.log = MagicMock()
-            
+
             # Execute
             result = await server.call_tool("query", {
                 "sql": "SELECT * FROM users",
                 "connection": "test_connection"
             })
-            
+
             # Verify
             assert len(result) == 1
             result_dict = eval(result[0].text)
@@ -248,7 +248,7 @@ class TestPostgreSQLServer:
             mock_from_yaml.assert_called_once_with("/path/to/config.yaml", "test_connection")
             mock_connect.assert_called_once()
             mock_connection.close.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_invalid_name(self, mock_postgres_config):
         """Test calling invalid tool"""
@@ -257,11 +257,11 @@ class TestPostgreSQLServer:
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.log = MagicMock()
-            
+
             # Execute and verify
             with pytest.raises(ValueError, match="未知工具"):
                 await server.call_tool("invalid_tool", {})
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_empty_sql(self, mock_postgres_config):
         """Test calling query tool with empty SQL"""
@@ -270,11 +270,11 @@ class TestPostgreSQLServer:
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.log = MagicMock()
-            
+
             # Execute and verify
             with pytest.raises(ValueError, match="SQL查询不能为空"):
                 await server.call_tool("query", {"sql": ""})
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_non_select(self, mock_postgres_config):
         """Test calling query tool with non-SELECT SQL"""
@@ -283,11 +283,11 @@ class TestPostgreSQLServer:
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.log = MagicMock()
-            
+
             # Execute and verify
             with pytest.raises(ValueError, match="仅支持SELECT查询"):
                 await server.call_tool("query", {"sql": "DELETE FROM users"})
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_query_error(self, mock_postgres_config, mock_pool, mock_cursor):
         """Test calling query tool with error"""
@@ -298,18 +298,18 @@ class TestPostgreSQLServer:
                 self.pgcode = "42P01"  # Undefined table
                 self.pgerror = "relation \"users\" does not exist"
                 super().__init__(f"[Code: {self.pgcode}] {self.pgerror}")
-        
+
         mock_cursor.execute.side_effect = MockPsycopg2Error()
-        
+
         with patch.object(PostgreSQLServer, "__init__", return_value=None):
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.pool = mock_pool
             server.log = MagicMock()
-            
+
             # Execute
             result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
-            
+
             # Verify
             assert len(result) == 1
             assert result[0].type == "text"
@@ -321,22 +321,22 @@ class TestPostgreSQLServer:
             mock_pool.getconn.assert_called_once()
             # Verify putconn was called, but don't check the exact argument
             mock_pool.putconn.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_call_tool_generic_error(self, mock_postgres_config, mock_pool, mock_cursor):
         """Test calling query tool with generic error"""
         # Setup
         mock_cursor.execute.side_effect = Exception("Generic error")
-        
+
         with patch.object(PostgreSQLServer, "__init__", return_value=None):
             server = PostgreSQLServer(None)
             server.config = mock_postgres_config
             server.pool = mock_pool
             server.log = MagicMock()
-            
+
             # Execute
             result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
-            
+
             # Verify
             assert len(result) == 1
             result_dict = eval(result[0].text)
@@ -345,7 +345,7 @@ class TestPostgreSQLServer:
             mock_pool.getconn.assert_called_once()
             # Verify putconn was called, but don't check the exact argument
             mock_pool.putconn.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_cleanup(self, mock_postgres_config, mock_pool):
         """Test cleanup"""
@@ -354,10 +354,49 @@ class TestPostgreSQLServer:
             server = PostgreSQLServer(None)
             server.pool = mock_pool
             server.log = MagicMock()
-            
+
             # Execute
             await server.cleanup()
-            
+
             # Verify
-            server.log.assert_called_once()
+            server.log.assert_called_once_with('info', '关闭连接池')
             mock_pool.closeall.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_call_tool_connection_error(self, mock_postgres_config, mock_pool, mock_connection):
+        """Test error handling when closing connection"""
+        # Setup
+        # Mock cursor and results
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [("id", "name")]
+        mock_cursor.description = [("id",), ("name",)]
+
+        # Mock connection with cursor
+        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_connection.cursor.return_value.__exit__.return_value = None
+
+        # Make close raise an exception
+        mock_connection.close.side_effect = Exception("Connection close error")
+
+        # Mock the server
+        with patch.object(PostgreSQLServer, "__init__", return_value=None):
+            server = PostgreSQLServer(None)
+            server.config = mock_postgres_config
+            server.pool = mock_pool
+            server.log = MagicMock()
+
+            # Mock the putconn method to call close directly
+            def mock_putconn(conn):
+                conn.close()
+
+            mock_pool.putconn.side_effect = mock_putconn
+
+            # Execute
+            result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
+
+            # Verify basic result
+            assert len(result) == 1
+
+            # Verify warning log was called
+            warning_calls = [call for call in server.log.call_args_list if call[0][0] == 'warning']
+            assert any('Connection close error' in call[0][1] for call in warning_calls)

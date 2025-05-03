@@ -272,10 +272,60 @@ class TestMySQLServer:
             server.pool = mock_pool
             server.log = MagicMock()
 
+            # Mock successful connection retrieval and close
+            mock_conn = MagicMock()
+            mock_pool.get_connection.return_value = mock_conn
+
             # Execute
             await server.cleanup()
 
             # Verify log was called at least once
-            assert server.log.call_count >= 1
-            # Verify first log message
+            assert server.log.call_count >= 2
+            # Verify log messages
             server.log.assert_any_call('info', '关闭MySQL连接池')
+            server.log.assert_any_call('info', 'MySQL连接池清理完成')
+
+            # Verify connection operations
+            assert mock_pool.get_connection.call_count > 0
+            assert mock_conn.close.call_count > 0
+
+    @pytest.mark.asyncio
+    async def test_cleanup_with_connection_error(self, mock_mysql_config, mock_pool):
+        """Test cleanup with connection error"""
+        # Setup
+        with patch.object(MySQLServer, "__init__", return_value=None):
+            server = MySQLServer(None)
+            server.pool = mock_pool
+            server.log = MagicMock()
+
+            # Mock connection error
+            mock_pool.get_connection.side_effect = Exception("No more connections")
+
+            # Execute
+            await server.cleanup()
+
+            # Verify log messages
+            server.log.assert_any_call('info', '关闭MySQL连接池')
+            server.log.assert_any_call('debug', '连接池清理: No more connections')
+
+    @pytest.mark.asyncio
+    async def test_cleanup_with_pool_error(self, mock_mysql_config):
+        """Test cleanup with pool error"""
+        # Setup
+        with patch.object(MySQLServer, "__init__", return_value=None):
+            server = MySQLServer(None)
+
+            # Mock pool with error
+            mock_pool = MagicMock()
+            mock_pool.get_connection.side_effect = Exception("Pool error")
+            server.pool = mock_pool
+            server.log = MagicMock()
+
+            # Execute
+            await server.cleanup()
+
+            # Verify log messages
+            server.log.assert_any_call('info', '关闭MySQL连接池')
+            # Check that debug log was called with a message containing the error
+            debug_calls = [call for call in server.log.call_args_list if call[0][0] == 'debug']
+            assert any('Pool error' in call[0][1] for call in debug_calls)
