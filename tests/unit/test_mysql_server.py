@@ -201,6 +201,31 @@ class TestMySQLServer:
             assert mock_cursor.execute.call_count >= 2  # SET TRANSACTION + query + ROLLBACK
 
     @pytest.mark.asyncio
+    async def test_call_tool_query_with_connection_close_error(self, mock_mysql_config, mock_pool, mock_connection, mock_cursor):
+        """Test calling query tool with connection close error"""
+        # Setup
+        mock_cursor.description = [("id",), ("name",)]
+        mock_cursor.fetchall.return_value = [{"id": 1, "name": "Test User"}]
+        mock_connection.close.side_effect = Exception("Connection close error")
+
+        with patch.object(MySQLServer, "__init__", return_value=None):
+            server = MySQLServer(None)
+            server.config = mock_mysql_config
+            server.pool = mock_pool
+            server.log = MagicMock()
+
+            # Execute
+            result = await server.call_tool("query", {"sql": "SELECT * FROM users"})
+
+            # Verify
+            assert len(result) == 1
+            assert result[0].type == "text"
+
+            # Verify warning log was called
+            warning_calls = [call for call in server.log.call_args_list if call[0][0] == 'warning']
+            assert any('Connection close error' in call[0][1] for call in warning_calls)
+
+    @pytest.mark.asyncio
     async def test_call_tool_invalid_name(self, mock_mysql_config):
         """Test calling invalid tool"""
         # Setup

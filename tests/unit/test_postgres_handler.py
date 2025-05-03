@@ -60,17 +60,17 @@ class TestPostgreSQLHandler:
                 ('users', 'User table'),
                 ('orders', None)
             ]
-            
+
             # Call the method
             result = await handler.get_tables()
-            
+
             # Verify connection was made with correct parameters
             mock_connect.assert_called_once()
-            
+
             # Verify the cursor was used correctly
             mock_conn.cursor().__enter__().execute.assert_called_once()
             mock_conn.cursor().__enter__().fetchall.assert_called_once()
-            
+
             # Verify the result format
             assert isinstance(result, list)
             assert len(result) == 2
@@ -79,7 +79,7 @@ class TestPostgreSQLHandler:
             assert result[0].description == 'User table'
             assert result[1].name == 'orders schema'
             assert result[1].description is None
-            
+
             # Verify connection was closed
             mock_conn.close.assert_called_once()
 
@@ -91,7 +91,7 @@ class TestPostgreSQLHandler:
             # Call the method and expect an exception
             with pytest.raises(ConnectionHandlerError, match="Failed to get constraint information"):
                 await handler.get_tables()
-            
+
             # Verify error was recorded
             handler.stats.record_error.assert_called_once()
 
@@ -108,25 +108,25 @@ class TestPostgreSQLHandler:
             constraints = [
                 ('pk_users', 'p')
             ]
-            
+
             # Set up the mock cursor to return different data for different queries
             mock_cursor = mock_conn.cursor().__enter__()
             mock_cursor.fetchall.side_effect = [columns, constraints]
-            
+
             # Call the method
             result = await handler.get_schema('users')
-            
+
             # Verify connection was made with correct parameters
             mock_connect.assert_called_once()
-            
+
             # Verify the cursor was used correctly for both queries
             assert mock_cursor.execute.call_count == 2
-            
+
             # Verify the result format (it should be a string representation of dict)
             assert isinstance(result, str)
             assert "'columns':" in result
             assert "'constraints':" in result
-            
+
             # Verify connection was closed
             mock_conn.close.assert_called_once()
 
@@ -138,7 +138,7 @@ class TestPostgreSQLHandler:
             # Call the method and expect an exception
             with pytest.raises(ConnectionHandlerError, match="Failed to read table schema"):
                 await handler.get_schema('users')
-            
+
             # Verify error was recorded
             handler.stats.record_error.assert_called_once()
 
@@ -163,7 +163,7 @@ class TestPostgreSQLHandler:
             special_handler = PostgreSQLHandler('config.yaml', 'test_postgres')
             special_handler.log = MagicMock()
             special_handler.stats = MagicMock()
-            
+
             # Mock successful connection
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
@@ -172,24 +172,24 @@ class TestPostgreSQLHandler:
                 ('users', 'User table')
             ]
             mock_conn.cursor.return_value = mock_cursor
-            
+
             with patch('psycopg2.connect', return_value=mock_conn) as mock_connect:
                 # Test get_tables method
                 result = await special_handler.get_tables()
-                
+
                 # Verify connection was made with correct parameters including special character password
                 mock_connect.assert_called_once()
                 call_args = mock_connect.call_args[1]
                 assert 'password' in call_args
                 assert call_args['password'] == 'test?pass!@#$%^&*()'
-                
+
                 # Verify the result
                 assert len(result) == 1
                 assert result[0].name == 'users schema'
-                
+
                 # Verify connection was closed
                 mock_conn.close.assert_called_once()
-                
+
     @pytest.mark.asyncio
     async def test_special_character_password_connection_error(self):
         """Test error handling with special characters in password"""
@@ -211,16 +211,16 @@ class TestPostgreSQLHandler:
             special_handler = PostgreSQLHandler('config.yaml', 'test_postgres')
             special_handler.log = MagicMock()
             special_handler.stats = MagicMock()
-            
+
             # Mock connection failure
             with patch('psycopg2.connect', side_effect=psycopg2.Error('Connection failed')):
                 # Test get_tables method with connection failure
                 with pytest.raises(ConnectionHandlerError, match="Failed to get constraint information"):
                     await special_handler.get_tables()
-                
+
                 # Verify error was recorded
                 special_handler.stats.record_error.assert_called_once()
-                
+
     @pytest.mark.asyncio
     async def test_variable_scope_handling(self):
         """Test proper handling of variable scope in connection methods"""
@@ -242,7 +242,7 @@ class TestPostgreSQLHandler:
             handler = PostgreSQLHandler('config.yaml', 'test_postgres')
             handler.log = MagicMock()
             handler.stats = MagicMock()
-            
+
             # Test all methods that use connection handling with try/finally blocks
             methods_to_test = [
                 ('get_tables', []),
@@ -254,15 +254,73 @@ class TestPostgreSQLHandler:
                 ('get_table_constraints', ['users']),
                 ('explain_query', ['SELECT * FROM users'])
             ]
-            
+
             for method_name, args in methods_to_test:
                 # Mock connection failure
                 with patch('psycopg2.connect', side_effect=psycopg2.Error('Connection failed')):
                     method = getattr(handler, method_name)
-                    
+
                     # Call the method and expect an exception
                     with pytest.raises(ConnectionHandlerError):
                         await method(*args)
-                    
+
                     # Verify error was recorded
                     handler.stats.record_error.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_cleanup(self, handler):
+        """Test cleanup method"""
+        # Mock the handler.stats.to_dict method
+        handler.stats.to_dict.return_value = {'queries': 10, 'errors': 0}
+
+        # Call the method
+        await handler.cleanup()
+
+        # Verify log was called with the correct messages
+        handler.log.assert_any_call('info', 'Final PostgreSQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        handler.log.assert_any_call('debug', 'PostgreSQL handler cleanup complete')
+
+    @pytest.mark.asyncio
+    async def test_cleanup_with_connection(self, handler):
+        """Test cleanup method with active connection"""
+        # Mock the handler.stats.to_dict method
+        handler.stats.to_dict.return_value = {'queries': 10, 'errors': 0}
+
+        # Mock connection
+        mock_conn = MagicMock()
+        handler._connection = mock_conn
+
+        # Call the method
+        await handler.cleanup()
+
+        # Verify connection was closed
+        mock_conn.close.assert_called_once()
+        assert handler._connection is None
+
+        # Verify logs
+        handler.log.assert_any_call('info', 'Final PostgreSQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        handler.log.assert_any_call('debug', 'Closing PostgreSQL connection')
+        handler.log.assert_any_call('debug', 'PostgreSQL handler cleanup complete')
+
+    @pytest.mark.asyncio
+    async def test_cleanup_with_connection_error(self, handler):
+        """Test cleanup method with connection error"""
+        # Mock the handler.stats.to_dict method
+        handler.stats.to_dict.return_value = {'queries': 10, 'errors': 0}
+
+        # Mock connection with error on close
+        mock_conn = MagicMock()
+        mock_conn.close.side_effect = Exception("Connection close error")
+        handler._connection = mock_conn
+
+        # Call the method
+        await handler.cleanup()
+
+        # Verify connection close was attempted
+        mock_conn.close.assert_called_once()
+
+        # Verify logs
+        handler.log.assert_any_call('info', 'Final PostgreSQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        handler.log.assert_any_call('debug', 'Closing PostgreSQL connection')
+        handler.log.assert_any_call('warning', 'Error closing PostgreSQL connection: Connection close error')
+        handler.log.assert_any_call('debug', 'PostgreSQL handler cleanup complete')
