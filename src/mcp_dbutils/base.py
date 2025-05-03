@@ -3,7 +3,7 @@
 import json
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from importlib.metadata import metadata
 from typing import Any, AsyncContextManager, Dict
 
@@ -474,6 +474,29 @@ class ConnectionServer:
                     },
                     "required": ["connection", "sql"],
                 },
+                annotations={
+                    "examples": [
+                        {
+                            "input": {
+                                "connection": "example_db",
+                                "sql": "SELECT id, name, email FROM users LIMIT 10"
+                            },
+                            "output": "Results showing first 10 users with their IDs, names, and email addresses"
+                        },
+                        {
+                            "input": {
+                                "connection": "example_db",
+                                "sql": "SELECT department, COUNT(*) as employee_count FROM employees GROUP BY department ORDER BY employee_count DESC"
+                            },
+                            "output": "Results showing departments and their employee counts in descending order"
+                        }
+                    ],
+                    "usage_tips": [
+                        "Always use SELECT statements only - other SQL operations are not permitted",
+                        "Use LIMIT to restrict large result sets",
+                        "For complex queries, consider using dbutils-explain-query first to understand query execution plan"
+                    ]
+                }
             ),
             types.Tool(
                 name="dbutils-list-tables",
@@ -488,6 +511,19 @@ class ConnectionServer:
                     },
                     "required": ["connection"],
                 },
+                annotations={
+                    "examples": [
+                        {
+                            "input": {"connection": "example_db"},
+                            "output": "List of tables in the example_db database with their URIs and descriptions"
+                        }
+                    ],
+                    "usage_tips": [
+                        "Use this tool first when exploring a new database to understand its structure",
+                        "After listing tables, use dbutils-describe-table to get detailed information about specific tables",
+                        "Table URIs can be used with other database tools for further operations"
+                    ]
+                }
             ),
             types.Tool(
                 name="dbutils-describe-table",
@@ -999,5 +1035,8 @@ class ConnectionServer:
         """Run server"""
         async with mcp.server.stdio.stdio_server() as streams:
             await self.server.run(
-                streams[0], streams[1], self.server.create_initialization_options()
+                streams[0],
+                streams[1],
+                self.server.create_initialization_options(),
+                read_timeout_seconds=timedelta(seconds=30)  # 设置30秒超时
             )

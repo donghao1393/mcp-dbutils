@@ -475,3 +475,15 @@ class SQLiteHandler(ConnectionHandler):
         """Cleanup resources"""
         # Log final stats
         self.log("info", f"Final SQLite handler stats: {self.stats.to_dict()}")
+
+        # 主动关闭连接
+        if hasattr(self, '_connection') and self._connection:
+            try:
+                self.log("debug", "Closing SQLite connection")
+                self._connection.close()
+                self._connection = None
+            except Exception as e:
+                self.log("warning", f"Error closing SQLite connection: {str(e)}")
+
+        # 清理其他资源
+        self.log("debug", "SQLite handler cleanup complete")

@@ -610,3 +610,15 @@ class PostgreSQLHandler(ConnectionHandler):
         """Cleanup resources"""
         # Log final stats before cleanup
         self.log("info", f"Final PostgreSQL handler stats: {self.stats.to_dict()}")
+
+        # 主动关闭连接
+        if hasattr(self, '_connection') and self._connection:
+            try:
+                self.log("debug", "Closing PostgreSQL connection")
+                self._connection.close()
+                self._connection = None
+            except Exception as e:
+                self.log("warning", f"Error closing PostgreSQL connection: {str(e)}")
+
+        # 清理其他资源
+        self.log("debug", "PostgreSQL handler cleanup complete")

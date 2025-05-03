@@ -27,12 +27,12 @@ class MySQLServer(ConnectionServer):
             conn_params = config.get_connection_params()
             masked_params = config.get_masked_connection_info()
             self.log("debug", f"正在连接数据库，参数: {masked_params}")
-            
+
             # 测试连接
             test_conn = mysql.connector.connect(**conn_params)
             test_conn.close()
             self.log("info", "测试连接成功")
-            
+
             # 创建连接池配置
             pool_config = {
                 'pool_name': 'mypool',
@@ -51,7 +51,7 @@ class MySQLServer(ConnectionServer):
             conn = self.pool.get_connection()
             with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         table_name,
                         table_comment as description
                     FROM information_schema.tables
@@ -81,7 +81,7 @@ class MySQLServer(ConnectionServer):
             with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 # 获取列信息
                 cur.execute("""
-                    SELECT 
+                    SELECT
                         column_name,
                         data_type,
                         is_nullable,
@@ -157,6 +157,9 @@ class MySQLServer(ConnectionServer):
 
         connection = arguments.get("connection")
         conn = None
+        results = []
+        columns = []
+
         try:
             if connection and self.config_path:
                 # 使用指定的数据库连接
@@ -177,19 +180,22 @@ class MySQLServer(ConnectionServer):
                     cur.execute(sql)
                     results = cur.fetchall()
                     columns = [desc[0] for desc in cur.description]
-                    result_text = str({
-                        'type': 'mysql',
-                        'config_name': connection or 'default',
-                        'query_result': {
-                            'columns': columns,
-                            'rows': results,
-                            'row_count': len(results)
-                        }
-                    })
-                    self.log("info", f"查询完成，返回{len(results)}行结果")
-                    return [types.TextContent(type="text", text=result_text)]
                 finally:
                     cur.execute("ROLLBACK")
+
+            # 处理结果（在连接操作完成后）
+            result_text = str({
+                'type': 'mysql',
+                'config_name': connection or 'default',
+                'query_result': {
+                    'columns': columns,
+                    'rows': results,
+                    'row_count': len(results)
+                }
+            })
+            self.log("info", f"查询完成，返回{len(results)}行结果")
+            return [types.TextContent(type="text", text=result_text)]
+
         except Exception as e:
             error = f"查询执行失败: {str(e)}"
             error_msg = str({
@@ -200,12 +206,28 @@ class MySQLServer(ConnectionServer):
             self.log("error", error_msg)
             return [types.TextContent(type="text", text=error_msg)]
         finally:
+            # 确保连接始终被关闭
             if conn:
-                conn.close()  # 关闭连接（连接池会自动处理）
+                try:
+                    conn.close()  # 关闭连接（连接池会自动处理）
+                except Exception as e:
+                    self.log("warning", f"关闭连接时出错: {str(e)}")
 
     async def cleanup(self):
         """清理资源"""
         if hasattr(self, 'pool'):
-            self.log("info", "关闭连接池")
-            # MySQL连接池没有直接的closeall方法
-            # 当对象被销毁时，连接池会自动关闭
+            self.log("info", "关闭MySQL连接池")
+            # MySQL连接池没有直接的closeall方法，但我们可以主动关闭连接
+            try:
+                # 尝试获取并关闭所有活动连接
+                for _ in range(5):  # 假设最多有5个连接在池中
+                    try:
+                        conn = self.pool.get_connection()
+                        conn.close()
+                    except Exception as e:
+                        # 如果没有更多连接或出现其他错误，跳出循环
+                        self.log("debug", f"连接池清理: {str(e)}")
+                        break
+                self.log("info", "MySQL连接池清理完成")
+            except Exception as e:
+                self.log("warning", f"清理MySQL连接池时出错: {str(e)}")

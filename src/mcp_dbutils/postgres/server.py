@@ -148,9 +148,14 @@ class PostgreSQLServer(ConnectionServer):
         # 仅允许SELECT语句
         if not sql.lower().startswith("select"):
             raise ValueError("仅支持SELECT查询")
+
         connection = arguments.get("connection")
         use_pool = True
         conn = None
+        results = []
+        columns = []
+        formatted_results = []
+
         try:
             if connection and self.config_path:
                 # 使用指定的数据库连接
@@ -163,6 +168,7 @@ class PostgreSQLServer(ConnectionServer):
             else:
                 # 使用现有连接池
                 conn = self.pool.getconn()
+
             self.log("info", f"执行查询: {sql}")
             with conn.cursor() as cur:
                 # 启动只读事务
@@ -172,19 +178,22 @@ class PostgreSQLServer(ConnectionServer):
                     results = cur.fetchall()
                     columns = [desc[0] for desc in cur.description]
                     formatted_results = [dict(zip(columns, row)) for row in results]
-                    result_text = str({
-                        'type': 'postgres',
-                        'config_name': connection or 'default',
-                        'query_result': {
-                            'columns': columns,
-                            'rows': formatted_results,
-                            'row_count': len(results)
-                        }
-                    })
-                    self.log("info", f"查询完成，返回{len(results)}行结果")
-                    return [types.TextContent(type="text", text=result_text)]
                 finally:
                     cur.execute("ROLLBACK")
+
+            # 处理结果（在连接操作完成后）
+            result_text = str({
+                'type': 'postgres',
+                'config_name': connection or 'default',
+                'query_result': {
+                    'columns': columns,
+                    'rows': formatted_results,
+                    'row_count': len(results)
+                }
+            })
+            self.log("info", f"查询完成，返回{len(results)}行结果")
+            return [types.TextContent(type="text", text=result_text)]
+
         except Exception as e:
             if isinstance(e, psycopg2.Error):
                 error = f"查询执行失败: [Code: {e.pgcode}] {e.pgerror or str(e)}"
@@ -198,11 +207,15 @@ class PostgreSQLServer(ConnectionServer):
             self.log("error", error_msg)
             return [types.TextContent(type="text", text=error_msg)]
         finally:
+            # 确保连接始终被正确处理
             if conn:
-                if use_pool:
-                    self.pool.putconn(conn)
-                else:
-                    conn.close()
+                try:
+                    if use_pool:
+                        self.pool.putconn(conn)
+                    else:
+                        conn.close()
+                except Exception as e:
+                    self.log("warning", f"关闭连接时出错: {str(e)}")
     async def cleanup(self):
         """清理资源"""
         if hasattr(self, 'pool'):

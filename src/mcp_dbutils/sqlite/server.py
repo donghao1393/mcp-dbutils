@@ -141,8 +141,13 @@ class SQLiteServer(ConnectionServer):
             raise ValueError("仅支持SELECT查询")
 
         conn = None
+        connection = arguments.get("connection")
+        config_name = connection if isinstance(connection, str) else 'default'
+        results = []
+        columns = []
+        formatted_results = []
+
         try:
-            connection = arguments.get("connection")
             if connection and self.config_path:
                 # 使用指定的数据库连接
                 config = SQLiteConfig.from_yaml(self.config_path, connection)
@@ -159,28 +164,24 @@ class SQLiteServer(ConnectionServer):
                 self.log("info", f"执行查询: {sql}")
                 cursor = conn.execute(sql)
                 results = cursor.fetchall()
-
                 columns = [desc[0] for desc in cursor.description]
                 formatted_results = [dict(zip(columns, row)) for row in results]
 
-                # 使用更通用的方法确定配置名称
-                config_name = connection if isinstance(connection, str) else 'default'
-                result_text = json.dumps({
-                    'type': 'sqlite',
-                    'config_name': config_name,
-                    'query_result': {
-                        'columns': columns,
-                        'rows': formatted_results,
-                        'row_count': len(results)
-                    }
-                })
+            # 处理结果（在连接操作完成后）
+            result_text = json.dumps({
+                'type': 'sqlite',
+                'config_name': config_name,
+                'query_result': {
+                    'columns': columns,
+                    'rows': formatted_results,
+                    'row_count': len(results)
+                }
+            })
 
-                self.log("info", f"查询完成，返回{len(results)}行结果")
-                return [types.TextContent(type="text", text=result_text)]
+            self.log("info", f"查询完成，返回{len(results)}行结果")
+            return [types.TextContent(type="text", text=result_text)]
 
         except sqlite3.Error as e:
-            # 使用更通用的方法确定配置名称
-            config_name = connection if isinstance(connection, str) else 'default'
             error_msg = json.dumps({
                 'type': 'sqlite',
                 'config_name': config_name,
@@ -188,6 +189,13 @@ class SQLiteServer(ConnectionServer):
             })
             self.log("error", error_msg)
             return [types.TextContent(type="text", text=error_msg)]
+        finally:
+            # 确保连接被正确关闭（如果不是使用with语句）
+            if conn and not isinstance(connection, str):
+                try:
+                    conn.close()
+                except Exception as e:
+                    self.log("warning", f"关闭连接时出错: {str(e)}")
 
     async def cleanup(self):
         """清理资源"""

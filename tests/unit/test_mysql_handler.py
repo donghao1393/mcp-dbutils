@@ -592,8 +592,10 @@ class TestMySQLHandler:
         # Call the method
         await handler.cleanup()
 
-        # Verify log was called
-        handler.log.assert_called_once_with('info', 'Final MySQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        # Verify log was called with the correct first message
+        handler.log.assert_any_call('info', 'Final MySQL handler stats: {\'queries\': 10, \'errors\': 0}')
+        # Verify debug message was also logged
+        handler.log.assert_any_call('debug', 'MySQL handler cleanup complete')
 
     @pytest.mark.asyncio
     async def test_special_character_password(self):
