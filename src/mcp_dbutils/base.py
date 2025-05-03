@@ -3,7 +3,7 @@
 import json
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from importlib.metadata import metadata
 from typing import Any, AsyncContextManager, Dict
 
@@ -1037,6 +1037,5 @@ class ConnectionServer:
             await self.server.run(
                 streams[0],
                 streams[1],
-                self.server.create_initialization_options(),
-                read_timeout_seconds=timedelta(seconds=30)  # 设置30秒超时
+                self.server.create_initialization_options()
             )
