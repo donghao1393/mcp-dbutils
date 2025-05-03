@@ -1,9 +1,9 @@
 """Unit tests for SQLite connection handler"""
 
-from unittest.mock import MagicMock, patch, call
+import sqlite3
+from unittest.mock import MagicMock, call, patch
 
 import pytest
-import sqlite3
 
 from mcp_dbutils.base import ConnectionHandlerError
 from mcp_dbutils.sqlite.handler import SQLiteHandler
