@@ -72,7 +72,9 @@ async def test_execute_write_query_success(server):
             "sql": "CREATE TABLE logs (id INTEGER PRIMARY KEY, event TEXT, timestamp TEXT)"
         }
     }
-    result = await server.handle_call_tool(**create_table_args)
+    connection = create_table_args["arguments"]["connection"]
+    sql = create_table_args["arguments"]["sql"]
+    result = await server._handle_run_query(connection, sql)
     assert "Query executed successfully" in result[0].text
 
     # 执行写操作
@@ -84,7 +86,10 @@ async def test_execute_write_query_success(server):
             "confirmation": "CONFIRM_WRITE"
         }
     }
-    result = await server.handle_call_tool(**write_args)
+    connection = write_args["arguments"]["connection"]
+    sql = write_args["arguments"]["sql"]
+    confirmation = write_args["arguments"]["confirmation"]
+    result = await server._handle_execute_write(connection, sql, confirmation)
     assert "Write operation executed successfully" in result[0].text
     assert "1 row affected" in result[0].text
 
@@ -96,7 +101,9 @@ async def test_execute_write_query_success(server):
             "sql": "SELECT * FROM logs"
         }
     }
-    result = await server.handle_call_tool(**query_args)
+    connection = query_args["arguments"]["connection"]
+    sql = query_args["arguments"]["sql"]
+    result = await server._handle_run_query(connection, sql)
     assert "test_event" in result[0].text
     assert "2023-01-01 12:00:00" in result[0].text
 
@@ -120,7 +127,10 @@ async def test_execute_write_query_readonly_connection(server):
         }
     }
     with pytest.raises(Exception) as excinfo:
-        await server.handle_call_tool(**write_args)
+        connection = write_args["arguments"]["connection"]
+        sql = write_args["arguments"]["sql"]
+        confirmation = write_args["arguments"]["confirmation"]
+        await server._handle_execute_write(connection, sql, confirmation)
     assert CONNECTION_NOT_WRITABLE_ERROR in str(excinfo.value)
 
 
@@ -136,7 +146,10 @@ async def test_execute_write_query_without_confirmation(server):
         }
     }
     with pytest.raises(Exception) as excinfo:
-        await server.handle_call_tool(**write_args)
+        connection = write_args["arguments"]["connection"]
+        sql = write_args["arguments"]["sql"]
+        confirmation = write_args["arguments"]["confirmation"]
+        await server._handle_execute_write(connection, sql, confirmation)
     assert WRITE_CONFIRMATION_REQUIRED_ERROR in str(excinfo.value)
 
 
@@ -152,7 +165,10 @@ async def test_execute_write_query_unsupported_operation(server):
         }
     }
     with pytest.raises(Exception) as excinfo:
-        await server.handle_call_tool(**write_args)
+        connection = write_args["arguments"]["connection"]
+        sql = write_args["arguments"]["sql"]
+        confirmation = write_args["arguments"]["confirmation"]
+        await server._handle_execute_write(connection, sql, confirmation)
     assert "Unsupported SQL operation" in str(excinfo.value)
 
 
@@ -167,7 +183,9 @@ async def test_execute_write_query_unauthorized_table(server):
             "sql": "CREATE TABLE unauthorized_table (id INTEGER PRIMARY KEY, data TEXT)"
         }
     }
-    result = await server.handle_call_tool(**create_table_args)
+    connection = create_table_args["arguments"]["connection"]
+    sql = create_table_args["arguments"]["sql"]
+    result = await server._handle_run_query(connection, sql)
     assert "Query executed successfully" in result[0].text
 
     # 尝试写入未授权的表
@@ -180,7 +198,10 @@ async def test_execute_write_query_unauthorized_table(server):
         }
     }
     with pytest.raises(Exception) as excinfo:
-        await server.handle_call_tool(**write_args)
+        connection = write_args["arguments"]["connection"]
+        sql = write_args["arguments"]["sql"]
+        confirmation = write_args["arguments"]["confirmation"]
+        await server._handle_execute_write(connection, sql, confirmation)
     assert "No permission to perform" in str(excinfo.value)
 
 
@@ -195,7 +216,9 @@ async def test_execute_write_query_unauthorized_operation(server):
             "sql": "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)"
         }
     }
-    result = await server.handle_call_tool(**create_table_args)
+    connection = create_table_args["arguments"]["connection"]
+    sql = create_table_args["arguments"]["sql"]
+    result = await server._handle_run_query(connection, sql)
     assert "Query executed successfully" in result[0].text
 
     # 执行授权的操作
@@ -207,7 +230,10 @@ async def test_execute_write_query_unauthorized_operation(server):
             "confirmation": "CONFIRM_WRITE"
         }
     }
-    result = await server.handle_call_tool(**write_args)
+    connection = write_args["arguments"]["connection"]
+    sql = write_args["arguments"]["sql"]
+    confirmation = write_args["arguments"]["confirmation"]
+    result = await server._handle_execute_write(connection, sql, confirmation)
     assert "Write operation executed successfully" in result[0].text
 
     # 尝试执行未授权的操作
@@ -220,7 +246,10 @@ async def test_execute_write_query_unauthorized_operation(server):
         }
     }
     with pytest.raises(Exception) as excinfo:
-        await server.handle_call_tool(**write_args)
+        connection = write_args["arguments"]["connection"]
+        sql = write_args["arguments"]["sql"]
+        confirmation = write_args["arguments"]["confirmation"]
+        await server._handle_execute_write(connection, sql, confirmation)
     assert "No permission to perform DELETE operation on table users" in str(excinfo.value)
 
 
@@ -235,7 +264,9 @@ async def test_get_audit_logs(server):
             "sql": "CREATE TABLE logs (id INTEGER PRIMARY KEY, event TEXT, timestamp TEXT)"
         }
     }
-    await server.handle_call_tool(**create_table_args)
+    connection = create_table_args["arguments"]["connection"]
+    sql = create_table_args["arguments"]["sql"]
+    await server._handle_run_query(connection, sql)
 
     # 执行写操作
     write_args = {
@@ -246,7 +277,10 @@ async def test_get_audit_logs(server):
             "confirmation": "CONFIRM_WRITE"
         }
     }
-    await server.handle_call_tool(**write_args)
+    connection = write_args["arguments"]["connection"]
+    sql = write_args["arguments"]["sql"]
+    confirmation = write_args["arguments"]["confirmation"]
+    await server._handle_execute_write(connection, sql, confirmation)
 
     # 获取审计日志
     logs_args = {
@@ -259,7 +293,12 @@ async def test_get_audit_logs(server):
             "limit": 10
         }
     }
-    result = await server.handle_call_tool(**logs_args)
+    connection = logs_args["arguments"]["connection"]
+    table = logs_args["arguments"]["table"]
+    operation_type = logs_args["arguments"]["operation_type"]
+    status = logs_args["arguments"]["status"]
+    limit = logs_args["arguments"]["limit"]
+    result = await server._handle_get_audit_logs(connection, table, operation_type, status, limit)
     assert "Audit Logs" in result[0].text
     assert "Connection: sqlite_test" in result[0].text
     assert "Table: logs" in result[0].text
