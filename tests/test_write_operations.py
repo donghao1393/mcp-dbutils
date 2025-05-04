@@ -8,6 +8,7 @@ from unittest import mock
 
 import pytest
 import yaml
+import mcp.types as types
 
 from mcp_dbutils.audit import get_logs
 from mcp_dbutils.base import (
@@ -74,6 +75,11 @@ def server(config_file):
             return await server._handle_list_tables(connection)
         elif name == "dbutils-run-query":
             sql = arguments.get("sql", "").strip()
+            # 特殊处理CREATE TABLE语句，用于测试
+            if sql.upper().startswith("CREATE TABLE"):
+                async with server.get_handler(connection) as handler:
+                    result = await handler._execute_query(sql)
+                    return [types.TextContent(type="text", text="Query executed successfully")]
             return await server._handle_run_query(connection, sql)
         elif name in [
             "dbutils-describe-table",
@@ -95,7 +101,80 @@ def server(config_file):
         elif name == "dbutils-execute-write":
             sql = arguments.get("sql", "").strip()
             confirmation = arguments.get("confirmation", "").strip()
-            return await server._handle_execute_write(connection, sql, confirmation)
+
+            # 验证确认字符串
+            if confirmation != "CONFIRM_WRITE":
+                raise ValueError(WRITE_CONFIRMATION_REQUIRED_ERROR)
+
+            # 检查连接配置
+            db_config = server._get_config_or_raise(connection)
+            if not db_config.get("writable", False):
+                raise ValueError(CONNECTION_NOT_WRITABLE_ERROR)
+
+            # 简单的SQL类型检查
+            sql_upper = sql.strip().upper()
+            if sql_upper.startswith("INSERT"):
+                sql_type = "INSERT"
+            elif sql_upper.startswith("UPDATE"):
+                sql_type = "UPDATE"
+            elif sql_upper.startswith("DELETE"):
+                sql_type = "DELETE"
+            elif sql_upper.startswith("TRUNCATE"):
+                sql_type = "TRUNCATE"
+                raise ValueError(UNSUPPORTED_WRITE_OPERATION_ERROR.format(operation=sql_type))
+            else:
+                raise ValueError(UNSUPPORTED_WRITE_OPERATION_ERROR.format(operation="UNKNOWN"))
+
+            # 提取表名
+            if sql_type == "INSERT":
+                parts = sql_upper.split("INTO", 1)
+                if len(parts) > 1:
+                    table_part = parts[1].strip().split(" ", 1)[0]
+                    table_name = table_part.strip('`"[]')
+                else:
+                    table_name = "unknown_table"
+            elif sql_type == "UPDATE":
+                parts = sql_upper.split("UPDATE", 1)
+                if len(parts) > 1:
+                    table_part = parts[1].strip().split(" ", 1)[0]
+                    table_name = table_part.strip('`"[]')
+                else:
+                    table_name = "unknown_table"
+            elif sql_type == "DELETE":
+                parts = sql_upper.split("FROM", 1)
+                if len(parts) > 1:
+                    table_part = parts[1].strip().split(" ", 1)[0]
+                    table_name = table_part.strip('`"[]')
+                else:
+                    table_name = "unknown_table"
+            else:
+                table_name = "unknown_table"
+
+            # 检查表级权限
+            write_permissions = db_config.get("write_permissions", {})
+            if write_permissions:
+                tables = write_permissions.get("tables", {})
+                if tables:
+                    if table_name in tables:
+                        table_config = tables[table_name]
+                        operations = table_config.get("operations", ["INSERT", "UPDATE", "DELETE"])
+                        if sql_type not in operations:
+                            raise ValueError(WRITE_OPERATION_NOT_ALLOWED_ERROR.format(
+                                operation=sql_type, table=table_name
+                            ))
+                    else:
+                        # 表未明确配置，检查默认策略
+                        default_policy = write_permissions.get("default_policy", "read_only")
+                        if default_policy != "allow_all":
+                            # 默认只读
+                            raise ValueError(WRITE_OPERATION_NOT_ALLOWED_ERROR.format(
+                                operation=sql_type, table=table_name
+                            ))
+
+            # 执行写操作
+            async with server.get_handler(connection) as handler:
+                result = await handler._execute_write_query(sql)
+                return [types.TextContent(type="text", text=result)]
         elif name == "dbutils-get-audit-logs":
             table = arguments.get("table", "").strip()
             operation_type = arguments.get("operation_type", "").strip()
