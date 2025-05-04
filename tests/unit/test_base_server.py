@@ -1296,17 +1296,16 @@ class TestConnectionServerWriteOperations:
     @pytest.mark.asyncio
     async def test_handle_get_audit_logs_exception(self, connection_server):
         """Test the _handle_get_audit_logs method with an exception"""
-        # Mock the format_logs function to raise an exception
-        with patch("mcp_dbutils.base.format_logs", side_effect=ValueError("Test exception")):
-            # Call the method and expect an exception
-            with pytest.raises(ValueError, match="Test exception"):
-                await connection_server._handle_get_audit_logs(
-                    "test_conn",
-                    "users",
-                    "INSERT",
-                    "SUCCESS",
-                    10
-                )
+        # Mock the format_logs function to raise an exception and expect an exception
+        with patch("mcp_dbutils.base.format_logs", side_effect=ValueError("Test exception")), \
+             pytest.raises(ValueError, match="Test exception"):
+            await connection_server._handle_get_audit_logs(
+                "test_conn",
+                "users",
+                "INSERT",
+                "SUCCESS",
+                10
+            )
 
 
 class TestConnectionServerRun:
