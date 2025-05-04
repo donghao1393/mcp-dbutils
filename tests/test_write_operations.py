@@ -1,14 +1,12 @@
 """测试数据库写操作功能"""
 
-import asyncio
-import json
 import os
 import tempfile
 from unittest import mock
 
+import mcp.types as types
 import pytest
 import yaml
-import mcp.types as types
 
 from mcp_dbutils.audit import get_logs
 from mcp_dbutils.base import (

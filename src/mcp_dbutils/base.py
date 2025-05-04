@@ -188,7 +188,8 @@ class ConnectionHandler(ABC):
                 if "row" in result and "affected" in result:
                     # 从结果字符串中提取受影响的行数
                     import re
-                    match = re.search(r"(\d+) row", result)
+                    # 使用更安全的正则表达式，避免回溯问题
+                    match = re.search(r"(\d+) row[s]?", result)
                     if match:
                         affected_rows = int(match.group(1))
             except Exception:
