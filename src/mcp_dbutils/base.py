@@ -12,6 +12,7 @@ import mcp.types as types
 import yaml
 from mcp.server import Server
 
+from .audit import log_write_operation, get_logs, format_logs
 from .log import create_logger
 from .stats import ResourceStats
 
@@ -169,6 +170,10 @@ class ConnectionHandler(ABC):
         table_name = self._extract_table_name(sql)
 
         start_time = datetime.now()
+        affected_rows = 0
+        status = "SUCCESS"
+        error_message = None
+
         try:
             self.stats.record_query()
             self.send_log(
@@ -178,9 +183,34 @@ class ConnectionHandler(ABC):
 
             result = await self._execute_write_query(sql)
 
+            # 尝试从结果中提取受影响的行数
+            try:
+                if "row" in result and "affected" in result:
+                    # 从结果字符串中提取受影响的行数
+                    import re
+                    match = re.search(r"(\d+) row", result)
+                    if match:
+                        affected_rows = int(match.group(1))
+            except Exception:
+                # 如果无法提取，使用默认值
+                affected_rows = 1
+
             duration = (datetime.now() - start_time).total_seconds()
             self.stats.record_query_duration(sql, duration)
             self.stats.update_memory_usage(result)
+
+            # 记录审计日志
+            log_write_operation(
+                connection_name=self.connection,
+                table_name=table_name,
+                operation_type=sql_type,
+                sql=sql,
+                affected_rows=affected_rows,
+                execution_time=duration * 1000,  # 转换为毫秒
+                status=status,
+                error_message=error_message
+            )
+
             self.send_log(
                 LOG_LEVEL_INFO,
                 f"Write operation executed in {duration * 1000:.2f}ms. Resource stats: {json.dumps(self.stats.to_dict())}",
@@ -189,6 +219,21 @@ class ConnectionHandler(ABC):
         except Exception as e:
             duration = (datetime.now() - start_time).total_seconds()
             self.stats.record_error(e.__class__.__name__)
+            status = "FAILED"
+            error_message = str(e)
+
+            # 记录审计日志（失败）
+            log_write_operation(
+                connection_name=self.connection,
+                table_name=table_name,
+                operation_type=sql_type,
+                sql=sql,
+                affected_rows=0,
+                execution_time=duration * 1000,  # 转换为毫秒
+                status=status,
+                error_message=error_message
+            )
+
             self.send_log(
                 LOG_LEVEL_ERROR,
                 f"Write operation error after {duration * 1000:.2f}ms - {str(e)}\nResource stats: {json.dumps(self.stats.to_dict())}",
@@ -901,6 +946,39 @@ class ConnectionServer:
                     "required": ["connection", "sql"],
                 },
             ),
+            types.Tool(
+                name="dbutils-get-audit-logs",
+                description="Retrieves audit logs for database write operations. Shows who performed what operations, when, and with what results. Useful for security monitoring, compliance, and troubleshooting.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "connection": {
+                            "type": "string",
+                            "description": "Filter logs by connection name",
+                        },
+                        "table": {
+                            "type": "string",
+                            "description": "Filter logs by table name",
+                        },
+                        "operation_type": {
+                            "type": "string",
+                            "description": "Filter logs by operation type (INSERT, UPDATE, DELETE)",
+                            "enum": ["INSERT", "UPDATE", "DELETE"]
+                        },
+                        "status": {
+                            "type": "string",
+                            "description": "Filter logs by operation status (SUCCESS, FAILED)",
+                            "enum": ["SUCCESS", "FAILED"]
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "Maximum number of logs to return",
+                            "default": 100
+                        }
+                    },
+                    "required": [],
+                },
+            ),
         ]
 
     async def _handle_list_connections(
@@ -1223,6 +1301,55 @@ class ConnectionServer:
                 )
                 raise
 
+    async def _handle_get_audit_logs(
+        self,
+        connection: str = None,
+        table: str = None,
+        operation_type: str = None,
+        status: str = None,
+        limit: int = 100
+    ) -> list[types.TextContent]:
+        """处理获取审计日志工具调用
+
+        Args:
+            connection: 数据库连接名称（可选）
+            table: 表名（可选）
+            operation_type: 操作类型（可选，INSERT/UPDATE/DELETE）
+            status: 操作状态（可选，SUCCESS/FAILED）
+            limit: 返回记录数量限制
+
+        Returns:
+            list[types.TextContent]: 审计日志
+        """
+        # 获取审计日志
+        logs = get_logs(
+            connection_name=connection,
+            table_name=table,
+            operation_type=operation_type,
+            status=status,
+            limit=limit
+        )
+
+        # 格式化日志
+        formatted_logs = format_logs(logs)
+
+        # 添加过滤条件信息
+        filter_info = []
+        if connection:
+            filter_info.append(f"Connection: {connection}")
+        if table:
+            filter_info.append(f"Table: {table}")
+        if operation_type:
+            filter_info.append(f"Operation: {operation_type}")
+        if status:
+            filter_info.append(f"Status: {status}")
+
+        if filter_info:
+            filter_text = "Filters applied: " + ", ".join(filter_info)
+            formatted_logs = f"{filter_text}\n\n{formatted_logs}"
+
+        return [types.TextContent(type="text", text=formatted_logs)]
+
     def _get_optimization_suggestions(
         self, explain_result: str, duration: float
     ) -> list[str]:
@@ -1323,6 +1450,12 @@ class ConnectionServer:
                 sql = arguments.get("sql", "").strip()
                 confirmation = arguments.get("confirmation", "").strip()
                 return await self._handle_execute_write(connection, sql, confirmation)
+            elif name == "dbutils-get-audit-logs":
+                table = arguments.get("table", "").strip()
+                operation_type = arguments.get("operation_type", "").strip()
+                status = arguments.get("status", "").strip()
+                limit = arguments.get("limit", 100)
+                return await self._handle_get_audit_logs(connection, table, operation_type, status, limit)
             else:
                 raise ConfigurationError(f"Unknown tool: {name}")
 
