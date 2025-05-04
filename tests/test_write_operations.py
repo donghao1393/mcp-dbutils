@@ -58,6 +58,54 @@ def config_file():
 def server(config_file):
     """创建服务器实例"""
     server = ConnectionServer(config_file, debug=True)
+
+    # 添加handle_call_tool方法
+    async def handle_call_tool(name, arguments):
+        if name == "dbutils-list-connections":
+            check_status = arguments.get("check_status", False)
+            return await server._handle_list_connections(check_status)
+
+        if "connection" not in arguments:
+            raise ValueError("Connection name must be specified")
+
+        connection = arguments["connection"]
+
+        if name == "dbutils-list-tables":
+            return await server._handle_list_tables(connection)
+        elif name == "dbutils-run-query":
+            sql = arguments.get("sql", "").strip()
+            return await server._handle_run_query(connection, sql)
+        elif name in [
+            "dbutils-describe-table",
+            "dbutils-get-ddl",
+            "dbutils-list-indexes",
+            "dbutils-get-stats",
+            "dbutils-list-constraints",
+        ]:
+            table = arguments.get("table", "").strip()
+            return await server._handle_table_tools(name, connection, table)
+        elif name == "dbutils-explain-query":
+            sql = arguments.get("sql", "").strip()
+            return await server._handle_explain_query(connection, sql)
+        elif name == "dbutils-get-performance":
+            return await server._handle_performance(connection)
+        elif name == "dbutils-analyze-query":
+            sql = arguments.get("sql", "").strip()
+            return await server._handle_analyze_query(connection, sql)
+        elif name == "dbutils-execute-write":
+            sql = arguments.get("sql", "").strip()
+            confirmation = arguments.get("confirmation", "").strip()
+            return await server._handle_execute_write(connection, sql, confirmation)
+        elif name == "dbutils-get-audit-logs":
+            table = arguments.get("table", "").strip()
+            operation_type = arguments.get("operation_type", "").strip()
+            status = arguments.get("status", "").strip()
+            limit = arguments.get("limit", 100)
+            return await server._handle_get_audit_logs(connection, table, operation_type, status, limit)
+        else:
+            raise ValueError(f"Unknown tool: {name}")
+
+    server.handle_call_tool = handle_call_tool
     yield server
 
 
@@ -167,9 +215,7 @@ async def test_execute_write_query_unauthorized_table(server):
             "sql": "CREATE TABLE unauthorized_table (id INTEGER PRIMARY KEY, data TEXT)"
         }
     }
-    connection = create_table_args["arguments"]["connection"]
-    sql = create_table_args["arguments"]["sql"]
-    result = await server._handle_run_query(connection, sql)
+    result = await server.handle_call_tool(**create_table_args)
     assert "Query executed successfully" in result[0].text
 
     # 尝试写入未授权的表
