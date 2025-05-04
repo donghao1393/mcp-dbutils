@@ -1247,6 +1247,9 @@ class TestConnectionServerWriteOperations:
     @pytest.mark.asyncio
     async def test_handle_execute_write_no_confirmation(self, connection_server):
         """Test the _handle_execute_write method without confirmation"""
+        # Mock the get_handler method
+        connection_server.get_handler = MagicMock()
+
         # Call the method without confirmation
         with pytest.raises(ConfigurationError, match="Operation not confirmed"):
             await connection_server._handle_execute_write(
@@ -1256,7 +1259,7 @@ class TestConnectionServerWriteOperations:
             )
 
         # Verify the handler was not called
-        assert not hasattr(connection_server, "get_handler") or not connection_server.get_handler.called
+        assert not connection_server.get_handler.called
 
     @pytest.mark.asyncio
     async def test_handle_execute_write_exception(self, connection_server):
