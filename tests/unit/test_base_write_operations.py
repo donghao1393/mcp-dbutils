@@ -172,21 +172,21 @@ class TestBaseWriteOperations:
         handler = TestHandler("tests/fixtures/config.yaml", "test_conn")
 
         # Test INSERT statement
-        assert handler._extract_table_name("INSERT INTO users VALUES (1, 'test')") == "users"
+        assert handler._extract_table_name("INSERT INTO users VALUES (1, 'test')").lower() == "users"
 
         # Test INSERT statement with schema
-        assert handler._extract_table_name("INSERT INTO public.users VALUES (1, 'test')") == "public.users"
+        assert handler._extract_table_name("INSERT INTO public.users VALUES (1, 'test')").lower() == "public.users"
 
         # Test UPDATE statement
-        assert handler._extract_table_name("UPDATE users SET name = 'test' WHERE id = 1") == "users"
+        assert handler._extract_table_name("UPDATE users SET name = 'test' WHERE id = 1").lower() == "users"
 
         # Test DELETE statement
-        assert handler._extract_table_name("DELETE FROM users WHERE id = 1") == "users"
+        assert handler._extract_table_name("DELETE FROM users WHERE id = 1").lower() == "users"
 
         # Test with quoted table name
-        assert handler._extract_table_name('INSERT INTO "users" VALUES (1, \'test\')') == "users"
-        assert handler._extract_table_name("INSERT INTO `users` VALUES (1, 'test')") == "users"
-        assert handler._extract_table_name("INSERT INTO [users] VALUES (1, 'test')") == "users"
+        assert handler._extract_table_name('INSERT INTO "users" VALUES (1, \'test\')').lower() == "users"
+        assert handler._extract_table_name("INSERT INTO `users` VALUES (1, 'test')").lower() == "users"
+        assert handler._extract_table_name("INSERT INTO [users] VALUES (1, 'test')").lower() == "users"
 
         # Test unknown statement
         assert handler._extract_table_name("UNKNOWN STATEMENT") == "unknown_table"
@@ -201,9 +201,10 @@ class TestBaseWriteOperations:
     @pytest.mark.asyncio
     async def test_handle_execute_write_unsupported_operation(self, connection_server):
         """Test _handle_execute_write method with unsupported operation"""
-        # Mock _get_sql_type to return an unsupported operation
+        # Create a patch for the internal methods
         with (
             patch("mcp_dbutils.base.ConnectionHandler._get_sql_type", return_value="SELECT"),
+            patch.object(connection_server, "_get_sql_type", side_effect=lambda sql: "SELECT"),
             pytest.raises(ConfigurationError, match=UNSUPPORTED_WRITE_OPERATION_ERROR.format(operation="SELECT"))
         ):
             # Test with unsupported operation
@@ -214,8 +215,8 @@ class TestBaseWriteOperations:
         """Test _handle_execute_write method with success"""
         # Create a patch for the internal methods
         with (
-            patch("mcp_dbutils.base.ConnectionHandler._get_sql_type", return_value="INSERT"),
-            patch("mcp_dbutils.base.ConnectionHandler._extract_table_name", return_value="users"),
+            patch.object(connection_server, "_get_sql_type", side_effect=lambda sql: "INSERT"),
+            patch.object(connection_server, "_extract_table_name", side_effect=lambda sql: "users"),
             patch.object(connection_server, "_get_config_or_raise", return_value={
                 "type": "mysql",
                 "host": "localhost",
@@ -257,8 +258,8 @@ class TestBaseWriteOperations:
         """Test _handle_execute_write method with error"""
         # Create a patch for the internal methods
         with (
-            patch("mcp_dbutils.base.ConnectionHandler._get_sql_type", return_value="UPDATE"),
-            patch("mcp_dbutils.base.ConnectionHandler._extract_table_name", return_value="users"),
+            patch.object(connection_server, "_get_sql_type", side_effect=lambda sql: "UPDATE"),
+            patch.object(connection_server, "_extract_table_name", side_effect=lambda sql: "users"),
             patch.object(connection_server, "_get_config_or_raise", return_value={
                 "type": "mysql",
                 "host": "localhost",

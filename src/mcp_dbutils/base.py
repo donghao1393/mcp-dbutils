@@ -530,11 +530,82 @@ class ConnectionServer:
 
             return db_config
 
-    def _check_write_permission(self, db_config: dict, table_name: str, operation_type: str) -> bool:
+    def _get_sql_type(self, sql: str) -> str:
+        """Get SQL statement type
+
+        Args:
+            sql: SQL statement
+
+        Returns:
+            str: SQL statement type (SELECT, INSERT, UPDATE, DELETE, etc.)
+        """
+        sql = sql.strip().upper()
+        if sql.startswith("SELECT"):
+            return "SELECT"
+        elif sql.startswith("INSERT"):
+            return "INSERT"
+        elif sql.startswith("UPDATE"):
+            return "UPDATE"
+        elif sql.startswith("DELETE"):
+            return "DELETE"
+        elif sql.startswith("CREATE"):
+            return "CREATE"
+        elif sql.startswith("ALTER"):
+            return "ALTER"
+        elif sql.startswith("DROP"):
+            return "DROP"
+        elif sql.startswith("TRUNCATE"):
+            return "TRUNCATE"
+        elif sql.startswith("BEGIN") or sql.startswith("START"):
+            return "TRANSACTION_START"
+        elif sql.startswith("COMMIT"):
+            return "TRANSACTION_COMMIT"
+        elif sql.startswith("ROLLBACK"):
+            return "TRANSACTION_ROLLBACK"
+        else:
+            return "UNKNOWN"
+
+    def _extract_table_name(self, sql: str) -> str:
+        """Extract table name from SQL statement
+
+        This is a simple implementation that works for basic SQL statements.
+
+        Args:
+            sql: SQL statement
+
+        Returns:
+            str: Table name
+        """
+        sql_type = self._get_sql_type(sql)
+        sql = sql.strip()
+
+        if sql_type == "INSERT":
+            # INSERT INTO table_name ...
+            match = sql.upper().split("INTO", 1)
+            if len(match) > 1:
+                table_part = match[1].strip().split(" ", 1)[0]
+                return table_part.strip('`"[]')
+        elif sql_type == "UPDATE":
+            # UPDATE table_name ...
+            match = sql.upper().split("UPDATE", 1)
+            if len(match) > 1:
+                table_part = match[1].strip().split(" ", 1)[0]
+                return table_part.strip('`"[]')
+        elif sql_type == "DELETE":
+            # DELETE FROM table_name ...
+            match = sql.upper().split("FROM", 1)
+            if len(match) > 1:
+                table_part = match[1].strip().split(" ", 1)[0]
+                return table_part.strip('`"[]')
+
+        # Default fallback
+        return "unknown_table"
+
+    async def _check_write_permission(self, connection: str, table_name: str, operation_type: str) -> bool:
         """检查写操作权限
 
         Args:
-            db_config: 数据库配置
+            connection: 数据库连接名称
             table_name: 表名
             operation_type: 操作类型 (INSERT, UPDATE, DELETE)
 
@@ -544,6 +615,9 @@ class ConnectionServer:
         Raises:
             ConfigurationError: 如果连接不可写或没有表级权限
         """
+        # 获取连接配置
+        db_config = self._get_config_or_raise(connection)
+
         # 检查连接是否可写
         if not db_config.get("writable", False):
             raise ConfigurationError(CONNECTION_NOT_WRITABLE_ERROR)
@@ -1277,9 +1351,8 @@ class ConnectionServer:
 
         table_name = self._extract_table_name(sql)
 
-        # 获取连接配置并验证写权限
-        db_config = self._get_config_or_raise(connection)
-        self._check_write_permission(db_config, table_name, sql_type)
+        # 验证写权限
+        await self._check_write_permission(connection, table_name, sql_type)
 
         # 执行写操作
         async with self.get_handler(connection) as handler:
