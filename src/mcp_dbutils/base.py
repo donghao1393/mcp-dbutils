@@ -1351,7 +1351,8 @@ class ConnectionServer:
 
         table_name = self._extract_table_name(sql)
 
-        # 验证写权限
+        # 获取连接配置并验证写权限
+        db_config = self._get_config_or_raise(connection)
         await self._check_write_permission(connection, table_name, sql_type)
 
         # 执行写操作
