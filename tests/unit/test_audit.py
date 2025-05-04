@@ -378,8 +378,8 @@ class TestAudit:
 
     def test_memory_buffer_size_limit(self):
         """Test memory buffer size limit"""
-        from mcp_dbutils.audit import _audit_config, _memory_buffer
         import mcp_dbutils.audit
+        from mcp_dbutils.audit import _audit_config, _memory_buffer
 
         # Set a small buffer size
         mcp_dbutils.audit._memory_buffer_size = 2

@@ -327,11 +327,13 @@ class TestBaseWriteOperations:
     @pytest.mark.asyncio
     async def test_handle_get_audit_logs_error(self, connection_server):
         """Test _handle_get_audit_logs method with error"""
-        # Mock get_logs to raise an exception
-        with patch("mcp_dbutils.base.get_logs", side_effect=ValueError("Test error")):
+        # Mock get_logs to raise an exception and expect an exception
+        with (
+            patch("mcp_dbutils.base.get_logs", side_effect=ValueError("Test error")),
+            pytest.raises(ValueError, match="Test error")
+        ):
             # Test with error
-            with pytest.raises(ValueError, match="Test error"):
-                await connection_server._handle_get_audit_logs("test_conn", "users", "INSERT", "SUCCESS", 10)
+            await connection_server._handle_get_audit_logs("test_conn", "users", "INSERT", "SUCCESS", 10)
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_execute_write(self, connection_server):
