@@ -1208,9 +1208,15 @@ class TestConnectionServerWriteOperations:
     @pytest.mark.asyncio
     async def test_handle_execute_write(self, connection_server):
         """Test the _handle_execute_write method"""
+        # Mock the required methods
+        connection_server._get_sql_type = MagicMock(return_value="INSERT")
+        connection_server._extract_table_name = MagicMock(return_value="users")
+        connection_server._get_config_or_raise = MagicMock()
+        connection_server._check_write_permission = MagicMock()
+
         # Mock the get_handler method
         mock_handler = AsyncMock()
-        mock_handler.__aenter__.return_value._execute_write_query.return_value = "Write operation executed successfully"
+        mock_handler.__aenter__.return_value.execute_write_query.return_value = "Write operation executed successfully"
         connection_server.get_handler = MagicMock(return_value=mock_handler)
 
         # Call the method
@@ -1226,9 +1232,15 @@ class TestConnectionServerWriteOperations:
         assert result[0].type == "text"
         assert "Write operation executed successfully" in result[0].text
 
+        # Verify the methods were called correctly
+        connection_server._get_sql_type.assert_called_once_with("INSERT INTO users (name) VALUES ('Test User')")
+        connection_server._extract_table_name.assert_called_once_with("INSERT INTO users (name) VALUES ('Test User')")
+        connection_server._get_config_or_raise.assert_called_once_with("test_conn")
+        connection_server._check_write_permission.assert_called_once()
+
         # Verify the handler was called correctly
         connection_server.get_handler.assert_called_once_with("test_conn")
-        mock_handler.__aenter__.return_value._execute_write_query.assert_called_once_with(
+        mock_handler.__aenter__.return_value.execute_write_query.assert_called_once_with(
             "INSERT INTO users (name) VALUES ('Test User')"
         )
 
@@ -1236,7 +1248,7 @@ class TestConnectionServerWriteOperations:
     async def test_handle_execute_write_no_confirmation(self, connection_server):
         """Test the _handle_execute_write method without confirmation"""
         # Call the method without confirmation
-        with pytest.raises(ValueError, match="Operation not confirmed"):
+        with pytest.raises(ConfigurationError, match="Operation not confirmed"):
             await connection_server._handle_execute_write(
                 "test_conn",
                 "INSERT INTO users (name) VALUES ('Test User')",
@@ -1249,9 +1261,15 @@ class TestConnectionServerWriteOperations:
     @pytest.mark.asyncio
     async def test_handle_execute_write_exception(self, connection_server):
         """Test the _handle_execute_write method with an exception"""
+        # Mock the required methods
+        connection_server._get_sql_type = MagicMock(return_value="INSERT")
+        connection_server._extract_table_name = MagicMock(return_value="users")
+        connection_server._get_config_or_raise = MagicMock()
+        connection_server._check_write_permission = MagicMock()
+
         # Mock the get_handler method to raise an exception
         mock_handler = AsyncMock()
-        mock_handler.__aenter__.return_value._execute_write_query.side_effect = ValueError("Test exception")
+        mock_handler.__aenter__.return_value.execute_write_query.side_effect = ValueError("Test exception")
         connection_server.get_handler = MagicMock(return_value=mock_handler)
 
         # Call the method and expect an exception
@@ -1262,17 +1280,25 @@ class TestConnectionServerWriteOperations:
                 "CONFIRM_WRITE"
             )
 
+        # Verify the methods were called correctly
+        connection_server._get_sql_type.assert_called_once_with("INSERT INTO users (name) VALUES ('Test User')")
+        connection_server._extract_table_name.assert_called_once_with("INSERT INTO users (name) VALUES ('Test User')")
+        connection_server._get_config_or_raise.assert_called_once_with("test_conn")
+        connection_server._check_write_permission.assert_called_once()
+
         # Verify the handler was called correctly
         connection_server.get_handler.assert_called_once_with("test_conn")
-        mock_handler.__aenter__.return_value._execute_write_query.assert_called_once_with(
+        mock_handler.__aenter__.return_value.execute_write_query.assert_called_once_with(
             "INSERT INTO users (name) VALUES ('Test User')"
         )
 
     @pytest.mark.asyncio
     async def test_handle_get_audit_logs(self, connection_server):
         """Test the _handle_get_audit_logs method"""
-        # Mock the format_logs function
-        with patch("mcp_dbutils.base.format_logs") as mock_format_logs:
+        # Mock the get_logs and format_logs functions
+        with patch("mcp_dbutils.base.get_logs") as mock_get_logs, \
+             patch("mcp_dbutils.base.format_logs") as mock_format_logs:
+            mock_get_logs.return_value = ["log1", "log2"]
             mock_format_logs.return_value = "Formatted audit logs"
 
             # Call the method
@@ -1290,21 +1316,42 @@ class TestConnectionServerWriteOperations:
             assert result[0].type == "text"
             assert "Formatted audit logs" in result[0].text
 
+            # Verify get_logs was called correctly
+            mock_get_logs.assert_called_once_with(
+                connection_name="test_conn",
+                table_name="users",
+                operation_type="INSERT",
+                status="SUCCESS",
+                limit=10
+            )
+
             # Verify format_logs was called correctly
-            mock_format_logs.assert_called_once()
+            mock_format_logs.assert_called_once_with(["log1", "log2"])
 
     @pytest.mark.asyncio
     async def test_handle_get_audit_logs_exception(self, connection_server):
         """Test the _handle_get_audit_logs method with an exception"""
-        # Mock the format_logs function to raise an exception and expect an exception
-        with patch("mcp_dbutils.base.format_logs", side_effect=ValueError("Test exception")), \
+        # Mock the get_logs and format_logs functions
+        with patch("mcp_dbutils.base.get_logs") as mock_get_logs, \
+             patch("mcp_dbutils.base.format_logs", side_effect=ValueError("Test exception")), \
              pytest.raises(ValueError, match="Test exception"):
+            mock_get_logs.return_value = ["log1", "log2"]
+
             await connection_server._handle_get_audit_logs(
                 "test_conn",
                 "users",
                 "INSERT",
                 "SUCCESS",
                 10
+            )
+
+            # Verify get_logs was called correctly
+            mock_get_logs.assert_called_once_with(
+                connection_name="test_conn",
+                table_name="users",
+                operation_type="INSERT",
+                status="SUCCESS",
+                limit=10
             )
 
 
