@@ -188,9 +188,8 @@ class ConnectionHandler(ABC):
                 if "row" in result and "affected" in result:
                     # 从结果字符串中提取受影响的行数
                     import re
-                    # 使用更安全的正则表达式，避免回溯问题
-                    # 使用非回溯的正则表达式，限制数字长度，避免DoS风险
-                    match = re.search(r"([0-9]{1,10}) rows?", result)
+                    # 限制数字长度，避免DoS风险
+                    match = re.search(r"(\d{1,10}) rows?", result)
                     if match:
                         affected_rows = int(match.group(1))
             except Exception:
@@ -602,16 +601,13 @@ class ConnectionServer:
         # Default fallback
         return "unknown_table"
 
-    async def _check_write_permission(self, connection: str, table_name: str, operation_type: str) -> bool:
+    async def _check_write_permission(self, connection: str, table_name: str, operation_type: str) -> None:
         """检查写操作权限
 
         Args:
             connection: 数据库连接名称
             table_name: 表名
             operation_type: 操作类型 (INSERT, UPDATE, DELETE)
-
-        Returns:
-            bool: 是否有权限执行写操作
 
         Raises:
             ConfigurationError: 如果连接不可写或没有表级权限
@@ -627,7 +623,7 @@ class ConnectionServer:
         write_permissions = db_config.get("write_permissions", {})
         if not write_permissions:
             # 没有细粒度权限控制，默认允许所有写操作
-            return True
+            return
 
         # 检查表级权限
         tables = write_permissions.get("tables", {})
@@ -635,7 +631,7 @@ class ConnectionServer:
             # 没有表级权限配置，检查默认策略
             default_policy = write_permissions.get("default_policy", "read_only")
             if default_policy == "allow_all":
-                return True
+                return
             else:
                 # 默认只读
                 raise ConfigurationError(WRITE_OPERATION_NOT_ALLOWED_ERROR.format(
@@ -647,7 +643,7 @@ class ConnectionServer:
             table_config = tables[table_name]
             operations = table_config.get("operations", ["INSERT", "UPDATE", "DELETE"])
             if operation_type in operations:
-                return True
+                return
             else:
                 raise ConfigurationError(WRITE_OPERATION_NOT_ALLOWED_ERROR.format(
                     operation=operation_type, table=table_name
@@ -656,7 +652,7 @@ class ConnectionServer:
             # 表未明确配置，检查默认策略
             default_policy = write_permissions.get("default_policy", "read_only")
             if default_policy == "allow_all":
-                return True
+                return
             else:
                 # 默认只读
                 raise ConfigurationError(WRITE_OPERATION_NOT_ALLOWED_ERROR.format(

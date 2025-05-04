@@ -79,9 +79,10 @@ class TestConnectionServerExtended:
     async def test_check_write_permission_writable(self, server):
         """Test _check_write_permission with writable connection"""
         # Connection is writable and has no specific permissions
-        assert await server._check_write_permission("test_conn", "users", "INSERT") is True
-        assert await server._check_write_permission("test_conn", "users", "UPDATE") is True
-        assert await server._check_write_permission("test_conn", "users", "DELETE") is True
+        # Method should return None (no exception) if permission is granted
+        await server._check_write_permission("test_conn", "users", "INSERT")
+        await server._check_write_permission("test_conn", "users", "UPDATE")
+        await server._check_write_permission("test_conn", "users", "DELETE")
 
     @pytest.mark.asyncio
     async def test_check_write_permission_readonly(self, server):
@@ -94,17 +95,17 @@ class TestConnectionServerExtended:
     async def test_check_write_permission_with_table_permissions(self, server):
         """Test _check_write_permission with table-specific permissions"""
         # Table 'users' allows INSERT and UPDATE but not DELETE
-        assert await server._check_write_permission("test_conn_with_permissions", "users", "INSERT") is True
-        assert await server._check_write_permission("test_conn_with_permissions", "users", "UPDATE") is True
+        await server._check_write_permission("test_conn_with_permissions", "users", "INSERT")
+        await server._check_write_permission("test_conn_with_permissions", "users", "UPDATE")
 
         with pytest.raises(ConfigurationError) as excinfo:
             await server._check_write_permission("test_conn_with_permissions", "users", "DELETE")
         assert "No permission to perform DELETE operation on table users" in str(excinfo.value)
 
         # Table 'posts' allows all operations
-        assert await server._check_write_permission("test_conn_with_permissions", "posts", "INSERT") is True
-        assert await server._check_write_permission("test_conn_with_permissions", "posts", "UPDATE") is True
-        assert await server._check_write_permission("test_conn_with_permissions", "posts", "DELETE") is True
+        await server._check_write_permission("test_conn_with_permissions", "posts", "INSERT")
+        await server._check_write_permission("test_conn_with_permissions", "posts", "UPDATE")
+        await server._check_write_permission("test_conn_with_permissions", "posts", "DELETE")
 
         # Table 'unknown_table' is not explicitly configured, default policy is read_only
         with pytest.raises(ConfigurationError) as excinfo:
@@ -115,9 +116,9 @@ class TestConnectionServerExtended:
     async def test_check_write_permission_allow_all(self, server):
         """Test _check_write_permission with allow_all default policy"""
         # Default policy is allow_all
-        assert await server._check_write_permission("test_conn_allow_all", "any_table", "INSERT") is True
-        assert await server._check_write_permission("test_conn_allow_all", "any_table", "UPDATE") is True
-        assert await server._check_write_permission("test_conn_allow_all", "any_table", "DELETE") is True
+        await server._check_write_permission("test_conn_allow_all", "any_table", "INSERT")
+        await server._check_write_permission("test_conn_allow_all", "any_table", "UPDATE")
+        await server._check_write_permission("test_conn_allow_all", "any_table", "DELETE")
 
     @pytest.mark.asyncio
     async def test_handle_execute_write_success(self, server):
@@ -137,7 +138,7 @@ class TestConnectionServerExtended:
         server.get_handler = MagicMock(return_value=AsyncContextManagerMock())
 
         # Mock the _check_write_permission method
-        server._check_write_permission = AsyncMock(return_value=True)
+        server._check_write_permission = AsyncMock()
 
         result = await server._handle_execute_write(
             connection="test_conn",
@@ -221,7 +222,7 @@ class TestConnectionServerExtended:
         server.get_handler = MagicMock(return_value=AsyncContextManagerMock())
 
         # Mock the _check_write_permission method
-        server._check_write_permission = AsyncMock(return_value=True)
+        server._check_write_permission = AsyncMock()
 
         with pytest.raises(Exception, match="Execution error"):
             await server._handle_execute_write(
