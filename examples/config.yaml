@@ -1,0 +1,72 @@
+# MCP-DBUtils 配置文件示例
+# 此文件定义了数据库连接和相关配置
+
+# 审计日志配置
+audit:
+  enabled: true
+  file_storage:
+    enabled: true
+    path: "logs/audit"
+    max_file_size: 10485760  # 10MB
+    backup_count: 10
+  memory_buffer:
+    size: 1000  # 内存中保存的最近日志记录数量
+  content:
+    sanitize_sql: true  # 是否对SQL语句进行脱敏处理
+    include_user_context: true  # 是否包含用户上下文信息
+
+# 数据库连接配置
+connections:
+  # SQLite 示例
+  sqlite_example:
+    type: sqlite
+    path: "examples/data/example.db"
+    # 写操作配置（默认只读）
+    writable: true
+    # 细粒度写权限控制
+    write_permissions:
+      # 默认策略：read_only 或 allow_all
+      default_policy: "read_only"
+      # 表级权限
+      tables:
+        users:
+          # 允许的操作类型
+          operations: ["INSERT", "UPDATE"]
+        logs:
+          operations: ["INSERT", "UPDATE", "DELETE"]
+
+  # MySQL 示例
+  mysql_example:
+    type: mysql
+    host: localhost
+    port: 3306
+    database: example_db
+    user: example_user
+    password: example_password
+    # 连接超时设置（秒）
+    connection_timeout: 10
+    # 查询超时设置（秒）
+    query_timeout: 30
+    # 空闲超时设置（秒）
+    idle_timeout: 600
+    # 写操作配置（默认只读）
+    writable: false
+
+  # PostgreSQL 示例
+  postgres_example:
+    type: postgres
+    host: localhost
+    port: 5432
+    database: example_db
+    user: example_user
+    password: example_password
+    # SSL配置
+    ssl:
+      enabled: true
+      mode: require
+    # 写操作配置
+    writable: true
+    # 细粒度写权限控制
+    write_permissions:
+      # 默认策略
+      default_policy: "allow_all"
