@@ -12,7 +12,7 @@ import mcp.types as types
 import yaml
 from mcp.server import Server
 
-from .audit import log_write_operation, get_logs, format_logs
+from .audit import format_logs, get_logs, log_write_operation
 from .log import create_logger
 from .stats import ResourceStats
 

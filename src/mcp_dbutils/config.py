@@ -149,9 +149,8 @@ class ConnectionConfig(ABC):
                     raise ValueError(f"Invalid writable value in database configuration {conn_name}: {db_config['writable']}")
 
                 # Validate write_permissions if present
-                if 'write_permissions' in db_config:
-                    if not isinstance(db_config['write_permissions'], dict):
-                        raise ValueError(f"Invalid write_permissions in database configuration {conn_name}: {db_config['write_permissions']}")
+                if 'write_permissions' in db_config and not isinstance(db_config['write_permissions'], dict):
+                    raise ValueError(f"Invalid write_permissions in database configuration {conn_name}: {db_config['write_permissions']}")
 
         return connections
 

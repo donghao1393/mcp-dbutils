@@ -38,6 +38,9 @@ class _TestConnectionHandler(ConnectionHandler):
     async def _execute_query(self, sql: str):
         return ""
 
+    async def _execute_write_query(self, sql: str):
+        return "Write operation executed successfully. 1 row affected."
+
     async def get_table_description(self, table_name: str):
         return ""
 
