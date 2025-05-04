@@ -28,7 +28,7 @@ def config_file():
             "connections": {
                 "sqlite_test": {
                     "type": "sqlite",
-                    "path": ":memory:",
+                    "path": "test_db.sqlite",
                     "writable": True,
                     "write_permissions": {
                         "default_policy": "read_only",
@@ -44,7 +44,7 @@ def config_file():
                 },
                 "sqlite_readonly": {
                     "type": "sqlite",
-                    "path": ":memory:",
+                    "path": "test_db_readonly.sqlite",
                     "writable": False
                 }
             }
@@ -58,6 +58,11 @@ def config_file():
 @pytest.fixture
 def server(config_file):
     """创建服务器实例"""
+    # 删除可能存在的旧数据库文件
+    for db_file in ["test_db.sqlite", "test_db_readonly.sqlite"]:
+        if os.path.exists(db_file):
+            os.unlink(db_file)
+
     server = ConnectionServer(config_file, debug=True)
 
     # 添加handle_call_tool方法
