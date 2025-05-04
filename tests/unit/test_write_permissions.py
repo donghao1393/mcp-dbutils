@@ -1,11 +1,12 @@
 """Test write permission checking in base.py"""
 import os
 import tempfile
-import yaml
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from mcp_dbutils.base import ConnectionServer, ConfigurationError
+import pytest
+import yaml
+
+from mcp_dbutils.base import ConfigurationError, ConnectionServer
 
 
 @pytest.fixture

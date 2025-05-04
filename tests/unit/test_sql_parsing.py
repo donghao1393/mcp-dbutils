@@ -1,7 +1,7 @@
 """Test SQL parsing functions in base.py"""
 import pytest
 
-from mcp_dbutils.base import ConnectionServer, ConfigurationError
+from mcp_dbutils.base import ConfigurationError, ConnectionServer
 
 
 class TestSQLParsing:
