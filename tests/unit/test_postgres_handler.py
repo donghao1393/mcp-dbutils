@@ -324,3 +324,49 @@ class TestPostgreSQLHandler:
         handler.log.assert_any_call('debug', 'Closing PostgreSQL connection')
         handler.log.assert_any_call('warning', 'Error closing PostgreSQL connection: Connection close error')
         handler.log.assert_any_call('debug', 'PostgreSQL handler cleanup complete')
+
+    @pytest.mark.asyncio
+    async def test_execute_write_query(self, handler, mock_conn):
+        """Test executing a write query"""
+        # Mock the psycopg2.connect function
+        with patch('psycopg2.connect', return_value=mock_conn) as mock_connect:
+            # Mock cursor to return some data
+            mock_cursor = mock_conn.cursor().__enter__()
+            mock_cursor.rowcount = 5
+
+            # Call the method
+            result = await handler._execute_write_query('INSERT INTO users (name) VALUES (\'Test User\')')
+
+            # Verify connection was made
+            mock_connect.assert_called_once()
+
+            # Verify the cursor was used correctly
+            mock_cursor.execute.assert_called_with('INSERT INTO users (name) VALUES (\'Test User\')')
+            mock_conn.commit.assert_called_once()
+
+            # Verify the result format
+            assert isinstance(result, str)
+            assert "Write operation executed successfully" in result
+            assert "5 rows affected" in result
+
+            # Verify connection was closed
+            mock_conn.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_execute_write_query_error(self, handler, mock_conn):
+        """Test error handling when executing a write query"""
+        # Mock the psycopg2.connect function
+        with patch('psycopg2.connect', return_value=mock_conn) as mock_connect:
+            # Mock cursor to raise an exception when executing the query
+            mock_cursor = mock_conn.cursor().__enter__()
+            mock_cursor.execute.side_effect = psycopg2.Error('Write operation failed')
+
+            # Call the method and expect an exception
+            with pytest.raises(ConnectionHandlerError, match="Write operation failed"):
+                await handler._execute_write_query('INSERT INTO users (name) VALUES (\'Test User\')')
+
+            # Verify rollback was called
+            mock_conn.rollback.assert_called_once()
+
+            # Verify connection was closed even after an error
+            mock_conn.close.assert_called_once()
