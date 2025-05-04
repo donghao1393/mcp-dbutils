@@ -1,19 +1,19 @@
 """Test base module write operations"""
 
 import json
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from mcp.types import TextContent
 
 from mcp_dbutils.base import (
-    ConnectionServer,
+    CONNECTION_NOT_WRITABLE_ERROR,
+    UNSUPPORTED_WRITE_OPERATION_ERROR,
+    WRITE_CONFIRMATION_REQUIRED_ERROR,
+    WRITE_OPERATION_NOT_ALLOWED_ERROR,
     ConfigurationError,
     ConnectionHandlerError,
-    WRITE_CONFIRMATION_REQUIRED_ERROR,
-    UNSUPPORTED_WRITE_OPERATION_ERROR,
-    CONNECTION_NOT_WRITABLE_ERROR,
-    WRITE_OPERATION_NOT_ALLOWED_ERROR,
+    ConnectionServer,
 )
 
 
@@ -33,43 +33,43 @@ class TestBaseWriteOperations:
         """Test _get_sql_type method"""
         # Test SELECT statement
         assert connection_server._get_sql_type("SELECT * FROM users") == "SELECT"
-        
+
         # Test INSERT statement
         assert connection_server._get_sql_type("INSERT INTO users VALUES (1, 'test')") == "INSERT"
-        
+
         # Test UPDATE statement
         assert connection_server._get_sql_type("UPDATE users SET name = 'test' WHERE id = 1") == "UPDATE"
-        
+
         # Test DELETE statement
         assert connection_server._get_sql_type("DELETE FROM users WHERE id = 1") == "DELETE"
-        
+
         # Test CREATE statement
         assert connection_server._get_sql_type("CREATE TABLE users (id INT)") == "CREATE"
-        
+
         # Test ALTER statement
         assert connection_server._get_sql_type("ALTER TABLE users ADD COLUMN name TEXT") == "ALTER"
-        
+
         # Test DROP statement
         assert connection_server._get_sql_type("DROP TABLE users") == "DROP"
-        
+
         # Test TRUNCATE statement
         assert connection_server._get_sql_type("TRUNCATE TABLE users") == "TRUNCATE"
-        
+
         # Test BEGIN statement
         assert connection_server._get_sql_type("BEGIN TRANSACTION") == "TRANSACTION_START"
-        
+
         # Test START statement
         assert connection_server._get_sql_type("START TRANSACTION") == "TRANSACTION_START"
-        
+
         # Test COMMIT statement
         assert connection_server._get_sql_type("COMMIT") == "TRANSACTION_COMMIT"
-        
+
         # Test ROLLBACK statement
         assert connection_server._get_sql_type("ROLLBACK") == "TRANSACTION_ROLLBACK"
-        
+
         # Test unknown statement
         assert connection_server._get_sql_type("UNKNOWN STATEMENT") == "UNKNOWN"
-        
+
         # Test case insensitivity
         assert connection_server._get_sql_type("select * from users") == "SELECT"
         assert connection_server._get_sql_type("insert into users values (1, 'test')") == "INSERT"
@@ -79,21 +79,21 @@ class TestBaseWriteOperations:
         """Test _extract_table_name method"""
         # Test INSERT statement
         assert connection_server._extract_table_name("INSERT INTO users VALUES (1, 'test')") == "users"
-        
+
         # Test INSERT statement with schema
         assert connection_server._extract_table_name("INSERT INTO public.users VALUES (1, 'test')") == "public.users"
-        
+
         # Test UPDATE statement
         assert connection_server._extract_table_name("UPDATE users SET name = 'test' WHERE id = 1") == "users"
-        
+
         # Test DELETE statement
         assert connection_server._extract_table_name("DELETE FROM users WHERE id = 1") == "users"
-        
+
         # Test with quoted table name
         assert connection_server._extract_table_name('INSERT INTO "users" VALUES (1, \'test\')') == "users"
         assert connection_server._extract_table_name("INSERT INTO `users` VALUES (1, 'test')") == "users"
         assert connection_server._extract_table_name("INSERT INTO [users] VALUES (1, 'test')") == "users"
-        
+
         # Test unknown statement
         assert connection_server._extract_table_name("UNKNOWN STATEMENT") == "unknown_table"
 
@@ -109,7 +109,7 @@ class TestBaseWriteOperations:
             "user": "test",
             "password": "test"
         })
-        
+
         # Test with no write permission
         with pytest.raises(ConfigurationError, match=CONNECTION_NOT_WRITABLE_ERROR):
             await connection_server._check_write_permission("test_conn", "users", "INSERT")
@@ -127,10 +127,10 @@ class TestBaseWriteOperations:
             "password": "test",
             "writable": True
         })
-        
+
         # Test with write permission but no table restrictions
         await connection_server._check_write_permission("test_conn", "users", "INSERT")
-        
+
         # Test with write permission and table restrictions
         connection_server._get_config_or_raise = MagicMock(return_value={
             "type": "mysql",
@@ -144,14 +144,14 @@ class TestBaseWriteOperations:
                 "users": ["INSERT", "UPDATE"]
             }
         })
-        
+
         # Test with allowed operation
         await connection_server._check_write_permission("test_conn", "users", "INSERT")
-        
+
         # Test with disallowed operation
         with pytest.raises(ConfigurationError, match=WRITE_OPERATION_NOT_ALLOWED_ERROR.format(operation="DELETE", table="users")):
             await connection_server._check_write_permission("test_conn", "users", "DELETE")
-        
+
         # Test with disallowed table
         with pytest.raises(ConfigurationError, match=WRITE_OPERATION_NOT_ALLOWED_ERROR.format(operation="INSERT", table="orders")):
             await connection_server._check_write_permission("test_conn", "orders", "INSERT")
@@ -168,7 +168,7 @@ class TestBaseWriteOperations:
         """Test _handle_execute_write method with unsupported operation"""
         # Mock _get_sql_type to return an unsupported operation
         connection_server._get_sql_type = MagicMock(return_value="SELECT")
-        
+
         # Test with unsupported operation
         with pytest.raises(ConfigurationError, match=UNSUPPORTED_WRITE_OPERATION_ERROR.format(operation="SELECT")):
             await connection_server._handle_execute_write("test_conn", "SELECT * FROM users", "CONFIRM_WRITE")
@@ -189,26 +189,26 @@ class TestBaseWriteOperations:
             "writable": True
         })
         connection_server._check_write_permission = AsyncMock()
-        
+
         # Mock get_handler to return a handler that returns a success message
         mock_handler = AsyncMock()
         mock_handler.__aenter__.return_value.execute_write_query.return_value = "Write operation executed successfully. 1 row affected."
         connection_server.get_handler = MagicMock(return_value=mock_handler)
-        
+
         # Test with success
         result = await connection_server._handle_execute_write(
-            "test_conn", 
+            "test_conn",
             "INSERT INTO users VALUES (1, 'test')",
             "CONFIRM_WRITE"
         )
-        
+
         # Verify the result
         assert isinstance(result, list)
         assert len(result) == 1
         assert isinstance(result[0], TextContent)
         assert result[0].type == "text"
         assert "Write operation executed successfully" in result[0].text
-        
+
         # Verify the methods were called correctly
         connection_server._get_sql_type.assert_called_once_with("INSERT INTO users VALUES (1, 'test')")
         connection_server._extract_table_name.assert_called_once_with("INSERT INTO users VALUES (1, 'test')")
@@ -235,20 +235,20 @@ class TestBaseWriteOperations:
             "writable": True
         })
         connection_server._check_write_permission = AsyncMock()
-        
+
         # Mock get_handler to return a handler that raises an exception
         mock_handler = AsyncMock()
         mock_handler.__aenter__.return_value.execute_write_query.side_effect = ConnectionHandlerError("Database error")
         connection_server.get_handler = MagicMock(return_value=mock_handler)
-        
+
         # Test with error
         with pytest.raises(ConnectionHandlerError, match="Database error"):
             await connection_server._handle_execute_write(
-                "test_conn", 
+                "test_conn",
                 "UPDATE users SET name = 'test' WHERE id = 1",
                 "CONFIRM_WRITE"
             )
-        
+
         # Verify the methods were called correctly
         connection_server._get_sql_type.assert_called_once_with("UPDATE users SET name = 'test' WHERE id = 1")
         connection_server._extract_table_name.assert_called_once_with("UPDATE users SET name = 'test' WHERE id = 1")
@@ -263,8 +263,10 @@ class TestBaseWriteOperations:
     async def test_handle_get_audit_logs(self, connection_server):
         """Test _handle_get_audit_logs method"""
         # Mock get_logs and format_logs functions
-        with patch("mcp_dbutils.base.get_logs") as mock_get_logs, \
-             patch("mcp_dbutils.base.format_logs") as mock_format_logs:
+        with (
+            patch("mcp_dbutils.base.get_logs") as mock_get_logs,
+            patch("mcp_dbutils.base.format_logs") as mock_format_logs
+        ):
             mock_get_logs.return_value = [
                 {
                     "timestamp": "2023-01-01T12:00:00",
@@ -278,23 +280,23 @@ class TestBaseWriteOperations:
                 }
             ]
             mock_format_logs.return_value = "Formatted audit logs"
-            
+
             # Test with all parameters
             result = await connection_server._handle_get_audit_logs(
-                "test_conn", 
+                "test_conn",
                 "users",
                 "INSERT",
                 "SUCCESS",
                 10
             )
-            
+
             # Verify the result
             assert isinstance(result, list)
             assert len(result) == 1
             assert isinstance(result[0], TextContent)
             assert result[0].type == "text"
             assert "Formatted audit logs" in result[0].text
-            
+
             # Verify get_logs was called correctly
             mock_get_logs.assert_called_once_with(
                 connection_name="test_conn",
@@ -303,16 +305,16 @@ class TestBaseWriteOperations:
                 status="SUCCESS",
                 limit=10
             )
-            
+
             # Verify format_logs was called correctly
             mock_format_logs.assert_called_once_with(mock_get_logs.return_value)
-            
+
             # Test with minimal parameters
             mock_get_logs.reset_mock()
             mock_format_logs.reset_mock()
-            
+
             result = await connection_server._handle_get_audit_logs("test_conn", "", "", "", 100)
-            
+
             # Verify get_logs was called correctly
             mock_get_logs.assert_called_once_with(
                 connection_name="test_conn",
@@ -338,7 +340,7 @@ class TestBaseWriteOperations:
         connection_server._handle_execute_write = AsyncMock(return_value=[
             TextContent(type="text", text="Write operation executed successfully")
         ])
-        
+
         # Create a mock call_tool handler function
         async def mock_handle_call_tool(name, arguments):
             if name == "dbutils-execute-write":
@@ -348,20 +350,20 @@ class TestBaseWriteOperations:
                 return await connection_server._handle_execute_write(connection, sql, confirmation)
             else:
                 raise ValueError(f"Unknown tool: {name}")
-        
+
         # Test with execute-write tool
         result = await mock_handle_call_tool("dbutils-execute-write", {
-            "connection": "test_conn", 
+            "connection": "test_conn",
             "sql": "INSERT INTO users (name) VALUES ('Test User')",
             "confirmation": "CONFIRM_WRITE"
         })
-        
+
         # Verify the result
         assert result == [TextContent(type="text", text="Write operation executed successfully")]
-        
+
         # Verify _handle_execute_write was called correctly
         connection_server._handle_execute_write.assert_called_once_with(
-            "test_conn", 
+            "test_conn",
             "INSERT INTO users (name) VALUES ('Test User')",
             "CONFIRM_WRITE"
         )
@@ -373,7 +375,7 @@ class TestBaseWriteOperations:
         connection_server._handle_get_audit_logs = AsyncMock(return_value=[
             TextContent(type="text", text="Audit logs")
         ])
-        
+
         # Create a mock call_tool handler function
         async def mock_handle_call_tool(name, arguments):
             if name == "dbutils-get-audit-logs":
@@ -385,22 +387,22 @@ class TestBaseWriteOperations:
                 return await connection_server._handle_get_audit_logs(connection, table, operation_type, status, limit)
             else:
                 raise ValueError(f"Unknown tool: {name}")
-        
+
         # Test with get-audit-logs tool
         result = await mock_handle_call_tool("dbutils-get-audit-logs", {
-            "connection": "test_conn", 
+            "connection": "test_conn",
             "table": "users",
             "operation_type": "INSERT",
             "status": "SUCCESS",
             "limit": 10
         })
-        
+
         # Verify the result
         assert result == [TextContent(type="text", text="Audit logs")]
-        
+
         # Verify _handle_get_audit_logs was called correctly
         connection_server._handle_get_audit_logs.assert_called_once_with(
-            "test_conn", 
+            "test_conn",
             "users",
             "INSERT",
             "SUCCESS",
