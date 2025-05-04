@@ -11,10 +11,10 @@ import yaml
 from mcp_dbutils.audit import get_logs
 from mcp_dbutils.base import (
     CONNECTION_NOT_WRITABLE_ERROR,
-    ConnectionServer,
     UNSUPPORTED_WRITE_OPERATION_ERROR,
     WRITE_CONFIRMATION_REQUIRED_ERROR,
     WRITE_OPERATION_NOT_ALLOWED_ERROR,
+    ConnectionServer,
 )
 
 
