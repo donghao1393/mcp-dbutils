@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Literal, Optional
 from urllib.parse import parse_qs, urlparse
 
-from ..config import ConnectionConfig
+from ..config import ConnectionConfig, WritePermissions
 
 
 @dataclass
@@ -16,30 +16,30 @@ class SSLConfig:
 
 def parse_url(url: str) -> Dict[str, Any]:
     """Parse MySQL URL into connection parameters
-    
+
     Args:
         url: URL (e.g. mysql://host:port/dbname?ssl-mode=verify_identity)
-        
+
     Returns:
         Dictionary of connection parameters including SSL settings
     """
     if not url.startswith('mysql://'):
         raise ValueError("Invalid MySQL URL format")
-    
+
     if '@' in url:
         raise ValueError("URL should not contain credentials. Please provide username and password separately.")
-    
+
     # Parse URL and query parameters
     parsed = urlparse(url)
     query_params = parse_qs(parsed.query)
-    
+
     params = {
         'host': parsed.hostname or 'localhost',
         'port': str(parsed.port or 3306),
         'database': parsed.path.lstrip('/') if parsed.path else '',
         'charset': query_params.get('charset', ['utf8mb4'])[0]
     }
-    
+
     if not params['database']:
         raise ValueError("MySQL database name must be specified in URL")
 
@@ -50,17 +50,17 @@ def parse_url(url: str) -> Dict[str, Any]:
         if mode not in ['disabled', 'required', 'verify_ca', 'verify_identity']:
             raise ValueError(f"Invalid ssl-mode: {mode}")
         ssl_params['mode'] = mode
-        
+
     if 'ssl-ca' in query_params:
         ssl_params['ca'] = query_params['ssl-ca'][0]
     if 'ssl-cert' in query_params:
         ssl_params['cert'] = query_params['ssl-cert'][0]
     if 'ssl-key' in query_params:
         ssl_params['key'] = query_params['ssl-key'][0]
-        
+
     if ssl_params:
         params['ssl'] = SSLConfig(**ssl_params)
-        
+
     return params
 
 @dataclass
@@ -75,18 +75,20 @@ class MySQLConfig(ConnectionConfig):
     type: Literal['mysql'] = 'mysql'
     url: Optional[str] = None
     ssl: Optional[SSLConfig] = None
+    writable: bool = False  # Whether write operations are allowed
+    write_permissions: Optional[WritePermissions] = None  # Write permissions configuration
 
     @classmethod
     def _validate_connection_config(cls, configs: dict, db_name: str) -> dict:
         """验证连接配置是否有效
-        
+
         Args:
             configs: 配置字典
             db_name: 连接名称
-            
+
         Returns:
             dict: 数据库配置
-            
+
         Raises:
             ValueError: 如果配置无效
         """
@@ -107,17 +109,17 @@ class MySQLConfig(ConnectionConfig):
             raise ValueError("User must be specified in connection configuration")
         if not db_config.get('password'):
             raise ValueError("Password must be specified in connection configuration")
-            
+
         return db_config
-        
+
     @classmethod
     def _create_config_from_url(cls, db_config: dict, local_host: Optional[str] = None) -> 'MySQLConfig':
         """从URL创建配置
-        
+
         Args:
             db_config: 数据库配置
             local_host: 可选的本地主机地址
-            
+
         Returns:
             MySQLConfig: 配置对象
         """
@@ -135,18 +137,18 @@ class MySQLConfig(ConnectionConfig):
             ssl=params.get('ssl')
         )
         return config
-        
+
     @classmethod
     def _create_config_from_params(cls, db_config: dict, local_host: Optional[str] = None) -> 'MySQLConfig':
         """从参数创建配置
-        
+
         Args:
             db_config: 数据库配置
             local_host: 可选的本地主机地址
-            
+
         Returns:
             MySQLConfig: 配置对象
-            
+
         Raises:
             ValueError: 如果缺少必需参数或SSL配置无效
         """
@@ -156,10 +158,10 @@ class MySQLConfig(ConnectionConfig):
             raise ValueError("Host must be specified in connection configuration")
         if not db_config.get('port'):
             raise ValueError("Port must be specified in connection configuration")
-        
+
         # Parse SSL configuration if present
         ssl_config = cls._parse_ssl_config(db_config)
-        
+
         config = cls(
             database=db_config['database'],
             user=db_config['user'],
@@ -171,30 +173,30 @@ class MySQLConfig(ConnectionConfig):
             ssl=ssl_config
         )
         return config
-        
+
     @classmethod
     def _parse_ssl_config(cls, db_config: dict) -> Optional[SSLConfig]:
         """解析SSL配置
-        
+
         Args:
             db_config: 数据库配置
-            
+
         Returns:
             Optional[SSLConfig]: SSL配置或None
-            
+
         Raises:
             ValueError: 如果SSL配置无效
         """
         if 'ssl' not in db_config:
             return None
-            
+
         ssl_params = db_config['ssl']
         if not isinstance(ssl_params, dict):
             raise ValueError("SSL configuration must be a dictionary")
-        
+
         if ssl_params.get('mode') not in [None, 'disabled', 'required', 'verify_ca', 'verify_identity']:
             raise ValueError(f"Invalid ssl-mode: {ssl_params.get('mode')}")
-        
+
         return SSLConfig(
             mode=ssl_params.get('mode', 'disabled'),
             ca=ssl_params.get('ca'),
@@ -212,7 +214,7 @@ class MySQLConfig(ConnectionConfig):
             local_host: Optional local host address
         """
         configs = cls.load_yaml_config(yaml_path)
-        
+
         # Validate connection config
         db_config = cls._validate_connection_config(configs, db_name)
 
@@ -221,26 +223,35 @@ class MySQLConfig(ConnectionConfig):
             config = cls._create_config_from_url(db_config, local_host)
         else:
             config = cls._create_config_from_params(db_config, local_host)
-            
+
+        # Parse write permissions
+        config.writable = db_config.get('writable', False)
+        if config.writable and 'write_permissions' in db_config:
+            config.write_permissions = WritePermissions(db_config['write_permissions'])
+
         config.debug = cls.get_debug_mode()
         return config
 
     @classmethod
-    def from_url(cls, url: str, user: str, password: str, 
-                local_host: Optional[str] = None) -> 'MySQLConfig':
+    def from_url(cls, url: str, user: str, password: str,
+                local_host: Optional[str] = None,
+                writable: bool = False,
+                write_permissions: Optional[Dict[str, Any]] = None) -> 'MySQLConfig':
         """Create configuration from URL and credentials
-        
+
         Args:
             url: URL (mysql://host:port/dbname)
             user: Username for connection
             password: Password for connection
             local_host: Optional local host address
-            
+            writable: Whether write operations are allowed
+            write_permissions: Write permissions configuration
+
         Raises:
             ValueError: If URL format is invalid or required parameters are missing
         """
         params = parse_url(url)
-        
+
         config = cls(
             database=params['database'],
             user=user,
@@ -250,8 +261,14 @@ class MySQLConfig(ConnectionConfig):
             charset=params['charset'],
             local_host=local_host,
             url=url,
-            ssl=params.get('ssl')
+            ssl=params.get('ssl'),
+            writable=writable
         )
+
+        # Parse write permissions
+        if writable and write_permissions:
+            config.write_permissions = WritePermissions(write_permissions)
+
         config.debug = cls.get_debug_mode()
         return config
 
@@ -266,7 +283,7 @@ class MySQLConfig(ConnectionConfig):
             'charset': self.charset,
             'use_unicode': True
         }
-        
+
         # Add SSL parameters if configured
         if self.ssl:
             params['ssl_mode'] = self.ssl.mode
@@ -276,7 +293,7 @@ class MySQLConfig(ConnectionConfig):
                 params['ssl_cert'] = self.ssl.cert
             if self.ssl.key:
                 params['ssl_key'] = self.ssl.key
-                
+
         return {k: v for k, v in params.items() if v is not None}
 
     def get_masked_connection_info(self) -> Dict[str, Any]:

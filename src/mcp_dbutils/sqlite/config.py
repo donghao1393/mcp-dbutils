@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Literal, Optional
 from urllib.parse import parse_qs, urlparse
 
-from ..config import ConnectionConfig
+from ..config import ConnectionConfig, WritePermissions
 
 
 def parse_jdbc_url(jdbc_url: str) -> Dict[str, str]:
@@ -55,6 +55,8 @@ class SQLiteConfig(ConnectionConfig):
     password: Optional[str] = None
     uri: bool = True  # Enable URI mode to support parameters like password
     type: Literal['sqlite'] = 'sqlite'
+    writable: bool = False  # Whether write operations are allowed
+    write_permissions: Optional[WritePermissions] = None  # Write permissions configuration
 
     @classmethod
     def from_jdbc_url(cls, jdbc_url: str, password: Optional[str] = None) -> 'SQLiteConfig':
@@ -146,6 +148,11 @@ class SQLiteConfig(ConnectionConfig):
                 password=db_config.get('password'),
                 uri=True
             )
+
+        # Parse write permissions
+        config.writable = db_config.get('writable', False)
+        if config.writable and 'write_permissions' in db_config:
+            config.write_permissions = WritePermissions(db_config['write_permissions'])
 
         config.debug = cls.get_debug_mode()
         return config
