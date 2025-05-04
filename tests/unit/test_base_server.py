@@ -786,6 +786,234 @@ class TestConnectionServerHandlers:
         connection_server._handle_analyze_query.assert_called_once_with("test_conn", "SELECT 1")
         connection_server.send_log.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_execute_write(self, connection_server):
+        """Test call_tool handler with dbutils-execute-write tool"""
+        # Mock the _handle_execute_write method
+        expected_result = [types.TextContent(type="text", text="Write operation executed successfully")]
+        connection_server._handle_execute_write = AsyncMock(return_value=expected_result)
+
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            connection = arguments["connection"]
+
+            if name == "dbutils-execute-write":
+                sql = arguments.get("sql", "").strip()
+                confirmation = arguments.get("confirmation", "").strip()
+                return await connection_server._handle_execute_write(connection, sql, confirmation)
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+
+        # Test with execute-write tool
+        result = await mock_handle_call_tool("dbutils-execute-write", {
+            "connection": "test_conn",
+            "sql": "INSERT INTO users (name) VALUES ('Test User')",
+            "confirmation": "CONFIRM_WRITE"
+        })
+        assert result == expected_result
+        connection_server._handle_execute_write.assert_called_once_with(
+            "test_conn",
+            "INSERT INTO users (name) VALUES ('Test User')",
+            "CONFIRM_WRITE"
+        )
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_execute_write_no_confirmation(self, connection_server):
+        """Test call_tool handler with dbutils-execute-write tool without confirmation"""
+        # Mock the _handle_execute_write method
+        connection_server._handle_execute_write = AsyncMock()
+
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            connection = arguments["connection"]
+
+            if name == "dbutils-execute-write":
+                sql = arguments.get("sql", "").strip()
+                confirmation = arguments.get("confirmation", "").strip()
+                return await connection_server._handle_execute_write(connection, sql, confirmation)
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+
+        # Test with execute-write tool without confirmation
+        await mock_handle_call_tool("dbutils-execute-write", {
+            "connection": "test_conn",
+            "sql": "INSERT INTO users (name) VALUES ('Test User')",
+            "confirmation": ""
+        })
+
+        connection_server._handle_execute_write.assert_called_once_with(
+            "test_conn",
+            "INSERT INTO users (name) VALUES ('Test User')",
+            ""
+        )
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_execute_write_exception(self, connection_server):
+        """Test call_tool handler with dbutils-execute-write tool when an exception occurs"""
+        # Mock the _handle_execute_write method to raise an exception
+        connection_server._handle_execute_write = AsyncMock(side_effect=ValueError("Test exception"))
+
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            connection = arguments["connection"]
+
+            if name == "dbutils-execute-write":
+                sql = arguments.get("sql", "").strip()
+                confirmation = arguments.get("confirmation", "").strip()
+                try:
+                    return await connection_server._handle_execute_write(connection, sql, confirmation)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in execute_write: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+
+        # Test with execute-write tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-execute-write", {
+                "connection": "test_conn",
+                "sql": "INSERT INTO users (name) VALUES ('Test User')",
+                "confirmation": "CONFIRM_WRITE"
+            })
+
+        # Verify that _handle_execute_write was called and send_log was called for the error
+        connection_server._handle_execute_write.assert_called_once_with(
+            "test_conn",
+            "INSERT INTO users (name) VALUES ('Test User')",
+            "CONFIRM_WRITE"
+        )
+        connection_server.send_log.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_get_audit_logs(self, connection_server):
+        """Test call_tool handler with dbutils-get-audit-logs tool"""
+        # Mock the _handle_get_audit_logs method
+        expected_result = [types.TextContent(type="text", text="Audit logs")]
+        connection_server._handle_get_audit_logs = AsyncMock(return_value=expected_result)
+
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            connection = arguments["connection"]
+
+            if name == "dbutils-get-audit-logs":
+                table = arguments.get("table", "").strip()
+                operation_type = arguments.get("operation_type", "").strip()
+                status = arguments.get("status", "").strip()
+                limit = arguments.get("limit", 100)
+                return await connection_server._handle_get_audit_logs(connection, table, operation_type, status, limit)
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+
+        # Test with get-audit-logs tool
+        result = await mock_handle_call_tool("dbutils-get-audit-logs", {
+            "connection": "test_conn",
+            "table": "users",
+            "operation_type": "INSERT",
+            "status": "SUCCESS",
+            "limit": 10
+        })
+        assert result == expected_result
+        connection_server._handle_get_audit_logs.assert_called_once_with(
+            "test_conn",
+            "users",
+            "INSERT",
+            "SUCCESS",
+            10
+        )
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_get_audit_logs_default_params(self, connection_server):
+        """Test call_tool handler with dbutils-get-audit-logs tool with default parameters"""
+        # Mock the _handle_get_audit_logs method
+        expected_result = [types.TextContent(type="text", text="Audit logs")]
+        connection_server._handle_get_audit_logs = AsyncMock(return_value=expected_result)
+
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            connection = arguments["connection"]
+
+            if name == "dbutils-get-audit-logs":
+                table = arguments.get("table", "").strip()
+                operation_type = arguments.get("operation_type", "").strip()
+                status = arguments.get("status", "").strip()
+                limit = arguments.get("limit", 100)
+                return await connection_server._handle_get_audit_logs(connection, table, operation_type, status, limit)
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+
+        # Test with get-audit-logs tool with minimal parameters
+        result = await mock_handle_call_tool("dbutils-get-audit-logs", {
+            "connection": "test_conn"
+        })
+        assert result == expected_result
+        connection_server._handle_get_audit_logs.assert_called_once_with(
+            "test_conn",
+            "",
+            "",
+            "",
+            100
+        )
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_get_audit_logs_exception(self, connection_server):
+        """Test call_tool handler with dbutils-get-audit-logs tool when an exception occurs"""
+        # Mock the _handle_get_audit_logs method to raise an exception
+        connection_server._handle_get_audit_logs = AsyncMock(side_effect=ValueError("Test exception"))
+
+        # Create a mock call_tool handler function
+        async def mock_handle_call_tool(name, arguments):
+            if "connection" not in arguments:
+                raise ConfigurationError(CONNECTION_NAME_REQUIRED_ERROR)
+
+            connection = arguments["connection"]
+
+            if name == "dbutils-get-audit-logs":
+                table = arguments.get("table", "").strip()
+                operation_type = arguments.get("operation_type", "").strip()
+                status = arguments.get("status", "").strip()
+                limit = arguments.get("limit", 100)
+                try:
+                    return await connection_server._handle_get_audit_logs(connection, table, operation_type, status, limit)
+                except Exception as e:
+                    # Log the error and re-raise
+                    connection_server.send_log(LOG_LEVEL_ERROR, f"Error in get_audit_logs: {str(e)}")
+                    raise
+            else:
+                raise ConfigurationError(f"Unknown tool: {name}")
+
+        # Test with get-audit-logs tool that raises an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await mock_handle_call_tool("dbutils-get-audit-logs", {
+                "connection": "test_conn",
+                "table": "users"
+            })
+
+        # Verify that _handle_get_audit_logs was called and send_log was called for the error
+        connection_server._handle_get_audit_logs.assert_called_once_with(
+            "test_conn",
+            "users",
+            "",
+            "",
+            100
+        )
+        connection_server.send_log.assert_called_once()
+
     def test_setup_handlers(self, connection_server):
         """Test the _setup_handlers method sets up all handlers correctly"""
         # Mock the server decorators
@@ -974,6 +1202,111 @@ class TestConnectionServerHandlers:
         finally:
             # Always restore the original decorator
             connection_server.server.read_resource = original_read_resource
+
+
+class TestConnectionServerWriteOperations:
+    @pytest.mark.asyncio
+    async def test_handle_execute_write(self, connection_server):
+        """Test the _handle_execute_write method"""
+        # Mock the get_handler method
+        mock_handler = AsyncMock()
+        mock_handler.__aenter__.return_value._execute_write_query.return_value = "Write operation executed successfully"
+        connection_server.get_handler = MagicMock(return_value=mock_handler)
+
+        # Call the method
+        result = await connection_server._handle_execute_write(
+            "test_conn",
+            "INSERT INTO users (name) VALUES ('Test User')",
+            "CONFIRM_WRITE"
+        )
+
+        # Verify the result
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Write operation executed successfully" in result[0].text
+
+        # Verify the handler was called correctly
+        connection_server.get_handler.assert_called_once_with("test_conn")
+        mock_handler.__aenter__.return_value._execute_write_query.assert_called_once_with(
+            "INSERT INTO users (name) VALUES ('Test User')"
+        )
+
+    @pytest.mark.asyncio
+    async def test_handle_execute_write_no_confirmation(self, connection_server):
+        """Test the _handle_execute_write method without confirmation"""
+        # Call the method without confirmation
+        with pytest.raises(ValueError, match="Operation not confirmed"):
+            await connection_server._handle_execute_write(
+                "test_conn",
+                "INSERT INTO users (name) VALUES ('Test User')",
+                ""
+            )
+
+        # Verify the handler was not called
+        assert not hasattr(connection_server, "get_handler") or not connection_server.get_handler.called
+
+    @pytest.mark.asyncio
+    async def test_handle_execute_write_exception(self, connection_server):
+        """Test the _handle_execute_write method with an exception"""
+        # Mock the get_handler method to raise an exception
+        mock_handler = AsyncMock()
+        mock_handler.__aenter__.return_value._execute_write_query.side_effect = ValueError("Test exception")
+        connection_server.get_handler = MagicMock(return_value=mock_handler)
+
+        # Call the method and expect an exception
+        with pytest.raises(ValueError, match="Test exception"):
+            await connection_server._handle_execute_write(
+                "test_conn",
+                "INSERT INTO users (name) VALUES ('Test User')",
+                "CONFIRM_WRITE"
+            )
+
+        # Verify the handler was called correctly
+        connection_server.get_handler.assert_called_once_with("test_conn")
+        mock_handler.__aenter__.return_value._execute_write_query.assert_called_once_with(
+            "INSERT INTO users (name) VALUES ('Test User')"
+        )
+
+    @pytest.mark.asyncio
+    async def test_handle_get_audit_logs(self, connection_server):
+        """Test the _handle_get_audit_logs method"""
+        # Mock the format_logs function
+        with patch("mcp_dbutils.base.format_logs") as mock_format_logs:
+            mock_format_logs.return_value = "Formatted audit logs"
+
+            # Call the method
+            result = await connection_server._handle_get_audit_logs(
+                "test_conn",
+                "users",
+                "INSERT",
+                "SUCCESS",
+                10
+            )
+
+            # Verify the result
+            assert isinstance(result, list)
+            assert len(result) == 1
+            assert result[0].type == "text"
+            assert "Formatted audit logs" in result[0].text
+
+            # Verify format_logs was called correctly
+            mock_format_logs.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_handle_get_audit_logs_exception(self, connection_server):
+        """Test the _handle_get_audit_logs method with an exception"""
+        # Mock the format_logs function to raise an exception
+        with patch("mcp_dbutils.base.format_logs", side_effect=ValueError("Test exception")):
+            # Call the method and expect an exception
+            with pytest.raises(ValueError, match="Test exception"):
+                await connection_server._handle_get_audit_logs(
+                    "test_conn",
+                    "users",
+                    "INSERT",
+                    "SUCCESS",
+                    10
+                )
 
 
 class TestConnectionServerRun:
