@@ -3,9 +3,10 @@ import os
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import mcp.types as types
 import pytest
 import yaml
+
+import mcp.types as types
 
 from mcp_dbutils.base import (
     CONNECTION_NOT_WRITABLE_ERROR,

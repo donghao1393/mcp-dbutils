@@ -64,9 +64,8 @@ class TestInit:
         mock_server.return_value = mock_server_instance
 
         # Set debug environment variable
-        with patch.dict(os.environ, {"MCP_DEBUG": "true"}):
-            with patch.object(sys, 'argv', ['mcp_dbutils', '--config', mock_config_file]):
-                await run_server()
+        with patch.dict(os.environ, {"MCP_DEBUG": "true"}), patch.object(sys, 'argv', ['mcp_dbutils', '--config', mock_config_file]):
+            await run_server()
 
         # Assertions
         mock_server.assert_called_once()
