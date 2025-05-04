@@ -128,6 +128,59 @@ class SQLiteHandler(ConnectionHandler):
             error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
             raise ConnectionHandlerError(error_msg)
 
+    async def _execute_write_query(self, sql: str) -> str:
+        """Execute SQL write query
+
+        Args:
+            sql: SQL write query (INSERT, UPDATE, DELETE)
+
+        Returns:
+            str: Execution result
+
+        Raises:
+            ConnectionHandlerError: If query execution fails
+        """
+        try:
+            # Check if the query is a write operation
+            sql_upper = sql.strip().upper()
+            is_insert = sql_upper.startswith("INSERT")
+            is_update = sql_upper.startswith("UPDATE")
+            is_delete = sql_upper.startswith("DELETE")
+            is_transaction = sql_upper.startswith(("BEGIN", "COMMIT", "ROLLBACK"))
+
+            if not (is_insert or is_update or is_delete or is_transaction):
+                raise ConnectionHandlerError("Only INSERT, UPDATE, DELETE, and transaction statements are allowed for write operations")
+
+            conn = sqlite3.connect(self.config.path)
+            cur = conn.cursor()
+
+            try:
+                start_time = time.time()
+                cur.execute(sql)
+                conn.commit()
+                end_time = time.time()
+                elapsed_ms = (end_time - start_time) * 1000
+
+                # Get number of affected rows
+                affected_rows = cur.rowcount
+
+                self.log("debug", f"Write operation executed in {elapsed_ms:.2f}ms, affected {affected_rows} rows")
+
+                # Return result
+                if is_transaction:
+                    return f"Transaction operation executed successfully"
+                else:
+                    return f"Write operation executed successfully. {affected_rows} row{'s' if affected_rows != 1 else ''} affected."
+            except sqlite3.Error as e:
+                self.log("error", f"Write operation error: {str(e)}")
+                raise ConnectionHandlerError(str(e))
+            finally:
+                cur.close()
+                conn.close()
+        except sqlite3.Error as e:
+            error_msg = f"[{self.db_type}] Write operation failed: {str(e)}"
+            raise ConnectionHandlerError(error_msg)
+
     async def get_table_description(self, table_name: str) -> str:
         """Get detailed table description"""
         try:

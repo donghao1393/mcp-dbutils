@@ -181,6 +181,66 @@ class MySQLHandler(ConnectionHandler):
             if conn:
                 conn.close()
 
+    async def _execute_write_query(self, sql: str) -> str:
+        """Execute SQL write query
+
+        Args:
+            sql: SQL write query (INSERT, UPDATE, DELETE)
+
+        Returns:
+            str: Execution result
+
+        Raises:
+            ConnectionHandlerError: If query execution fails
+        """
+        conn = None
+        try:
+            # Check if the query is a write operation
+            sql_upper = sql.strip().upper()
+            is_insert = sql_upper.startswith("INSERT")
+            is_update = sql_upper.startswith("UPDATE")
+            is_delete = sql_upper.startswith("DELETE")
+            is_transaction = sql_upper.startswith(("BEGIN", "COMMIT", "ROLLBACK", "START TRANSACTION"))
+
+            if not (is_insert or is_update or is_delete or is_transaction):
+                raise ConnectionHandlerError("Only INSERT, UPDATE, DELETE, and transaction statements are allowed for write operations")
+
+            conn_params = self.config.get_connection_params()
+            conn = mysql.connector.connect(**conn_params)
+            self.log("debug", f"Executing write operation: {sql}")
+
+            with conn.cursor() as cur:
+                try:
+                    # Execute the write operation
+                    cur.execute(sql)
+
+                    # Get number of affected rows
+                    affected_rows = cur.rowcount
+
+                    # Commit the transaction if not in a transaction block
+                    if not is_transaction:
+                        conn.commit()
+
+                    self.log("debug", f"Write operation executed successfully, affected {affected_rows} rows")
+
+                    # Return result
+                    if is_transaction:
+                        return f"Transaction operation executed successfully"
+                    else:
+                        return f"Write operation executed successfully. {affected_rows} row{'s' if affected_rows != 1 else ''} affected."
+                except mysql.connector.Error as e:
+                    # Rollback on error
+                    if not is_transaction:
+                        conn.rollback()
+                    self.log("error", f"Write operation error: {str(e)}")
+                    raise ConnectionHandlerError(str(e))
+        except mysql.connector.Error as e:
+            error_msg = f"[{self.db_type}] Write operation failed: {str(e)}"
+            raise ConnectionHandlerError(error_msg)
+        finally:
+            if conn:
+                conn.close()
+
     async def get_table_description(self, table_name: str) -> str:
         """Get detailed table description"""
         conn = None
