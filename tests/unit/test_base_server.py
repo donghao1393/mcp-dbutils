@@ -1212,7 +1212,7 @@ class TestConnectionServerWriteOperations:
         connection_server._get_sql_type = MagicMock(return_value="INSERT")
         connection_server._extract_table_name = MagicMock(return_value="users")
         connection_server._get_config_or_raise = MagicMock()
-        connection_server._check_write_permission = MagicMock()
+        connection_server._check_write_permission = AsyncMock()
 
         # Mock the get_handler method
         mock_handler = AsyncMock()
@@ -1268,7 +1268,7 @@ class TestConnectionServerWriteOperations:
         connection_server._get_sql_type = MagicMock(return_value="INSERT")
         connection_server._extract_table_name = MagicMock(return_value="users")
         connection_server._get_config_or_raise = MagicMock()
-        connection_server._check_write_permission = MagicMock()
+        connection_server._check_write_permission = AsyncMock()
 
         # Mock the get_handler method to raise an exception
         mock_handler = AsyncMock()
