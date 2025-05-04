@@ -202,10 +202,12 @@ class TestBaseWriteOperations:
     async def test_handle_execute_write_unsupported_operation(self, connection_server):
         """Test _handle_execute_write method with unsupported operation"""
         # Mock _get_sql_type to return an unsupported operation
-        with patch("mcp_dbutils.base.ConnectionHandler._get_sql_type", return_value="SELECT"):
+        with (
+            patch("mcp_dbutils.base.ConnectionHandler._get_sql_type", return_value="SELECT"),
+            pytest.raises(ConfigurationError, match=UNSUPPORTED_WRITE_OPERATION_ERROR.format(operation="SELECT"))
+        ):
             # Test with unsupported operation
-            with pytest.raises(ConfigurationError, match=UNSUPPORTED_WRITE_OPERATION_ERROR.format(operation="SELECT")):
-                await connection_server._handle_execute_write("test_conn", "SELECT * FROM users", "CONFIRM_WRITE")
+            await connection_server._handle_execute_write("test_conn", "SELECT * FROM users", "CONFIRM_WRITE")
 
     @pytest.mark.asyncio
     async def test_handle_execute_write_success(self, connection_server):
