@@ -70,9 +70,10 @@ class TestWritePermissions:
     async def test_check_write_permission_writable(self, connection_server):
         """Test _check_write_permission with writable connection"""
         # Connection is writable and has no specific permissions
-        assert await connection_server._check_write_permission("test_conn", "users", "INSERT") is True
-        assert await connection_server._check_write_permission("test_conn", "users", "UPDATE") is True
-        assert await connection_server._check_write_permission("test_conn", "users", "DELETE") is True
+        # Method should return None (no exception) if permission is granted
+        await connection_server._check_write_permission("test_conn", "users", "INSERT")
+        await connection_server._check_write_permission("test_conn", "users", "UPDATE")
+        await connection_server._check_write_permission("test_conn", "users", "DELETE")
 
     @pytest.mark.asyncio
     async def test_check_write_permission_readonly(self, connection_server):
@@ -85,16 +86,16 @@ class TestWritePermissions:
     async def test_check_write_permission_with_table_permissions(self, connection_server):
         """Test _check_write_permission with table-specific permissions"""
         # Table 'users' allows INSERT and UPDATE but not DELETE
-        assert await connection_server._check_write_permission("test_conn_with_permissions", "users", "INSERT") is True
-        assert await connection_server._check_write_permission("test_conn_with_permissions", "users", "UPDATE") is True
+        await connection_server._check_write_permission("test_conn_with_permissions", "users", "INSERT")
+        await connection_server._check_write_permission("test_conn_with_permissions", "users", "UPDATE")
 
         with pytest.raises(ConfigurationError, match="No permission to perform DELETE operation on table users"):
             await connection_server._check_write_permission("test_conn_with_permissions", "users", "DELETE")
 
         # Table 'products' allows all operations
-        assert await connection_server._check_write_permission("test_conn_with_permissions", "products", "INSERT") is True
-        assert await connection_server._check_write_permission("test_conn_with_permissions", "products", "UPDATE") is True
-        assert await connection_server._check_write_permission("test_conn_with_permissions", "products", "DELETE") is True
+        await connection_server._check_write_permission("test_conn_with_permissions", "products", "INSERT")
+        await connection_server._check_write_permission("test_conn_with_permissions", "products", "UPDATE")
+        await connection_server._check_write_permission("test_conn_with_permissions", "products", "DELETE")
 
         # Table 'unknown_table' is not explicitly configured, default policy is read_only
         with pytest.raises(ConfigurationError, match="No permission to perform INSERT operation on table unknown_table"):
@@ -104,6 +105,6 @@ class TestWritePermissions:
     async def test_check_write_permission_allow_all(self, connection_server):
         """Test _check_write_permission with allow_all default policy"""
         # Default policy is allow_all
-        assert await connection_server._check_write_permission("test_conn_allow_all", "any_table", "INSERT") is True
-        assert await connection_server._check_write_permission("test_conn_allow_all", "any_table", "UPDATE") is True
-        assert await connection_server._check_write_permission("test_conn_allow_all", "any_table", "DELETE") is True
+        await connection_server._check_write_permission("test_conn_allow_all", "any_table", "INSERT")
+        await connection_server._check_write_permission("test_conn_allow_all", "any_table", "UPDATE")
+        await connection_server._check_write_permission("test_conn_allow_all", "any_table", "DELETE")
