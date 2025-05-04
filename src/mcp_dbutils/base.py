@@ -189,7 +189,8 @@ class ConnectionHandler(ABC):
                     # 从结果字符串中提取受影响的行数
                     import re
                     # 使用更安全的正则表达式，避免回溯问题
-                    match = re.search(r"(\d+) rows?", result)
+                    # 使用非回溯的正则表达式，限制数字长度，避免DoS风险
+                    match = re.search(r"([0-9]{1,10}) rows?", result)
                     if match:
                         affected_rows = int(match.group(1))
             except Exception:
@@ -661,8 +662,6 @@ class ConnectionServer:
                 raise ConfigurationError(WRITE_OPERATION_NOT_ALLOWED_ERROR.format(
                     operation=operation_type, table=table_name
                 ))
-
-        return False
 
     def _create_handler_for_type(
         self, db_type: str, connection: str
