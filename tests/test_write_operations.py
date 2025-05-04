@@ -130,21 +130,21 @@ def server(config_file):
                 parts = sql_upper.split("INTO", 1)
                 if len(parts) > 1:
                     table_part = parts[1].strip().split(" ", 1)[0]
-                    table_name = table_part.strip('`"[]')
+                    table_name = table_part.strip('`"[]').lower()
                 else:
                     table_name = "unknown_table"
             elif sql_type == "UPDATE":
                 parts = sql_upper.split("UPDATE", 1)
                 if len(parts) > 1:
                     table_part = parts[1].strip().split(" ", 1)[0]
-                    table_name = table_part.strip('`"[]')
+                    table_name = table_part.strip('`"[]').lower()
                 else:
                     table_name = "unknown_table"
             elif sql_type == "DELETE":
                 parts = sql_upper.split("FROM", 1)
                 if len(parts) > 1:
                     table_part = parts[1].strip().split(" ", 1)[0]
-                    table_name = table_part.strip('`"[]')
+                    table_name = table_part.strip('`"[]').lower()
                 else:
                     table_name = "unknown_table"
             else:
