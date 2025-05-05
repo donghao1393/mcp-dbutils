@@ -387,9 +387,7 @@ class SQLQueryBuilder(QueryBuilder):
         """
         if self.db_type == 'mysql':
             return f"`{identifier}`"
-        elif self.db_type == 'postgresql':
-            return f'"{identifier}"'
-        elif self.db_type == 'sqlite':
+        elif self.db_type == 'postgresql' or self.db_type == 'sqlite':
             return f'"{identifier}"'
         else:
             return identifier

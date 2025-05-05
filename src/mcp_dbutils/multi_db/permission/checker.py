@@ -90,9 +90,7 @@ class PermissionChecker:
             resource_permissions = resources[resource_name]
             allowed_operations = resource_permissions.get('operations', [])
             
-            if operation_type in allowed_operations:
-                return True
-            elif 'ALL' in allowed_operations:
+            if operation_type in allowed_operations or 'ALL' in allowed_operations:
                 return True
                 
         # 尝试模式匹配
@@ -103,9 +101,7 @@ class PermissionChecker:
                 if re.match(f"^{regex_pattern}$", resource_name):
                     allowed_operations = resource_permissions.get('operations', [])
                     
-                    if operation_type in allowed_operations:
-                        return True
-                    elif 'ALL' in allowed_operations:
+                    if operation_type in allowed_operations or 'ALL' in allowed_operations:
                         return True
                         
         # 检查默认策略

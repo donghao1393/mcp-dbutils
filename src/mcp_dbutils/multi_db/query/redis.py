@@ -8,7 +8,7 @@ Redis命令构建器实现
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..error.exceptions import QueryError, NotImplementedError
+from ..error.exceptions import NotImplementedError, QueryError
 from .base import Query, QueryBuilder
 
 

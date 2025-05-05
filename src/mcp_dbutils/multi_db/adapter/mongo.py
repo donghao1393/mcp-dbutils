@@ -11,7 +11,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from ..connection.base import ConnectionBase
 from ..connection.mongo import MongoConnection
 from ..error.exceptions import (
-    ConnectionError, DatabaseError, ResourceNotFoundError, QueryError, NotImplementedError
+    ConnectionError,
+    DatabaseError,
+    NotImplementedError,
+    QueryError,
+    ResourceNotFoundError,
 )
 from .base import AdapterBase
 

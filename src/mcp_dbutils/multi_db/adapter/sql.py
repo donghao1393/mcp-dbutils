@@ -11,7 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from ..connection.base import ConnectionBase
 from ..connection.sql import SQLConnection
 from ..error.exceptions import (
-    ConnectionError, DatabaseError, ResourceNotFoundError, QueryError
+    ConnectionError,
+    DatabaseError,
+    QueryError,
+    ResourceNotFoundError,
 )
 from .base import AdapterBase
 
@@ -169,25 +172,7 @@ class SQLAdapter(AdapterBase):
             # 转换结果为字典列表
             resources = []
             for row in result:
-                if self.db_type == 'mysql':
-                    resources.append({
-                        'name': row[0],
-                        'type': row[1],
-                        'engine': row[2],
-                        'comment': row[3],
-                        'created_at': row[4],
-                        'updated_at': row[5]
-                    })
-                elif self.db_type == 'postgresql':
-                    resources.append({
-                        'name': row[0],
-                        'type': row[1],
-                        'engine': row[2],
-                        'comment': row[3],
-                        'created_at': row[4],
-                        'updated_at': row[5]
-                    })
-                elif self.db_type == 'sqlite':
+                if self.db_type == 'mysql' or self.db_type == 'postgresql' or self.db_type == 'sqlite':
                     resources.append({
                         'name': row[0],
                         'type': row[1],
@@ -270,9 +255,7 @@ class SQLAdapter(AdapterBase):
             # 获取行数
             if self.db_type == 'mysql':
                 query = f"SELECT COUNT(*) FROM `{resource_name}`"
-            elif self.db_type == 'postgresql':
-                query = f'SELECT COUNT(*) FROM "{resource_name}"'
-            elif self.db_type == 'sqlite':
+            elif self.db_type == 'postgresql' or self.db_type == 'sqlite':
                 query = f'SELECT COUNT(*) FROM "{resource_name}"'
             else:
                 raise DatabaseError(f"Unsupported database type: {self.db_type}")
@@ -482,17 +465,7 @@ class SQLAdapter(AdapterBase):
             
             columns = []
             for row in result:
-                if self.db_type == 'mysql':
-                    columns.append({
-                        'name': row[0],
-                        'type': row[1],
-                        'full_type': row[2],
-                        'nullable': row[3] == 'YES',
-                        'default': row[4],
-                        'comment': row[5],
-                        'extra': row[6]
-                    })
-                elif self.db_type == 'postgresql':
+                if self.db_type == 'mysql' or self.db_type == 'postgresql':
                     columns.append({
                         'name': row[0],
                         'type': row[1],

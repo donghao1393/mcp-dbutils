@@ -9,7 +9,7 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..error.exceptions import ConnectionError, ConfigurationError
+from ..error.exceptions import ConfigurationError, ConnectionError
 from .base import ConnectionBase
 from .factory import ConnectionFactory
 
