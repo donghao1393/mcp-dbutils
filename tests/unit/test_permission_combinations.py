@@ -1,7 +1,8 @@
 """测试权限组合和继承规则"""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from mcp_dbutils.base import ConfigurationError, ConnectionServer
 

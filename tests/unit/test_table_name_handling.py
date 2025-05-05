@@ -1,7 +1,8 @@
 """测试表名处理逻辑，包括大小写敏感性和边界情况"""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from mcp_dbutils.base import ConfigurationError, ConnectionServer
 
