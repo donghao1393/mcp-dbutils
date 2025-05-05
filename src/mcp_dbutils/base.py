@@ -569,6 +569,7 @@ class ConnectionServer:
         """Extract table name from SQL statement
 
         This is a simple implementation that works for basic SQL statements.
+        Handles multi-line SQL statements by normalizing whitespace.
 
         Args:
             sql: SQL statement
@@ -577,23 +578,26 @@ class ConnectionServer:
             str: Table name
         """
         sql_type = self._get_sql_type(sql)
-        sql = sql.strip()
+
+        # 预处理SQL：规范化空白字符，将多行SQL转换为单行
+        # 将所有连续的空白字符（包括换行符、制表符等）替换为单个空格
+        normalized_sql = " ".join(sql.split())
 
         if sql_type == "INSERT":
             # INSERT INTO table_name ...
-            match = sql.upper().split("INTO", 1)
+            match = normalized_sql.upper().split("INTO", 1)
             if len(match) > 1:
                 table_part = match[1].strip().split(" ", 1)[0]
                 return table_part.strip('`"[]')
         elif sql_type == "UPDATE":
             # UPDATE table_name ...
-            match = sql.upper().split("UPDATE", 1)
+            match = normalized_sql.upper().split("UPDATE", 1)
             if len(match) > 1:
                 table_part = match[1].strip().split(" ", 1)[0]
                 return table_part.strip('`"[]')
         elif sql_type == "DELETE":
             # DELETE FROM table_name ...
-            match = sql.upper().split("FROM", 1)
+            match = normalized_sql.upper().split("FROM", 1)
             if len(match) > 1:
                 table_part = match[1].strip().split(" ", 1)[0]
                 return table_part.strip('`"[]')

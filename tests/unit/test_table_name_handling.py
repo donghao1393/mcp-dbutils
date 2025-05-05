@@ -135,18 +135,16 @@ class TestTableNameHandling:
 
             # 测试带空格和注释的SQL
             assert server._extract_table_name("INSERT INTO users -- comment\nVALUES (1, 'test')") == "USERS"
-            # 注意：当前实现在处理带换行符的SQL语句时可能有问题，暂时跳过这个测试
-            # assert server._extract_table_name("INSERT INTO\nusers\nVALUES (1, 'test')") == "USERS"
+            assert server._extract_table_name("INSERT INTO\nusers\nVALUES (1, 'test')") == "USERS"
 
             # 测试复杂SQL
-            # 注意：当前实现在处理多行SQL语句时可能有问题，暂时跳过这个测试
-            # complex_sql = """
-            # INSERT INTO users (id, name, email)
-            # SELECT id, name, email
-            # FROM temp_users
-            # WHERE active = 1
-            # """
-            # assert server._extract_table_name(complex_sql) == "USERS"
+            complex_sql = """
+            INSERT INTO users (id, name, email)
+            SELECT id, name, email
+            FROM temp_users
+            WHERE active = 1
+            """
+            assert server._extract_table_name(complex_sql) == "USERS"
 
             # 测试无效SQL
             assert server._extract_table_name("SELECT * FROM users") == "unknown_table"

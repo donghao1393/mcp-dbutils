@@ -86,48 +86,43 @@ class TestSQLParsing:
         assert server._extract_table_name("INSERT INTO users (id, name) VALUES (1, 'test')").lower() == "users"
 
         # Test INSERT with multiple rows
-        # 注意：当前实现在处理多行SQL语句时可能有问题，暂时跳过这个测试
-        # assert server._extract_table_name("""
-        # INSERT INTO users (id, name) VALUES
-        # (1, 'test1'),
-        # (2, 'test2'),
-        # (3, 'test3')
-        # """).lower() == "users"
+        assert server._extract_table_name("""
+        INSERT INTO users (id, name) VALUES
+        (1, 'test1'),
+        (2, 'test2'),
+        (3, 'test3')
+        """).lower() == "users"
 
         # Test INSERT ... SELECT
-        # 注意：当前实现在处理多行SQL语句时可能有问题，暂时跳过这个测试
-        # assert server._extract_table_name("""
-        # INSERT INTO users (id, name, email)
-        # SELECT id, name, email
-        # FROM temp_users
-        # WHERE active = 1
-        # """).lower() == "users"
+        assert server._extract_table_name("""
+        INSERT INTO users (id, name, email)
+        SELECT id, name, email
+        FROM temp_users
+        WHERE active = 1
+        """).lower() == "users"
 
         # Test UPDATE with multiple columns
-        # 注意：当前实现在处理多行SQL语句时可能有问题，暂时跳过这个测试
-        # assert server._extract_table_name("""
-        # UPDATE users
-        # SET name = 'test',
-        #     email = 'test@example.com',
-        #     updated_at = CURRENT_TIMESTAMP
-        # WHERE id IN (1, 2, 3)
-        # """).lower() == "users"
+        assert server._extract_table_name("""
+        UPDATE users
+        SET name = 'test',
+            email = 'test@example.com',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id IN (1, 2, 3)
+        """).lower() == "users"
 
         # Test DELETE with subquery
-        # 注意：当前实现在处理多行SQL语句时可能有问题，暂时跳过这个测试
-        # assert server._extract_table_name("""
-        # DELETE FROM users
-        # WHERE id IN (
-        #     SELECT user_id
-        #     FROM inactive_users
-        #     WHERE last_login < '2020-01-01'
-        # )
-        # """).lower() == "users"
+        assert server._extract_table_name("""
+        DELETE FROM users
+        WHERE id IN (
+            SELECT user_id
+            FROM inactive_users
+            WHERE last_login < '2020-01-01'
+        )
+        """).lower() == "users"
 
         # Test with comments and whitespace
         assert server._extract_table_name("INSERT INTO users -- comment\nVALUES (1, 'test')").lower() == "users"
-        # 注意：当前实现在处理带换行符的SQL语句时可能有问题，暂时跳过这个测试
-        # assert server._extract_table_name("INSERT INTO\nusers\nVALUES (1, 'test')").lower() == "users"
+        assert server._extract_table_name("INSERT INTO\nusers\nVALUES (1, 'test')").lower() == "users"
         assert server._extract_table_name("UPDATE users -- comment\nSET name = 'test'").lower() == "users"
         assert server._extract_table_name("DELETE FROM users -- comment\nWHERE id = 1").lower() == "users"
 
