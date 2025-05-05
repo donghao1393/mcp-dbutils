@@ -108,3 +108,18 @@ class TestWritePermissions:
         await connection_server._check_write_permission("test_conn_allow_all", "any_table", "INSERT")
         await connection_server._check_write_permission("test_conn_allow_all", "any_table", "UPDATE")
         await connection_server._check_write_permission("test_conn_allow_all", "any_table", "DELETE")
+
+    @pytest.mark.asyncio
+    async def test_check_write_permission_case_insensitive(self, connection_server):
+        """Test _check_write_permission with different table name case"""
+        # Table 'users' in config, but using 'USERS' in query
+        await connection_server._check_write_permission("test_conn_with_permissions", "USERS", "INSERT")
+        await connection_server._check_write_permission("test_conn_with_permissions", "USERS", "UPDATE")
+
+        with pytest.raises(ConfigurationError, match="No permission to perform DELETE operation on table USERS"):
+            await connection_server._check_write_permission("test_conn_with_permissions", "USERS", "DELETE")
+
+        # Table 'products' in config, but using mixed case 'Products' in query
+        await connection_server._check_write_permission("test_conn_with_permissions", "Products", "INSERT")
+        await connection_server._check_write_permission("test_conn_with_permissions", "Products", "UPDATE")
+        await connection_server._check_write_permission("test_conn_with_permissions", "Products", "DELETE")

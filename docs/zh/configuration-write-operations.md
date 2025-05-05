@@ -92,6 +92,28 @@ tables:
 
 如果未指定`operations`，则默认允许所有写操作（INSERT、UPDATE、DELETE）。
 
+### 2.4 表名大小写处理
+
+MCP-DBUtils 在处理表名时采用大小写不敏感的比较策略：
+
+- 在配置文件中，表名可以使用任意大小写（如 `users`、`Users` 或 `USERS`）。
+- 在 SQL 语句中，表名同样可以使用任意大小写。
+- 系统会自动将表名转换为小写进行比较，确保大小写不影响权限检查。
+
+例如，以下配置和 SQL 语句都能正确匹配：
+
+```yaml
+# 配置文件中使用小写表名
+tables:
+  users:
+    operations: [INSERT, UPDATE]
+```
+
+```sql
+-- SQL 语句中使用大写表名，仍然能正确匹配权限
+INSERT INTO USERS (id, name) VALUES (1, 'test');
+```
+
 ## 3. 完整配置示例
 
 以下是一个包含多种配置场景的完整示例：
@@ -103,7 +125,7 @@ connections:
     type: sqlite
     database: ":memory:"
     # 未指定writable，默认为false（只读）
-  
+
   # 示例2：可写连接，无细粒度控制
   simple_writable_mysql:
     type: mysql
@@ -114,7 +136,7 @@ connections:
     password: secret
     writable: true
     # 未指定write_permissions，所有表都可写
-  
+
   # 示例3：可写连接，有表级和操作级控制
   controlled_postgres:
     type: postgres
@@ -124,7 +146,7 @@ connections:
     user: postgres
     password: postgres
     writable: true
-    
+
     write_permissions:
       # 表级权限
       tables:
@@ -134,10 +156,10 @@ connections:
           operations: [INSERT]  # 只允许插入
         temp_data:
           operations: [INSERT, UPDATE, DELETE]  # 允许所有写操作
-      
+
       # 默认策略
       default_policy: read_only  # 未指定的表默认只读
-  
+
   # 示例4：可写连接，只有默认策略
   all_writable_postgres:
     type: postgres
@@ -147,7 +169,7 @@ connections:
     user: postgres
     password: postgres
     writable: true
-    
+
     write_permissions:
       default_policy: allow_all  # 所有表默认可写
 ```
@@ -210,6 +232,7 @@ connections:
 | "Connection is not configured for write operations" | 连接未设置`writable: true` | 在配置文件中添加`writable: true` |
 | "No permission to perform [操作] on table [表名]" | 表未被允许执行该操作 | 在`write_permissions.tables`中添加表和操作 |
 | "Operation not confirmed" | 未提供正确的确认参数 | 在工具调用中添加`confirmation: "CONFIRM_WRITE"` |
+| "No permission to perform [操作] on table [大写表名]" | SQL语句中使用了大写表名，但配置中使用小写表名 | 系统已支持大小写不敏感的表名比较，此问题在v1.0.1及以上版本已修复 |
 
 ## 6. 配置迁移
 

@@ -625,6 +625,9 @@ class ConnectionServer:
             # 没有细粒度权限控制，默认允许所有写操作
             return
 
+        # 将表名转换为小写，用于大小写不敏感的比较
+        table_name_lower = table_name.lower()
+
         # 检查表级权限
         tables = write_permissions.get("tables", {})
         if not tables:
@@ -638,9 +641,12 @@ class ConnectionServer:
                     operation=operation_type, table=table_name
                 ))
 
-        # 检查特定表的权限
-        if table_name in tables:
-            table_config = tables[table_name]
+        # 创建表名到配置的映射，支持大小写不敏感的比较
+        tables_lower = {k.lower(): v for k, v in tables.items()}
+
+        # 检查特定表的权限（大小写不敏感）
+        if table_name_lower in tables_lower:
+            table_config = tables_lower[table_name_lower]
             operations = table_config.get("operations", ["INSERT", "UPDATE", "DELETE"])
             if operation_type in operations:
                 return

@@ -41,6 +41,28 @@ connections:
   - `default_policy`：默认策略，可选值为 `read_only`（只读）或 `allow_all`（允许所有写操作）。
   - `tables`：表级权限配置，可以为每个表指定允许的操作类型。
 
+### 表名大小写处理
+
+MCP-DBUtils 在处理表名时采用大小写不敏感的比较策略：
+
+- 在配置文件中，表名可以使用任意大小写（如 `users`、`Users` 或 `USERS`）。
+- 在 SQL 语句中，表名同样可以使用任意大小写。
+- 系统会自动将表名转换为小写进行比较，确保大小写不影响权限检查。
+
+例如，以下配置和 SQL 语句都能正确匹配：
+
+```yaml
+# 配置文件中使用小写表名
+tables:
+  users:
+    operations: ["INSERT", "UPDATE"]
+```
+
+```sql
+-- SQL 语句中使用大写表名，仍然能正确匹配权限
+INSERT INTO USERS (id, name) VALUES (1, 'test');
+```
+
 ## 使用写操作工具
 
 MCP-DBUtils 提供了 `dbutils-execute-write` 工具用于执行写操作：
