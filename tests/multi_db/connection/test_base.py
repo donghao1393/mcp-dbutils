@@ -4,8 +4,9 @@
 这个模块测试多数据库支持架构中的连接基类。
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 
 from mcp_dbutils.multi_db.connection.base import ConnectionBase
 from mcp_dbutils.multi_db.error.exceptions import ConnectionError, TransactionError

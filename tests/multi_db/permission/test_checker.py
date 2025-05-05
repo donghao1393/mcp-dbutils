@@ -4,11 +4,12 @@
 这个模块测试多数据库支持架构中的权限检查器。
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
-from mcp_dbutils.multi_db.permission.checker import PermissionChecker
+import pytest
+
 from mcp_dbutils.multi_db.error.exceptions import PermissionError
+from mcp_dbutils.multi_db.permission.checker import PermissionChecker
 
 
 class TestPermissionChecker:

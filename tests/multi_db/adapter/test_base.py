@@ -4,8 +4,9 @@
 这个模块测试多数据库支持架构中的适配器基类。
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from mcp_dbutils.multi_db.adapter.base import AdapterBase
 from mcp_dbutils.multi_db.error.exceptions import DatabaseError

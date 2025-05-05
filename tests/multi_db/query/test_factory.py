@@ -4,12 +4,13 @@
 这个模块测试多数据库支持架构中的查询工厂。
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
+from mcp_dbutils.multi_db.error.exceptions import ConfigurationError
 from mcp_dbutils.multi_db.query.factory import QueryBuilderFactory
 from mcp_dbutils.multi_db.query.sql import SQLQueryBuilder
-from mcp_dbutils.multi_db.error.exceptions import ConfigurationError
 
 
 class TestQueryBuilderFactory:

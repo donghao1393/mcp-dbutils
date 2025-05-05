@@ -4,8 +4,9 @@
 这个模块测试多数据库支持架构中的查询基类。
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from mcp_dbutils.multi_db.query.base import Query, QueryBuilder
 

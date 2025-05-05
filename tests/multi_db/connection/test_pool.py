@@ -4,9 +4,10 @@
 这个模块测试多数据库支持架构中的连接池。
 """
 
-import pytest
 import time
 from unittest.mock import Mock, patch
+
+import pytest
 
 from mcp_dbutils.multi_db.connection.pool import ConnectionPool
 from mcp_dbutils.multi_db.error.exceptions import ConfigurationError, ConnectionError

@@ -4,8 +4,9 @@
 这个模块测试多数据库支持架构中的适配器工厂。
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 
 from mcp_dbutils.multi_db.adapter.factory import AdapterFactory
 from mcp_dbutils.multi_db.adapter.sql import SQLAdapter

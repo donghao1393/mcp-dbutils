@@ -4,8 +4,9 @@
 这个模块测试多数据库支持架构中的重试处理器。
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 
 from mcp_dbutils.multi_db.error.exceptions import ConnectionError, QueryError
 from mcp_dbutils.multi_db.error.retry import RetryHandler

@@ -4,10 +4,11 @@
 这个模块测试多数据库支持架构中的审计日志记录器。
 """
 
-import os
 import json
+import os
+from unittest.mock import Mock, mock_open, patch
+
 import pytest
-from unittest.mock import Mock, patch, mock_open
 
 from mcp_dbutils.multi_db.permission.audit import AuditLogger
 
