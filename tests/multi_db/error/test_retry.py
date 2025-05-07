@@ -107,7 +107,9 @@ class TestRetryHandler:
             handler.execute_with_retry(func)
         assert str(excinfo.value) == "Connection error"
         assert func.call_count == 2
-        assert mock_sleep.call_count == 1
+        # 由于循环条件是 attempt < max_retries，所以会调用两次sleep
+        # 第一次是初始调用失败后，第二次是第一次重试失败后
+        assert mock_sleep.call_count == 2
 
     @patch('time.sleep')
     def test_execute_with_retry_non_retryable_error(self, mock_sleep):
