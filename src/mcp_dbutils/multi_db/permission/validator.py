@@ -18,6 +18,9 @@ class OperationValidator:
     这个类负责验证数据库操作的有效性，确保操作符合规则。
     """
 
+    # 特殊表名常量，用于表示未知或不需要验证的表
+    UNKNOWN_TABLE = "unknown_table"
+
     def __init__(self):
         """
         初始化操作验证器
@@ -99,7 +102,7 @@ class OperationValidator:
 
         # 验证资源名和查询的一致性
         # 这是一个简单的验证，可能不适用于所有情况
-        if resource_name != "unknown_table":
+        if resource_name != self.UNKNOWN_TABLE:
             # 尝试在查询中找到资源名
             # 这是一个简单的实现，可能不适用于所有情况
             pattern = r'\b' + re.escape(resource_name) + r'\b'
