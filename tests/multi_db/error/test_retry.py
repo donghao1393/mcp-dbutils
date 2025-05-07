@@ -124,17 +124,18 @@ class TestRetryHandler:
         """测试重试装饰器"""
         handler = RetryHandler()
         func = Mock(side_effect=[ConnectionError("Connection error"), "success"])
-        
+
         # 使用装饰器
         decorated_func = handler.retry()(func)
         result = decorated_func("arg1", arg2="arg2")
-        
+
         assert result == "success"
         assert func.call_count == 2
-        func.assert_has_calls([
-            Mock().call("arg1", arg2="arg2"),
-            Mock().call("arg1", arg2="arg2")
-        ])
+        # 检查调用参数，而不是比较Mock对象
+        assert func.call_args_list == [
+            ((("arg1",), {"arg2": "arg2"})),
+            ((("arg1",), {"arg2": "arg2"}))
+        ]
         mock_sleep.assert_called_once()
 
     @patch('time.sleep')
@@ -142,11 +143,11 @@ class TestRetryHandler:
         """测试带自定义参数的重试装饰器"""
         handler = RetryHandler()
         func = Mock(side_effect=[ConnectionError("Connection error"), ConnectionError("Connection error"), "success"])
-        
+
         # 使用带自定义参数的装饰器
         decorated_func = handler.retry(max_retries=5, initial_delay=0.2)(func)
         result = decorated_func()
-        
+
         assert result == "success"
         assert func.call_count == 3
         assert mock_sleep.call_count == 2
