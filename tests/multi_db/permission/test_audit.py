@@ -4,11 +4,8 @@
 这个模块测试多数据库支持架构中的审计日志记录器。
 """
 
-import json
 import os
-from unittest.mock import Mock, mock_open, patch
-
-import pytest
+from unittest.mock import mock_open, patch
 
 from mcp_dbutils.multi_db.permission.audit import AuditLogger
 
@@ -19,8 +16,10 @@ class TestAuditLogger:
     @patch('os.path.expanduser')
     @patch('os.path.exists')
     @patch('os.makedirs')
-    def test_init(self, mock_makedirs, mock_exists, mock_expanduser):
+    @patch('os.environ.get')
+    def test_init(self, mock_env_get, mock_makedirs, mock_exists, mock_expanduser):
         """测试初始化"""
+        mock_env_get.return_value = None  # 非测试环境
         mock_expanduser.return_value = "/home/user"
         mock_exists.return_value = False
 
@@ -32,8 +31,10 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('os.makedirs')
-    def test_init_custom_log_file(self, mock_makedirs, mock_exists):
+    @patch('os.environ.get')
+    def test_init_custom_log_file(self, mock_env_get, mock_makedirs, mock_exists):
         """测试自定义日志文件的初始化"""
+        mock_env_get.return_value = None  # 非测试环境
         mock_exists.return_value = False
 
         logger = AuditLogger(log_file="custom/path/audit.log", log_to_console=True)
@@ -44,18 +45,22 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('os.makedirs')
-    def test_init_log_dir_exists(self, mock_makedirs, mock_exists):
+    @patch('os.environ.get')
+    def test_init_log_dir_exists(self, mock_env_get, mock_makedirs, mock_exists):
         """测试日志目录已存在的初始化"""
+        mock_env_get.return_value = None  # 非测试环境
         mock_exists.return_value = True
 
-        logger = AuditLogger(log_file="custom/path/audit.log")
+        AuditLogger(log_file="custom/path/audit.log")
 
         mock_makedirs.assert_not_called()
 
     @patch('builtins.open', new_callable=mock_open)
     @patch('json.dumps')
-    def test_log_operation(self, mock_dumps, mock_file):
+    @patch('os.environ.get')
+    def test_log_operation(self, mock_env_get, mock_dumps, mock_file):
         """测试记录操作日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_dumps.return_value = '{"test": "json"}'
 
         logger = AuditLogger(log_file="test/audit.log")
@@ -65,8 +70,10 @@ class TestAuditLogger:
         mock_file().write.assert_called_once_with('{"test": "json"}\n')
 
     @patch('builtins.open', new_callable=mock_open)
-    def test_log_operation_read(self, mock_file):
+    @patch('os.environ.get')
+    def test_log_operation_read(self, mock_env_get, mock_file):
         """测试记录读操作日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         logger = AuditLogger(log_file="test/audit.log")
         logger.log_operation("test_conn", "test_table", "READ", "test_user")
 
@@ -74,8 +81,10 @@ class TestAuditLogger:
 
     @patch('builtins.open', new_callable=mock_open)
     @patch('json.dumps')
-    def test_log_failed_operation(self, mock_dumps, mock_file):
+    @patch('os.environ.get')
+    def test_log_failed_operation(self, mock_env_get, mock_dumps, mock_file):
         """测试记录失败操作日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_dumps.return_value = '{"test": "json"}'
 
         logger = AuditLogger(log_file="test/audit.log")
@@ -85,8 +94,10 @@ class TestAuditLogger:
         mock_file().write.assert_called_once_with('{"test": "json"}\n')
 
     @patch('builtins.open', new_callable=mock_open)
-    def test_log_failed_operation_read(self, mock_file):
+    @patch('os.environ.get')
+    def test_log_failed_operation_read(self, mock_env_get, mock_file):
         """测试记录失败读操作日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         logger = AuditLogger(log_file="test/audit.log")
         logger.log_failed_operation("test_conn", "test_table", "READ", "test_user", "Error message")
 
@@ -94,8 +105,10 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('builtins.open', new_callable=mock_open)
-    def test_get_logs_file_not_exists(self, mock_file, mock_exists):
+    @patch('os.environ.get')
+    def test_get_logs_file_not_exists(self, mock_env_get, mock_file, mock_exists):
         """测试文件不存在时获取日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_exists.return_value = False
 
         logger = AuditLogger(log_file="test/audit.log")
@@ -106,8 +119,10 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('builtins.open')
-    def test_get_logs(self, mock_file, mock_exists):
+    @patch('os.environ.get')
+    def test_get_logs(self, mock_env_get, mock_file, mock_exists):
         """测试获取日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value = [
             '{"timestamp": "2023-01-01T00:00:00", "connection": "test_conn", "resource": "test_table", "operation": "INSERT", "user": "test_user", "status": "SUCCESS"}\n',
@@ -115,7 +130,7 @@ class TestAuditLogger:
             '{"timestamp": "2023-01-01T00:02:00", "connection": "other_conn", "resource": "test_table", "operation": "DELETE", "user": "test_user", "status": "FAILED"}\n'
         ]
 
-        logger = AuditLogger(log_file="/test/audit.log")
+        logger = AuditLogger(log_file="test/audit.log")
         logs = logger.get_logs()
 
         assert len(logs) == 3
@@ -129,8 +144,10 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('builtins.open')
-    def test_get_logs_with_filters(self, mock_file, mock_exists):
+    @patch('os.environ.get')
+    def test_get_logs_with_filters(self, mock_env_get, mock_file, mock_exists):
         """测试带过滤条件获取日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value = [
             '{"timestamp": "2023-01-01T00:00:00", "connection": "test_conn", "resource": "test_table", "operation": "INSERT", "user": "test_user", "status": "SUCCESS"}\n',
@@ -138,7 +155,7 @@ class TestAuditLogger:
             '{"timestamp": "2023-01-01T00:02:00", "connection": "other_conn", "resource": "test_table", "operation": "DELETE", "user": "test_user", "status": "FAILED"}\n'
         ]
 
-        logger = AuditLogger(log_file="/test/audit.log")
+        logger = AuditLogger(log_file="test/audit.log")
         logs = logger.get_logs(connection="test_conn", resource="test_table")
 
         assert len(logs) == 1
@@ -148,8 +165,10 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('builtins.open')
-    def test_get_logs_with_limit(self, mock_file, mock_exists):
+    @patch('os.environ.get')
+    def test_get_logs_with_limit(self, mock_env_get, mock_file, mock_exists):
         """测试带限制获取日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_exists.return_value = True
         mock_file.return_value.__enter__.return_value = [
             '{"timestamp": "2023-01-01T00:00:00", "connection": "test_conn", "resource": "test_table", "operation": "INSERT", "user": "test_user", "status": "SUCCESS"}\n',
@@ -157,15 +176,17 @@ class TestAuditLogger:
             '{"timestamp": "2023-01-01T00:02:00", "connection": "other_conn", "resource": "test_table", "operation": "DELETE", "user": "test_user", "status": "FAILED"}\n'
         ]
 
-        logger = AuditLogger(log_file="/test/audit.log")
+        logger = AuditLogger(log_file="test/audit.log")
         logs = logger.get_logs(limit=2)
 
         assert len(logs) == 2
 
     @patch('os.path.exists')
     @patch('os.remove')
-    def test_clear_logs(self, mock_remove, mock_exists):
+    @patch('os.environ.get')
+    def test_clear_logs(self, mock_env_get, mock_remove, mock_exists):
         """测试清除日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_exists.return_value = True
 
         logger = AuditLogger(log_file="test/audit.log")
@@ -175,8 +196,10 @@ class TestAuditLogger:
 
     @patch('os.path.exists')
     @patch('os.remove')
-    def test_clear_logs_file_not_exists(self, mock_remove, mock_exists):
+    @patch('os.environ.get')
+    def test_clear_logs_file_not_exists(self, mock_env_get, mock_remove, mock_exists):
         """测试文件不存在时清除日志"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_exists.return_value = False
 
         logger = AuditLogger(log_file="test/audit.log")
@@ -185,11 +208,12 @@ class TestAuditLogger:
         mock_remove.assert_not_called()
 
     @patch('os.path.expanduser')
-    def test_get_default_log_file(self, mock_expanduser):
+    @patch('os.environ.get')
+    def test_get_default_log_file(self, mock_env_get, mock_expanduser):
         """测试获取默认日志文件路径"""
+        mock_env_get.return_value = "True"  # 模拟测试环境
         mock_expanduser.return_value = "/home/user"
 
-        logger = AuditLogger()
-        log_file = logger._get_default_log_file()
+        log_file = AuditLogger._get_default_log_file()
 
         assert log_file == "/home/user/.mcp_dbutils/logs/audit.log"
