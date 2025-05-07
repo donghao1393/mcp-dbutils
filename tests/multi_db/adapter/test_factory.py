@@ -23,30 +23,39 @@ class TestAdapterFactory:
 
     def test_create_adapter_sql(self):
         """测试创建SQL适配器"""
+        # 创建一个真实的SQLConnection类的子类，而不是Mock
+        class TestSQLConnection(SQLConnection):
+            def __init__(self, config=None):
+                self.db_type = "mysql"
+
+        # 创建一个真实的SQLAdapter类的子类，而不是Mock
+        class TestSQLAdapter:
+            def __init__(self, connection):
+                self.connection = connection
+
         factory = AdapterFactory()
 
         # 保存原始类
         original_class = factory.adapter_classes[SQLConnection]
 
         try:
-            # 替换为Mock
-            mock_class = Mock()
-            mock_instance = Mock()
-            mock_class.return_value = mock_instance
-            factory.adapter_classes[SQLConnection] = mock_class
+            # 替换为测试类
+            factory.adapter_classes[TestSQLConnection] = TestSQLAdapter
 
-            # 创建一个带有db_type属性的Mock
-            connection = Mock(spec=SQLConnection)
-            connection.db_type = "mysql"
+            # 创建连接
+            connection = TestSQLConnection()
 
             # 测试
             adapter = factory.create_adapter(connection)
 
-            mock_class.assert_called_once_with(connection)
-            assert adapter == mock_instance
+            assert isinstance(adapter, TestSQLAdapter)
+            assert adapter.connection == connection
         finally:
             # 恢复原始类
             factory.adapter_classes[SQLConnection] = original_class
+            # 删除测试类
+            if TestSQLConnection in factory.adapter_classes:
+                del factory.adapter_classes[TestSQLConnection]
 
     def test_create_adapter_no_connection(self):
         """测试没有连接时创建适配器"""
@@ -71,13 +80,15 @@ class TestAdapterFactory:
         """测试注册适配器类"""
         factory = AdapterFactory()
 
-        # 创建一个带有__name__属性的Mock
-        connection_class = Mock()
-        connection_class.__name__ = "MockConnection"
+        # 创建真实的类，而不是Mock
+        class TestConnectionClass:
+            pass
 
-        adapter_class = Mock()
-        factory.register_adapter_class(connection_class, adapter_class)
-        assert factory.adapter_classes[connection_class] == adapter_class
+        class TestAdapterClass:
+            pass
+
+        factory.register_adapter_class(TestConnectionClass, TestAdapterClass)
+        assert factory.adapter_classes[TestConnectionClass] == TestAdapterClass
 
     def test_get_supported_connection_types(self):
         """测试获取支持的连接类型"""

@@ -107,7 +107,15 @@ class TestConnectionFactory:
         """测试没有类型时创建连接"""
         factory = ConnectionFactory()
         try:
+            # 先通过空配置测试
             factory.create_connection({})
+            raise AssertionError("应该抛出ConfigurationError异常")
+        except ConfigurationError as e:
+            assert "Connection configuration is required" in str(e)
+
+        # 再测试有配置但没有类型的情况
+        try:
+            factory.create_connection({"host": "localhost"})
             raise AssertionError("应该抛出ConfigurationError异常")
         except ConfigurationError as e:
             assert "Database type is required" in str(e)

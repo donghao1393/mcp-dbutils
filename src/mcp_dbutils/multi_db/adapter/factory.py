@@ -64,11 +64,14 @@ class AdapterFactory:
 
         try:
             adapter = adapter_class(connection)
-            self.logger.info(f"Created {adapter_class.__name__} for {connection_class.__name__}")
+            adapter_name = getattr(adapter_class, "__name__", str(adapter_class))
+            connection_name = getattr(connection_class, "__name__", str(connection_class))
+            self.logger.info(f"Created {adapter_name} for {connection_name}")
             return adapter
         except Exception as e:
-            self.logger.error(f"Failed to create adapter for {connection_class.__name__}: {str(e)}")
-            raise ConfigurationError(f"Failed to create adapter for {connection_class.__name__}: {str(e)}")
+            connection_name = getattr(connection_class, "__name__", str(connection_class))
+            self.logger.error(f"Failed to create adapter for {connection_name}: {str(e)}")
+            raise ConfigurationError(f"Failed to create adapter for {connection_name}: {str(e)}")
 
     def register_adapter_class(self, connection_class: Type[ConnectionBase],
                               adapter_class: Type[AdapterBase]) -> None:
@@ -82,7 +85,9 @@ class AdapterFactory:
             adapter_class: 适配器类
         """
         self.adapter_classes[connection_class] = adapter_class
-        self.logger.info(f"Registered adapter class {adapter_class.__name__} for {connection_class.__name__}")
+        adapter_name = getattr(adapter_class, "__name__", str(adapter_class))
+        connection_name = getattr(connection_class, "__name__", str(connection_class))
+        self.logger.info(f"Registered adapter class {adapter_name} for {connection_name}")
 
     def get_supported_connection_types(self) -> list:
         """
@@ -91,4 +96,4 @@ class AdapterFactory:
         Returns:
             list: 支持的连接类型列表
         """
-        return [cls.__name__ for cls in self.adapter_classes]
+        return [getattr(cls, "__name__", str(cls)) for cls in self.adapter_classes]
