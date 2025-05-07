@@ -53,7 +53,7 @@ class TestAdapterFactory:
         factory = AdapterFactory()
         try:
             factory.create_adapter(None)
-            assert False, "应该抛出ConfigurationError异常"
+            raise AssertionError("应该抛出ConfigurationError异常")
         except ConfigurationError as e:
             assert "Connection is required" in str(e)
 
@@ -63,7 +63,7 @@ class TestAdapterFactory:
         connection = Mock()  # 不是SQLConnection的实例
         try:
             factory.create_adapter(connection)
-            assert False, "应该抛出ConfigurationError异常"
+            raise AssertionError("应该抛出ConfigurationError异常")
         except ConfigurationError as e:
             assert "Unsupported connection type" in str(e)
 

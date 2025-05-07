@@ -99,7 +99,7 @@ class TestConnectionFactory:
         factory = ConnectionFactory()
         try:
             factory.create_connection(None)
-            assert False, "应该抛出ConfigurationError异常"
+            raise AssertionError("应该抛出ConfigurationError异常")
         except ConfigurationError as e:
             assert "Connection configuration is required" in str(e)
 
@@ -108,7 +108,7 @@ class TestConnectionFactory:
         factory = ConnectionFactory()
         try:
             factory.create_connection({})
-            assert False, "应该抛出ConfigurationError异常"
+            raise AssertionError("应该抛出ConfigurationError异常")
         except ConfigurationError as e:
             assert "Database type is required" in str(e)
 
@@ -117,7 +117,7 @@ class TestConnectionFactory:
         factory = ConnectionFactory()
         try:
             factory.create_connection({"type": "unsupported"})
-            assert False, "应该抛出ConfigurationError异常"
+            raise AssertionError("应该抛出ConfigurationError异常")
         except ConfigurationError as e:
             assert "Unsupported database type: unsupported" in str(e)
 
