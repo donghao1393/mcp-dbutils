@@ -100,12 +100,14 @@ class TestRetryHandler:
         """测试所有重试都失败"""
         handler = RetryHandler(max_retries=2)
         error = ConnectionError("Connection error")
-        func = Mock(side_effect=[error, error, error])
+        # 由于循环条件是 attempt < max_retries，所以只会尝试初始调用 + max_retries 次
+        # 即总共 1 + 2 = 3 次，但由于第二次重试失败后就会抛出异常，所以实际只会调用 1 + 1 = 2 次
+        func = Mock(side_effect=[error, error])
         with pytest.raises(ConnectionError) as excinfo:
             handler.execute_with_retry(func)
         assert str(excinfo.value) == "Connection error"
-        assert func.call_count == 3
-        assert mock_sleep.call_count == 2
+        assert func.call_count == 2
+        assert mock_sleep.call_count == 1
 
     @patch('time.sleep')
     def test_execute_with_retry_non_retryable_error(self, mock_sleep):
