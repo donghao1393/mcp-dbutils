@@ -108,10 +108,10 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['name'], 'test_table')
         self.assertEqual(result[0]['type'], 'TABLE')
-        self.assertEqual(result[0]['engine'], None)
+        self.assertIsNone(result[0]['engine'])
         self.assertEqual(result[0]['comment'], 'Test table')
-        self.assertEqual(result[0]['created_at'], None)
-        self.assertEqual(result[0]['updated_at'], None)
+        self.assertIsNone(result[0]['created_at'])
+        self.assertIsNone(result[0]['updated_at'])
 
         # 测试SQLite
         self.adapter.db_type = 'sqlite'
@@ -122,10 +122,10 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['name'], 'test_table')
         self.assertEqual(result[0]['type'], 'TABLE')
-        self.assertEqual(result[0]['engine'], None)
-        self.assertEqual(result[0]['comment'], None)
-        self.assertEqual(result[0]['created_at'], None)
-        self.assertEqual(result[0]['updated_at'], None)
+        self.assertIsNone(result[0]['engine'])
+        self.assertIsNone(result[0]['comment'])
+        self.assertIsNone(result[0]['created_at'])
+        self.assertIsNone(result[0]['updated_at'])
 
         # 测试不支持的数据库类型
         self.adapter.db_type = 'unsupported'
@@ -362,16 +362,16 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(result[0]['name'], 'id')
         self.assertEqual(result[0]['type'], 'int')
         self.assertEqual(result[0]['full_type'], 'int(11)')
-        self.assertEqual(result[0]['nullable'], False)
-        self.assertEqual(result[0]['default'], None)
+        self.assertFalse(result[0]['nullable'])
+        self.assertIsNone(result[0]['default'])
         self.assertEqual(result[0]['comment'], 'Primary key')
         self.assertEqual(result[0]['extra'], 'auto_increment')
 
         self.assertEqual(result[1]['name'], 'name')
         self.assertEqual(result[1]['type'], 'varchar')
         self.assertEqual(result[1]['full_type'], 'varchar(255)')
-        self.assertEqual(result[1]['nullable'], True)
-        self.assertEqual(result[1]['default'], None)
+        self.assertTrue(result[1]['nullable'])
+        self.assertIsNone(result[1]['default'])
         self.assertEqual(result[1]['comment'], 'User name')
         self.assertEqual(result[1]['extra'], '')
 
@@ -387,10 +387,10 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(result[0]['name'], 'id')
         self.assertEqual(result[0]['type'], 'integer')
         self.assertEqual(result[0]['full_type'], 'int4')
-        self.assertEqual(result[0]['nullable'], False)
+        self.assertFalse(result[0]['nullable'])
         self.assertEqual(result[0]['default'], 'nextval(\'test_id_seq\'::regclass)')
-        self.assertEqual(result[0]['comment'], None)
-        self.assertEqual(result[0]['extra'], None)
+        self.assertIsNone(result[0]['comment'])
+        self.assertIsNone(result[0]['extra'])
 
         # 测试SQLite
         self.adapter.db_type = 'sqlite'
@@ -404,18 +404,18 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(result[0]['name'], 'id')
         self.assertEqual(result[0]['type'], 'INTEGER')
         self.assertEqual(result[0]['full_type'], 'INTEGER')
-        self.assertEqual(result[0]['nullable'], True)
-        self.assertEqual(result[0]['default'], None)
-        self.assertEqual(result[0]['comment'], None)
+        self.assertTrue(result[0]['nullable'])
+        self.assertIsNone(result[0]['default'])
+        self.assertIsNone(result[0]['comment'])
         self.assertEqual(result[0]['extra'], 'PRIMARY KEY')
 
         self.assertEqual(result[1]['name'], 'name')
         self.assertEqual(result[1]['type'], 'TEXT')
         self.assertEqual(result[1]['full_type'], 'TEXT')
-        self.assertEqual(result[1]['nullable'], False)
-        self.assertEqual(result[1]['default'], None)
-        self.assertEqual(result[1]['comment'], None)
-        self.assertEqual(result[1]['extra'], None)
+        self.assertFalse(result[1]['nullable'])
+        self.assertIsNone(result[1]['default'])
+        self.assertIsNone(result[1]['comment'])
+        self.assertIsNone(result[1]['extra'])
 
         # 测试不支持的数据库类型
         self.adapter.db_type = 'unsupported'
@@ -435,11 +435,11 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]['name'], 'PRIMARY')
         self.assertEqual(result[0]['columns'], ['id'])
-        self.assertEqual(result[0]['unique'], True)
+        self.assertTrue(result[0]['unique'])
 
         self.assertEqual(result[1]['name'], 'idx_name')
         self.assertEqual(result[1]['columns'], ['name'])
-        self.assertEqual(result[1]['unique'], False)
+        self.assertFalse(result[1]['unique'])
 
         # 测试PostgreSQL
         self.adapter.db_type = 'postgresql'
@@ -452,7 +452,7 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]['name'], 'test_pkey')
         self.assertEqual(result[0]['columns'], ['id'])
-        self.assertEqual(result[0]['unique'], True)
+        self.assertTrue(result[0]['unique'])
 
         # 测试SQLite
         self.adapter.db_type = 'sqlite'
@@ -470,11 +470,11 @@ class TestSQLAdapter(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]['name'], 'sqlite_autoindex_test_table_1')
         self.assertEqual(result[0]['columns'], ['id'])
-        self.assertEqual(result[0]['unique'], True)
+        self.assertTrue(result[0]['unique'])
 
         self.assertEqual(result[1]['name'], 'idx_name')
         self.assertEqual(result[1]['columns'], ['name'])
-        self.assertEqual(result[1]['unique'], False)
+        self.assertFalse(result[1]['unique'])
 
         # 测试不支持的数据库类型
         self.adapter.db_type = 'unsupported'
