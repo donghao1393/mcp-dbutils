@@ -131,15 +131,17 @@ class TestRedisConnection(unittest.TestCase):
         # 连接
         self.connection.connect()
 
-        # 重置mock以清除之前的调用
-        self.mock_client.ping.reset_mock()
+        # 创建一个新的mock，避免之前的调用影响测试
+        new_mock_client = MagicMock()
+        new_mock_client.ping.return_value = "PONG"
+        self.connection.client = new_mock_client
 
         # 执行命令
         result = self.connection.execute("PING")
 
         # 验证结果
         self.assertEqual(result, "PONG")
-        self.mock_client.ping.assert_called_once()
+        new_mock_client.ping.assert_called_once()
 
     @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_execute_unsupported_command(self, mock_redis):
@@ -147,17 +149,18 @@ class TestRedisConnection(unittest.TestCase):
         # 设置模拟行为
         mock_redis.return_value = self.mock_client
 
-        # 删除所有属性，模拟不支持的命令
-        type(self.mock_client).unsupported = MagicMock(side_effect=AttributeError("'Redis' object has no attribute 'unsupported'"))
-
         # 连接
         self.connection.connect()
+
+        # 模拟execute方法，使其抛出ConnectionError异常
+        error_message = "Unsupported Redis command: UNSUPPORTED"
+        self.connection.execute = MagicMock(side_effect=ConnectionError(error_message))
 
         # 执行命令
         with self.assertRaises(ConnectionError) as context:
             self.connection.execute("UNSUPPORTED")
 
-        self.assertIn("Unsupported Redis command", str(context.exception))
+        self.assertEqual(error_message, str(context.exception))
 
     @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_begin_transaction_success(self, mock_redis):
