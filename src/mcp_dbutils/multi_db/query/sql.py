@@ -8,7 +8,7 @@ SQL查询构建器实现
 import logging
 import re
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from ..error.exceptions import QueryError
 from .base import Query, QueryBuilder

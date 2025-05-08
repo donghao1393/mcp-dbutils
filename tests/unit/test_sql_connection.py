@@ -223,9 +223,8 @@ class TestSQLConnection(unittest.TestCase):
         # 异常情况
         mock_begin.reset_mock()
         mock_commit.reset_mock()
-        with self.assertRaises(ValueError):
-            with self.connection.transaction():
-                raise ValueError("Test error")
+        with self.assertRaises(ValueError), self.connection.transaction():
+            raise ValueError("Test error")
         mock_begin.assert_called_once()
         mock_commit.assert_not_called()
         mock_rollback.assert_called_once()

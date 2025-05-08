@@ -8,9 +8,9 @@ SQL数据库连接实现
 import logging
 import time
 from contextlib import contextmanager
-from typing import Any, Dict, List, Optional, Tuple, Union, Generator
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
-from ..error.exceptions import ConnectionError, TransactionError, QueryError
+from ..error.exceptions import ConnectionError, QueryError, TransactionError
 from .base import ConnectionBase
 
 
@@ -57,7 +57,7 @@ class SQLConnection(ConnectionBase):
         self.pool_pre_ping = config.get('pool_pre_ping', True)
 
         # 事务配置
-        self.isolation_level = config.get('isolation_level', None)
+        self.isolation_level = config.get('isolation_level')
         self.savepoint_id = 0  # 用于生成唯一的保存点ID
 
     def connect(self) -> None:
@@ -255,11 +255,7 @@ class SQLConnection(ConnectionBase):
         try:
             if self.db_type == 'mysql':
                 self.dbapi_connection.ping(reconnect=True)
-            elif self.db_type == 'postgresql':
-                cursor = self.dbapi_connection.cursor()
-                cursor.execute("SELECT 1")
-                cursor.close()
-            elif self.db_type == 'sqlite':
+            else:
                 cursor = self.dbapi_connection.cursor()
                 cursor.execute("SELECT 1")
                 cursor.close()
@@ -423,10 +419,7 @@ class SQLConnection(ConnectionBase):
         try:
             if savepoint_name:
                 # 回滚到保存点
-                if self.db_type == 'sqlite':
-                    self.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
-                else:
-                    self.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
+                self.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
 
                 self.logger.info(f"Rolled back to savepoint: {savepoint_name}")
             else:
@@ -465,10 +458,7 @@ class SQLConnection(ConnectionBase):
             self.savepoint_id += 1
             savepoint_name = f"sp_{self.savepoint_id}"
 
-            if self.db_type == 'sqlite':
-                self.execute(f"SAVEPOINT {savepoint_name}")
-            else:
-                self.execute(f"SAVEPOINT {savepoint_name}")
+            self.execute(f"SAVEPOINT {savepoint_name}")
 
             return savepoint_name
         except Exception as e:
@@ -491,10 +481,7 @@ class SQLConnection(ConnectionBase):
             raise TransactionError("No active transaction to release savepoint")
 
         try:
-            if self.db_type == 'sqlite':
-                self.execute(f"RELEASE SAVEPOINT {savepoint_name}")
-            else:
-                self.execute(f"RELEASE SAVEPOINT {savepoint_name}")
+            self.execute(f"RELEASE SAVEPOINT {savepoint_name}")
 
             self.logger.info(f"Released savepoint: {savepoint_name}")
         except Exception as e:

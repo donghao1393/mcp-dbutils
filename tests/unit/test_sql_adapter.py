@@ -10,9 +10,9 @@ from mcp_dbutils.multi_db.connection.sql import SQLConnection
 from mcp_dbutils.multi_db.error.exceptions import (
     ConnectionError,
     DatabaseError,
+    NotImplementedError,
     QueryError,
     ResourceNotFoundError,
-    NotImplementedError,
 )
 
 
@@ -47,9 +47,9 @@ class TestSQLAdapter(unittest.TestCase):
         self.connection.execute.assert_called_with("SELECT * FROM test", None)
 
         # 测试非只读查询
-        with patch('mcp_dbutils.multi_db.adapter.sql.SQLAdapter._is_read_query', return_value=False):
-            with self.assertRaises(QueryError):
-                self.adapter.execute_query("INSERT INTO test VALUES (1)")
+        with patch('mcp_dbutils.multi_db.adapter.sql.SQLAdapter._is_read_query', return_value=False), \
+             self.assertRaises(QueryError):
+            self.adapter.execute_query("INSERT INTO test VALUES (1)")
 
         # 测试连接错误
         self.connection.execute.side_effect = ConnectionError("Connection error")
@@ -69,9 +69,9 @@ class TestSQLAdapter(unittest.TestCase):
         self.connection.execute.assert_called_with("INSERT INTO test VALUES (1)", None)
 
         # 测试只读查询
-        with patch('mcp_dbutils.multi_db.adapter.sql.SQLAdapter._is_read_query', return_value=True):
-            with self.assertRaises(QueryError):
-                self.adapter.execute_write("SELECT * FROM test")
+        with patch('mcp_dbutils.multi_db.adapter.sql.SQLAdapter._is_read_query', return_value=True), \
+             self.assertRaises(QueryError):
+            self.adapter.execute_write("SELECT * FROM test")
 
         # 测试连接错误
         self.connection.execute.side_effect = ConnectionError("Connection error")

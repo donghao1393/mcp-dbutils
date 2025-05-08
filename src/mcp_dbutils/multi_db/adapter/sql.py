@@ -7,16 +7,16 @@ SQL适配器实现
 
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from ..connection.base import ConnectionBase
 from ..connection.sql import SQLConnection
 from ..error.exceptions import (
     ConnectionError,
     DatabaseError,
+    NotImplementedError,
     QueryError,
     ResourceNotFoundError,
-    NotImplementedError,
 )
 from .base import AdapterBase
 
