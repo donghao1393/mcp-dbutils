@@ -2,16 +2,16 @@ name: Code Style
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, feature/* ]
 
 jobs:
   ruff:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: astral-sh/ruff-action@v3.2.1
         with:
           version: latest
