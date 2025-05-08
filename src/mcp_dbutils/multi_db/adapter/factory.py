@@ -8,9 +8,13 @@ import logging
 from typing import Type
 
 from ..connection.base import ConnectionBase
+from ..connection.mongo import MongoConnection
+from ..connection.redis import RedisConnection
 from ..connection.sql import SQLConnection
 from ..error.exceptions import ConfigurationError
 from .base import AdapterBase
+from .mongo import MongoAdapter
+from .redis import RedisAdapter
 from .sql import SQLAdapter
 
 
@@ -28,9 +32,8 @@ class AdapterFactory:
         self.logger = logging.getLogger(__name__)
         self.adapter_classes = {
             SQLConnection: SQLAdapter,
-            # 以下是占位符，将在后续阶段实现
-            # MongoConnection: MongoAdapter,
-            # RedisConnection: RedisAdapter,
+            MongoConnection: MongoAdapter,
+            RedisConnection: RedisAdapter,
         }
 
     def create_adapter(self, connection: ConnectionBase) -> AdapterBase:
