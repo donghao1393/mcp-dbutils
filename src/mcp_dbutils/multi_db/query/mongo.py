@@ -5,7 +5,7 @@ MongoDB查询构建器实现
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 from ..error.exceptions import QueryError
 from .base import Query, QueryBuilder
@@ -98,7 +98,7 @@ class MongoQueryBuilder(QueryBuilder):
 
         # 如果指定了字段，构建投影
         if fields:
-            self.projection = {field: 1 for field in fields}
+            self.projection = dict.fromkeys(fields, 1)
 
         return self
 

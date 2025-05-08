@@ -5,9 +5,8 @@ MongoDB连接实现
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional
 
-import pymongo
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, PyMongoError, ServerSelectionTimeoutError
 
