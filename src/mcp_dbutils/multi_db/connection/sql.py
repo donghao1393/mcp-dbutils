@@ -558,9 +558,7 @@ class SQLConnection(ConnectionBase):
 
                     # 尝试获取最后插入的ID（不同数据库的方法不同）
                     if query.strip().upper().startswith("INSERT"):
-                        if self.db_type == 'mysql':
-                            last_insert_id = cursor.lastrowid
-                        elif self.db_type == 'sqlite':
+                        if self.db_type == 'mysql' or self.db_type == 'sqlite':
                             last_insert_id = cursor.lastrowid
 
                     results.append({

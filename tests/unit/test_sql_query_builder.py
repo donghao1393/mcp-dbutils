@@ -4,15 +4,15 @@ SQLQueryBuilder类的单元测试
 
 import unittest
 
+from mcp_dbutils.multi_db.error.exceptions import QueryError
 from mcp_dbutils.multi_db.query.sql import (
+    Condition,
+    Join,
+    JoinType,
+    Operator,
     SQLQuery,
     SQLQueryBuilder,
-    Operator,
-    Condition,
-    JoinType,
-    Join,
 )
-from mcp_dbutils.multi_db.error.exceptions import QueryError
 
 
 class TestSQLQuery(unittest.TestCase):
@@ -330,7 +330,7 @@ class TestSQLQueryBuilder(unittest.TestCase):
         self.assertIn('param_0', query.get_params())
         self.assertEqual(query.get_params()['param_0'], 'John')
         # 检查where参数
-        where_param_key = [k for k in query.get_params().keys() if k.startswith('where_param_')][0]
+        where_param_key = [k for k in query.get_params() if k.startswith('where_param_')][0]
         self.assertEqual(query.get_params()[where_param_key], 1)
 
     def test_build_delete(self):
