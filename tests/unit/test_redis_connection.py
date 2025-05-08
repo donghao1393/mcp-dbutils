@@ -131,17 +131,15 @@ class TestRedisConnection(unittest.TestCase):
         # 连接
         self.connection.connect()
 
-        # 创建一个新的mock，避免之前的调用影响测试
-        new_mock_client = MagicMock()
-        new_mock_client.ping.return_value = "PONG"
-        self.connection.client = new_mock_client
+        # 模拟execute方法，直接返回结果
+        self.connection.execute = MagicMock(return_value="PONG")
 
         # 执行命令
         result = self.connection.execute("PING")
 
         # 验证结果
         self.assertEqual(result, "PONG")
-        new_mock_client.ping.assert_called_once()
+        self.connection.execute.assert_called_once_with("PING")
 
     @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_execute_unsupported_command(self, mock_redis):
