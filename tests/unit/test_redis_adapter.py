@@ -5,13 +5,11 @@ Redis适配器单元测试
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from mcp_dbutils.multi_db.adapter.redis import RedisAdapter
 from mcp_dbutils.multi_db.connection.redis import RedisConnection
 from mcp_dbutils.multi_db.error.exceptions import (
-    ConnectionError,
-    DatabaseError,
     QueryError,
     ResourceNotFoundError,
 )
@@ -114,7 +112,7 @@ class TestRedisAdapter(unittest.TestCase):
 
         self.assertEqual(result[1]['name'], 'user:2')
         self.assertEqual(result[1]['type'], 'string')
-        self.assertEqual(result[1]['ttl'], None)  # -1表示没有过期时间
+        self.assertIsNone(result[1]['ttl'])  # -1表示没有过期时间
         self.assertEqual(result[1]['size'], 12)
 
         self.assertEqual(result[2]['name'], 'product:1')

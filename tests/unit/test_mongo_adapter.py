@@ -5,15 +5,11 @@ MongoDB适配器单元测试
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
-
-from bson.objectid import ObjectId
+from unittest.mock import MagicMock
 
 from mcp_dbutils.multi_db.adapter.mongo import MongoAdapter
 from mcp_dbutils.multi_db.connection.mongo import MongoConnection
 from mcp_dbutils.multi_db.error.exceptions import (
-    ConnectionError,
-    DatabaseError,
     QueryError,
     ResourceNotFoundError,
 )

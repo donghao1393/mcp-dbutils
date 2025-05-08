@@ -5,7 +5,6 @@ Redis适配器实现
 """
 
 import logging
-import re
 from typing import Any, Dict, List, Optional
 
 from ..connection.redis import RedisConnection
@@ -360,8 +359,6 @@ class RedisAdapter(AdapterBase):
             parts = query.split()
             if not parts:
                 return None
-
-            command = parts[0].lower()
 
             # 大多数Redis命令的第一个参数是键名
             if len(parts) > 1:
