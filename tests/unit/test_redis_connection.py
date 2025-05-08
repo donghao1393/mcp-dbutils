@@ -7,6 +7,8 @@ Redis连接单元测试
 import unittest
 from unittest.mock import MagicMock, patch
 
+from redis.exceptions import ConnectionError as RedisConnectionError
+
 from mcp_dbutils.multi_db.connection.redis import RedisConnection
 from mcp_dbutils.multi_db.error.exceptions import ConnectionError, TransactionError
 
@@ -37,7 +39,7 @@ class TestRedisConnection(unittest.TestCase):
         self.mock_pipeline = MagicMock()
         self.mock_client.pipeline.return_value = self.mock_pipeline
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_connect_success(self, mock_redis):
         """测试成功连接"""
         # 设置模拟行为
@@ -50,14 +52,15 @@ class TestRedisConnection(unittest.TestCase):
         self.assertTrue(self.connection.is_connected())
         self.assertEqual(self.connection.client, self.mock_client)
         mock_redis.assert_called_once()
-        self.mock_client.ping.assert_called_once()
+        # ping命令在connect和is_connected中都会被调用，所以不能用assert_called_once
+        self.mock_client.ping.assert_any_call()
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_connect_failure(self, mock_redis):
         """测试连接失败"""
         # 设置模拟行为
         mock_redis.return_value = self.mock_client
-        self.mock_client.ping.side_effect = Exception("Connection failed")
+        self.mock_client.ping.side_effect = RedisConnectionError("Connection failed")
 
         # 执行测试并验证异常
         with self.assertRaises(ConnectionError) as context:
@@ -66,7 +69,7 @@ class TestRedisConnection(unittest.TestCase):
         self.assertIn("Failed to connect to Redis", str(context.exception))
         self.assertFalse(self.connection.is_connected())
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_disconnect(self, mock_redis):
         """测试断开连接"""
         # 设置模拟行为
@@ -84,7 +87,7 @@ class TestRedisConnection(unittest.TestCase):
         self.assertIsNone(self.connection.client)
         self.mock_client.close.assert_called_once()
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_is_connected(self, mock_redis):
         """测试连接状态检查"""
         # 设置模拟行为
@@ -101,7 +104,7 @@ class TestRedisConnection(unittest.TestCase):
         self.mock_client.ping.side_effect = Exception("Error")
         self.assertFalse(self.connection.is_connected())
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_execute_command(self, mock_redis):
         """测试执行命令"""
         # 设置模拟行为
@@ -118,7 +121,7 @@ class TestRedisConnection(unittest.TestCase):
         self.assertEqual(result, "value")
         self.mock_client.get.assert_called_once_with("key")
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_execute_command_with_no_params(self, mock_redis):
         """测试执行无参数命令"""
         # 设置模拟行为
@@ -128,6 +131,9 @@ class TestRedisConnection(unittest.TestCase):
         # 连接
         self.connection.connect()
 
+        # 重置mock以清除之前的调用
+        self.mock_client.ping.reset_mock()
+
         # 执行命令
         result = self.connection.execute("PING")
 
@@ -135,11 +141,14 @@ class TestRedisConnection(unittest.TestCase):
         self.assertEqual(result, "PONG")
         self.mock_client.ping.assert_called_once()
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_execute_unsupported_command(self, mock_redis):
         """测试执行不支持的命令"""
         # 设置模拟行为
         mock_redis.return_value = self.mock_client
+
+        # 删除所有属性，模拟不支持的命令
+        type(self.mock_client).unsupported = MagicMock(side_effect=AttributeError("'Redis' object has no attribute 'unsupported'"))
 
         # 连接
         self.connection.connect()
@@ -150,7 +159,7 @@ class TestRedisConnection(unittest.TestCase):
 
         self.assertIn("Unsupported Redis command", str(context.exception))
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_begin_transaction_success(self, mock_redis):
         """测试成功开始事务"""
         # 设置模拟行为
@@ -167,7 +176,7 @@ class TestRedisConnection(unittest.TestCase):
         self.assertEqual(self.connection.pipeline, self.mock_pipeline)
         self.mock_client.pipeline.assert_called_once_with(transaction=True)
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_begin_transaction_already_active(self, mock_redis):
         """测试事务已经活动时开始事务"""
         # 设置模拟行为
@@ -185,7 +194,7 @@ class TestRedisConnection(unittest.TestCase):
 
         self.assertIn("Transaction already active", str(context.exception))
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_commit_success(self, mock_redis):
         """测试成功提交事务"""
         # 设置模拟行为
@@ -207,7 +216,7 @@ class TestRedisConnection(unittest.TestCase):
         self.assertIsNone(self.connection.pipeline)
         self.mock_pipeline.execute.assert_called_once()
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_commit_no_active_transaction(self, mock_redis):
         """测试没有活动事务时提交事务"""
         # 设置模拟行为
@@ -222,7 +231,7 @@ class TestRedisConnection(unittest.TestCase):
 
         self.assertIn("No active transaction to commit", str(context.exception))
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_rollback_success(self, mock_redis):
         """测试成功回滚事务"""
         # 设置模拟行为
@@ -242,7 +251,7 @@ class TestRedisConnection(unittest.TestCase):
         self.assertIsNone(self.connection.pipeline)
         self.mock_pipeline.reset.assert_called_once()
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_rollback_no_active_transaction(self, mock_redis):
         """测试没有活动事务时回滚事务"""
         # 设置模拟行为
@@ -257,7 +266,7 @@ class TestRedisConnection(unittest.TestCase):
 
         self.assertIn("No active transaction to rollback", str(context.exception))
 
-    @patch('redis.Redis')
+    @patch('mcp_dbutils.multi_db.connection.redis.redis.Redis')
     def test_execute_in_transaction(self, mock_redis):
         """测试在事务中执行命令"""
         # 设置模拟行为

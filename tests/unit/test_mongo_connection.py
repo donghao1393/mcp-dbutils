@@ -147,10 +147,13 @@ class TestMongoConnection(unittest.TestCase):
             }
         }
 
+        # 模拟list(cursor)的行为
+        list_result = expected_result
+
         result = self.connection.execute(query)
 
         # 验证结果
-        self.assertEqual(result, expected_result)
+        self.assertEqual(result, list_result)
         mock_collection.find.assert_called_once_with({'age': {'$gt': 18}}, {'name': 1, 'age': 1})
         mock_cursor.sort.assert_called_once_with([('age', 1)])
         mock_cursor.skip.assert_called_once_with(5)
