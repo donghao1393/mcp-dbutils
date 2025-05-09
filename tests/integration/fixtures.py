@@ -220,8 +220,8 @@ async def sqlite_db() -> AsyncGenerator[Dict[str, str], None]:
 def mongodb_db():
     """Create a MongoDB test database"""
     mongodb_container = MongoDbContainer("mongo:6.0")
-    mongodb_container.with_env("MONGO_INITDB_ROOT_USERNAME", "root")
-    mongodb_container.with_env("MONGO_INITDB_ROOT_PASSWORD", "example")
+    # 禁用身份验证
+    mongodb_container.with_command("--noauth")
 
     with mongodb_container as mongodb:
         mongodb.start()
@@ -230,10 +230,7 @@ def mongodb_db():
         import pymongo
         conn = pymongo.MongoClient(
             host=mongodb.get_container_host_ip(),
-            port=int(mongodb.get_exposed_port(27017)),
-            username="root",
-            password="example",
-            authSource="admin"
+            port=int(mongodb.get_exposed_port(27017))
         )
 
         try:
@@ -316,10 +313,7 @@ def mcp_config(mysql_db, postgres_db, sqlite_db, mongodb_db, redis_db):
                 "type": "mongodb",
                 "host": mongodb_db.get_container_host_ip(),
                 "port": int(mongodb_db.get_exposed_port(27017)),
-                "database": "test_db",
-                "username": "root",
-                "password": "example",
-                "authSource": "admin"
+                "database": "test_db"
             },
             "test_redis": {
                 "type": "redis",
