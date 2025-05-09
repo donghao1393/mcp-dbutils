@@ -29,7 +29,7 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 
 - **安全优先**：严格只读操作，无直接数据库访问，隔离连接，按需连接，自动超时
 - **隐私保障**：本地处理，最小数据暴露，凭证保护，敏感数据屏蔽
-- **多数据库支持**：使用相同的接口连接 SQLite、MySQL、PostgreSQL
+- **多数据库支持**：使用相同的接口连接 SQLite、MySQL、PostgreSQL、MongoDB、Redis
 - **简单配置**：所有数据库连接使用单个 YAML 文件
 - **高级功能**：表格浏览、架构分析和查询执行
 
@@ -83,6 +83,8 @@ MCP Database Utilities 是一个多功能的 MCP 服务，它使您的 AI 能够
 - [SQLite 示例](docs/zh/examples/sqlite-examples.md) - SQLite 数据库操作示例
 - [PostgreSQL 示例](docs/zh/examples/postgresql-examples.md) - PostgreSQL 数据库操作示例
 - [MySQL 示例](docs/zh/examples/mysql-examples.md) - MySQL 数据库操作示例
+- [MongoDB 示例](docs/zh/examples/mongodb-examples.md) - MongoDB 数据库操作示例
+- [Redis 示例](docs/zh/examples/redis-examples.md) - Redis 数据库操作示例
 - [高级 LLM 交互示例](docs/zh/examples/advanced-llm-interactions.md) - 与各类 LLM 的高级交互示例
 
 ### 多语言文档

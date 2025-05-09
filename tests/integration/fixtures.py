@@ -12,6 +12,8 @@ import psycopg2
 import pytest
 from testcontainers.mysql import MySqlContainer
 from testcontainers.postgres import PostgresContainer
+from testcontainers.mongodb import MongoDbContainer
+from testcontainers.redis import RedisContainer
 
 from mcp_dbutils.base import ConnectionHandler
 
@@ -214,8 +216,83 @@ async def sqlite_db() -> AsyncGenerator[Dict[str, str], None]:
         except FileNotFoundError:
             pass
 
+@pytest.fixture(scope="function")
+def mongodb_db():
+    """Create a MongoDB test database"""
+    mongodb_container = MongoDbContainer("mongo:6.0")
+
+    with mongodb_container as mongodb:
+        mongodb.start()
+
+        # 使用pymongo建立连接
+        import pymongo
+        conn = pymongo.MongoClient(
+            host=mongodb.get_container_host_ip(),
+            port=mongodb.get_exposed_port(27017)
+        )
+
+        try:
+            # 创建测试数据库和集合
+            db = conn["test_db"]
+            collection = db["customers"]
+
+            # 插入测试数据
+            collection.insert_many([
+                {"name": "Alice", "email": "alice@test.com", "age": 30},
+                {"name": "Bob", "email": "bob@test.com", "age": 25}
+            ])
+
+            # 创建另一个集合
+            products = db["products"]
+            products.insert_many([
+                {"name": "Laptop", "price": 999.99, "category": "Electronics"},
+                {"name": "Phone", "price": 699.99, "category": "Electronics"},
+                {"name": "Headphones", "price": 149.99, "category": "Accessories"}
+            ])
+
+            yield mongodb
+        finally:
+            conn.close()
+
+@pytest.fixture(scope="function")
+def redis_db():
+    """Create a Redis test database"""
+    redis_container = RedisContainer("redis:7.0")
+
+    with redis_container as redis:
+        redis.start()
+
+        # 使用redis-py建立连接
+        import redis as redis_py
+        conn = redis_py.Redis(
+            host=redis.get_container_host_ip(),
+            port=redis.get_exposed_port(6379)
+        )
+
+        try:
+            # 添加测试数据
+            conn.set("user:1", "Alice")
+            conn.set("user:2", "Bob")
+
+            # 添加哈希数据
+            conn.hset("user:1:details", mapping={
+                "email": "alice@test.com",
+                "age": "30"
+            })
+            conn.hset("user:2:details", mapping={
+                "email": "bob@test.com",
+                "age": "25"
+            })
+
+            # 添加列表数据
+            conn.rpush("recent_users", "user:1", "user:2")
+
+            yield redis
+        finally:
+            conn.close()
+
 @pytest.fixture
-def mcp_config(mysql_db, postgres_db, sqlite_db):
+def mcp_config(mysql_db, postgres_db, sqlite_db, mongodb_db, redis_db):
     """Create MCP configuration for database tests"""
     return {
         "connections": {
@@ -229,6 +306,18 @@ def mcp_config(mysql_db, postgres_db, sqlite_db):
                 "charset": "utf8mb4"
             },
             "test_pg": postgres_db,
-            "test_sqlite": sqlite_db
+            "test_sqlite": sqlite_db,
+            "test_mongodb": {
+                "type": "mongodb",
+                "host": mongodb_db.get_container_host_ip(),
+                "port": mongodb_db.get_exposed_port(27017),
+                "database": "test_db"
+            },
+            "test_redis": {
+                "type": "redis",
+                "host": redis_db.get_container_host_ip(),
+                "port": redis_db.get_exposed_port(6379),
+                "database": 0
+            }
         }
     }
