@@ -299,7 +299,7 @@ def mcp_config(mysql_db, postgres_db, sqlite_db, mongodb_db, redis_db):
             "test_mysql": {
                 "type": "mysql",
                 "host": mysql_db.get_container_host_ip(),
-                "port": mysql_db.get_exposed_port(3306),
+                "port": int(mysql_db.get_exposed_port(3306)),
                 "database": "test_db",
                 "user": "test_user",
                 "password": "test_pass",
