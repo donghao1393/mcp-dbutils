@@ -310,13 +310,13 @@ def mcp_config(mysql_db, postgres_db, sqlite_db, mongodb_db, redis_db):
             "test_mongodb": {
                 "type": "mongodb",
                 "host": mongodb_db.get_container_host_ip(),
-                "port": mongodb_db.get_exposed_port(27017),
+                "port": int(mongodb_db.get_exposed_port(27017)),
                 "database": "test_db"
             },
             "test_redis": {
                 "type": "redis",
                 "host": redis_db.get_container_host_ip(),
-                "port": redis_db.get_exposed_port(6379),
+                "port": int(redis_db.get_exposed_port(6379)),
                 "database": 0
             }
         }
