@@ -10,9 +10,9 @@ from urllib.parse import urlparse
 import aiosqlite
 import psycopg2
 import pytest
+from testcontainers.mongodb import MongoDbContainer
 from testcontainers.mysql import MySqlContainer
 from testcontainers.postgres import PostgresContainer
-from testcontainers.mongodb import MongoDbContainer
 from testcontainers.redis import RedisContainer
 
 from mcp_dbutils.base import ConnectionHandler
