@@ -108,7 +108,7 @@ def mysql_db():
         import mysql.connector as mysql_connector
         conn = mysql_connector.connect(
             host=mysql.get_container_host_ip(),
-            port=mysql.get_exposed_port(3306),
+            port=int(mysql.get_exposed_port(3306)),
             user="test_user",
             password="test_pass",
             database="test_db"
@@ -228,7 +228,7 @@ def mongodb_db():
         import pymongo
         conn = pymongo.MongoClient(
             host=mongodb.get_container_host_ip(),
-            port=mongodb.get_exposed_port(27017)
+            port=int(mongodb.get_exposed_port(27017))
         )
 
         try:
@@ -266,7 +266,7 @@ def redis_db():
         import redis as redis_py
         conn = redis_py.Redis(
             host=redis.get_container_host_ip(),
-            port=redis.get_exposed_port(6379)
+            port=int(redis.get_exposed_port(6379))
         )
 
         try:
