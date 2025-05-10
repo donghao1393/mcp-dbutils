@@ -3,9 +3,9 @@
 Add skip markers to all integration test files.
 """
 
+import glob
 import os
 import re
-import glob
 
 # 要修改的测试文件目录
 TEST_DIR = "../tests/integration"
@@ -27,12 +27,12 @@ def process_file(file_path):
     """处理单个测试文件，添加跳过标记"""
     with open(file_path, 'r') as f:
         content = f.read()
-    
+
     # 检查文件是否已经包含跳过标记
     if 'skip_db_tests' in content:
         print(f"Skipping {file_path}, already contains skip markers")
         return
-    
+
     # 添加 import os
     if 'import os' not in content:
         content = re.sub(
@@ -41,7 +41,7 @@ def process_file(file_path):
             content,
             count=1
         )
-    
+
     # 添加跳过标记
     if 'skip_reason' not in content:
         # 查找 logger 定义后的位置
@@ -55,32 +55,32 @@ def process_file(file_path):
             if import_match:
                 pos = import_match.end()
                 content = content[:pos] + "\n" + SKIP_CODE + content[pos:]
-    
+
     # 添加装饰器到每个测试函数
     content = re.sub(
         r'(@pytest\.mark\.asyncio\s*\n)',
         r'\1' + SKIP_DECORATOR + r'\n',
         content
     )
-    
+
     # 写回文件
     with open(file_path, 'w') as f:
         f.write(content)
-    
+
     print(f"Updated {file_path}")
 
 def main():
     """主函数"""
     # 获取所有测试文件
     test_files = glob.glob(os.path.join(TEST_DIR, "test_*.py"))
-    
+
     # 排除已经处理过的文件
     test_files = [f for f in test_files if not any(x in f for x in ['test_mongodb.py', 'test_redis.py', 'test_list_connections.py', 'test_monitoring.py', 'test_monitoring_enhanced.py'])]
-    
+
     # 处理每个文件
     for file_path in test_files:
         process_file(file_path)
-    
+
     print(f"Processed {len(test_files)} files")
 
 if __name__ == "__main__":

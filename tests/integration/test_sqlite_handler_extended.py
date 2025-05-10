@@ -4,10 +4,10 @@ import os
 import tempfile
 
 import pytest
-import pytest_asyncio
 import yaml
 
 from mcp_dbutils.base import (
+import pytest_asyncio
     ConnectionHandlerError,
     ConnectionServer,
 )
