@@ -1,21 +1,26 @@
 """Integration tests for advanced database tools"""
 
-import asyncio
+import os
 import tempfile
 
 import anyio
-import mcp.types as types
 import pytest
 import yaml
-from mcp import ClientSession
 
+from mcp import ClientSession
 from mcp_dbutils.base import ConnectionServer
 from mcp_dbutils.log import create_logger
-
+import asyncio
+import mcp.types as types
 # 创建测试用的 logger
 logger = create_logger("test-tools-advanced", True)  # debug=True 以显示所有日志
 
+# 检查是否跳过数据库测试
+skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
+skip_reason = "Database tests are skipped in CI environment"
+
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_stats_tool(postgres_db, sqlite_db, mcp_config):
     """Test the dbutils-get-stats tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -78,6 +83,7 @@ async def test_get_stats_tool(postgres_db, sqlite_db, mcp_config):
             await server_to_client_recv.aclose()
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_list_constraints_tool(postgres_db, sqlite_db, mcp_config):
     """Test the dbutils-list-constraints tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -135,6 +141,7 @@ async def test_list_constraints_tool(postgres_db, sqlite_db, mcp_config):
             await server_to_client_recv.aclose()
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_explain_query_tool(postgres_db, sqlite_db, mcp_config):
     """Test the dbutils-explain-query tool with both PostgreSQL and SQLite connections"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:

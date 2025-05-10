@@ -19,14 +19,20 @@ graph TD
     PostgresHandler[PostgreSQL处理器]
     SQLiteHandler[SQLite处理器]
     MySQLHandler[MySQL处理器]
+    MongoDBHandler[MongoDB处理器]
+    RedisHandler[Redis处理器]
     DatabaseServer --> DatabaseHandler
     DatabaseHandler --> PostgresHandler
     DatabaseHandler --> SQLiteHandler
     DatabaseHandler --> MySQLHandler
+    DatabaseHandler --> MongoDBHandler
+    DatabaseHandler --> RedisHandler
   end
   PostgresHandler --> PostgreSQL[(PostgreSQL)]
   SQLiteHandler --> SQLite[(SQLite)]
   MySQLHandler --> MySQL[(MySQL)]
+  MongoDBHandler --> MongoDB[(MongoDB)]
+  RedisHandler --> Redis[(Redis)]
 ```
 
 抽象层设计是MCP数据库工具的核心架构概念。就像通用遥控器可以控制不同设备一样，用户只需要了解基本操作，而无需理解底层复杂性。
@@ -55,7 +61,7 @@ graph TD
 2. DatabaseHandler
    - 定义统一接口的抽象基类
    - 包括get_tables()、get_schema()、execute_query()等方法
-   - 由PostgreSQL、SQLite和MySQL处理器实现
+   - 由PostgreSQL、SQLite、MySQL、MongoDB和Redis处理器实现
 
 3. 配置系统
    - 基于YAML的配置文件
@@ -149,6 +155,22 @@ graph TD
 - 字符集配置
 - SSL/TLS安全连接
 - URL和标准连接方法
+
+### MongoDB实现
+提供MongoDB特定功能：
+- 文档导向数据模型支持
+- 集合和文档操作
+- 聚合管道支持
+- 查询和投影操作
+- 地理空间查询
+
+### Redis实现
+提供Redis特定功能：
+- 键值操作
+- 数据结构命令（列表、集合、有序集合、哈希）
+- 发布/订阅消息
+- 事务支持
+- Lua脚本执行
 
 ## 高级功能
 

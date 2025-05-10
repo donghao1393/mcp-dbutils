@@ -19,14 +19,20 @@ graph TD
     PostgresHandler[PostgreSQL Handler]
     SQLiteHandler[SQLite Handler]
     MySQLHandler[MySQL Handler]
+    MongoDBHandler[MongoDB Handler]
+    RedisHandler[Redis Handler]
     DatabaseServer --> DatabaseHandler
     DatabaseHandler --> PostgresHandler
     DatabaseHandler --> SQLiteHandler
     DatabaseHandler --> MySQLHandler
+    DatabaseHandler --> MongoDBHandler
+    DatabaseHandler --> RedisHandler
   end
   PostgresHandler --> PostgreSQL[(PostgreSQL)]
   SQLiteHandler --> SQLite[(SQLite)]
   MySQLHandler --> MySQL[(MySQL)]
+  MongoDBHandler --> MongoDB[(MongoDB)]
+  RedisHandler --> Redis[(Redis)]
 ```
 
 The abstraction layer design is the core architectural concept of MCP Database Utilities. Like a universal remote control that can operate different devices, users only need to understand basic operations without dealing with underlying complexity.
@@ -55,7 +61,7 @@ The abstraction layer design is the core architectural concept of MCP Database U
 2. DatabaseHandler
    - Abstract base class defining unified interface
    - Includes methods like get_tables(), get_schema(), execute_query()
-   - Implemented by PostgreSQL, SQLite, and MySQL handlers
+   - Implemented by PostgreSQL, SQLite, MySQL, MongoDB, and Redis handlers
 
 3. Configuration System
    - YAML-based configuration file
@@ -149,6 +155,22 @@ Provides MySQL-specific functionality:
 - Character set configuration
 - SSL/TLS secure connections
 - URL and standard connection methods
+
+### MongoDB Implementation
+Provides MongoDB-specific functionality:
+- Document-oriented data model support
+- Collection and document operations
+- Aggregation pipeline support
+- Query and projection operations
+- Geospatial queries
+
+### Redis Implementation
+Provides Redis-specific functionality:
+- Key-value operations
+- Data structure commands (Lists, Sets, Sorted Sets, Hashes)
+- Pub/Sub messaging
+- Transaction support
+- Lua scripting execution
 
 ## Advanced Features
 

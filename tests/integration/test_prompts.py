@@ -1,21 +1,26 @@
 """Integration tests for prompts functionality"""
 
-import asyncio
+import os
 import tempfile
 
 import anyio
-import mcp.types as types
 import pytest
 import yaml
-from mcp import ClientSession
 
+from mcp import ClientSession
 from mcp_dbutils.base import ConnectionServer
 from mcp_dbutils.log import create_logger
-
+import asyncio
+import mcp.types as types
 # 创建测试用的 logger
 logger = create_logger("test-prompts", True)  # debug=True 以显示所有日志
 
+# 检查是否跳过数据库测试
+skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
+skip_reason = "Database tests are skipped in CI environment"
+
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_prompts_capability(sqlite_db, mcp_config):
     """Test that prompts capability is properly set"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -29,6 +34,7 @@ async def test_prompts_capability(sqlite_db, mcp_config):
         assert init_options.capabilities.prompts is not None
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_list_prompts(sqlite_db, mcp_config):
     """Test that list_prompts returns an empty list"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:

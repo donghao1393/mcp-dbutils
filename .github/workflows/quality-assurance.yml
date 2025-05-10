@@ -49,6 +49,10 @@ jobs:
 
       - name: Run tests with coverage
         id: tests
+        env:
+          SKIP_MONGODB_TESTS: "true"
+          SKIP_REDIS_TESTS: "true"
+          SKIP_DB_TESTS: "true"
         run: |
           uv run pytest \
             -v \

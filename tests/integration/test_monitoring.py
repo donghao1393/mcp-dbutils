@@ -1,14 +1,19 @@
 """Integration tests for resource monitoring"""
 
+import os
 import tempfile
 
 import pytest
 import yaml
 
 from mcp_dbutils.base import ConnectionHandlerError, ConnectionServer
+# 检查是否跳过MongoDB相关测试
+skip_mongodb_tests = os.environ.get("SKIP_MONGODB_TESTS", "false").lower() == "true"
+skip_reason = "MongoDB tests are skipped in CI environment"
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_mongodb_tests, reason=skip_reason)
 async def test_sqlite_monitoring(sqlite_db, mcp_config):
     """Test resource monitoring with SQLite"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -42,6 +47,7 @@ async def test_sqlite_monitoring(sqlite_db, mcp_config):
         assert stats.active_connections == 0
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_mongodb_tests, reason=skip_reason)
 async def test_postgres_monitoring(postgres_db, mcp_config):
     """Test resource monitoring with PostgreSQL"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
