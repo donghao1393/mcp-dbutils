@@ -1,8 +1,8 @@
 """Test MCP logging functionality"""
 
 import os
+from unittest.mock import MagicMock, patch
 
-import MagicMock, patch
 # 检查是否跳过数据库测试
 skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
 skip_reason = "Database tests are skipped in CI environment"
