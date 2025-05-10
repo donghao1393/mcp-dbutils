@@ -1,4 +1,5 @@
 import asyncio
+import os
 import tempfile
 
 import anyio
@@ -13,8 +14,13 @@ from mcp_dbutils.log import create_logger
 # 创建测试用的 logger
 logger = create_logger("test-list-connections", True)  # debug=True 以显示所有日志
 
+# 检查是否跳过MongoDB相关测试
+skip_mongodb_tests = os.environ.get("SKIP_MONGODB_TESTS", "false").lower() == "true"
+skip_reason = "MongoDB tests are skipped in CI environment"
+
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_mongodb_tests, reason=skip_reason)
 async def test_list_connections_tool(postgres_db, sqlite_db, mcp_config):
     """Test the list_connections tool with multiple database connections"""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml") as tmp:

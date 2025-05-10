@@ -27,7 +27,7 @@ Think of it as a secure bridge between AI systems and your databases, allowing A
 
 - **Security First**: Strictly read-only operations, no direct database access, isolated connections, on-demand connectivity, automatic timeouts
 - **Privacy Safeguards**: Local processing, minimal data exposure, credential protection, sensitive data masking
-- **Multiple Database Support**: Connect to SQLite, MySQL, PostgreSQL with the same interface
+- **Multiple Database Support**: Connect to SQLite, MySQL, PostgreSQL, MongoDB, Redis with the same interface
 - **Simple Configuration**: Single YAML file for all your database connections
 - **Advanced Capabilities**: Table exploration, schema analysis, and query execution
 
@@ -108,6 +108,8 @@ For detailed descriptions and usage examples of these tools, see the [Usage Guid
 - [SQLite Examples](docs/en/examples/sqlite-examples.md) - SQLite database operation examples
 - [PostgreSQL Examples](docs/en/examples/postgresql-examples.md) - PostgreSQL database operation examples
 - [MySQL Examples](docs/en/examples/mysql-examples.md) - MySQL database operation examples
+- [MongoDB Examples](docs/en/examples/mongodb-examples.md) - MongoDB database operation examples
+- [Redis Examples](docs/en/examples/redis-examples.md) - Redis database operation examples
 - [Advanced LLM Interactions](docs/en/examples/advanced-llm-interactions.md) - Advanced interaction examples with various LLMs
 
 ### Support & Feedback
