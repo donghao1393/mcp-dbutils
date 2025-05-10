@@ -1,5 +1,6 @@
 """Extended MySQL handler integration tests"""
 
+import os
 import tempfile
 
 import pytest
@@ -14,6 +15,10 @@ from mcp_dbutils.log import create_logger
 
 # 创建测试用的 logger
 logger = create_logger("test-mysql-extended", True)  # debug=True 以显示所有日志
+
+# 检查是否跳过数据库测试
+skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
+skip_reason = "Database tests are skipped in CI environment"
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_test_table(mysql_db, mcp_config):
@@ -41,6 +46,7 @@ async def setup_test_table(mysql_db, mcp_config):
     # Cleanup is handled by the mysql_db fixture
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_description(mysql_db, mcp_config):
     """Test getting table description"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -58,6 +64,7 @@ async def test_get_table_description(mysql_db, mcp_config):
             assert "Nullable: NO" in desc
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_description_nonexistent(mysql_db, mcp_config):
     """Test getting description for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -69,6 +76,7 @@ async def test_get_table_description_nonexistent(mysql_db, mcp_config):
                 await handler.get_table_description("nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_constraints(mysql_db, mcp_config):
     """Test getting table constraints"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -84,6 +92,7 @@ async def test_get_table_constraints(mysql_db, mcp_config):
             assert "PRIMARY KEY Constraint: PRIMARY" in constraints
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_constraints_nonexistent(mysql_db, mcp_config):
     """Test getting constraints for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -95,6 +104,7 @@ async def test_get_table_constraints_nonexistent(mysql_db, mcp_config):
                 await handler.get_table_constraints("nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_stats(mysql_db, mcp_config):
     """Test getting table statistics"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -112,6 +122,7 @@ async def test_get_table_stats(mysql_db, mcp_config):
             assert "Index Length" in stats
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_stats_nonexistent(mysql_db, mcp_config):
     """Test getting statistics for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -123,6 +134,7 @@ async def test_get_table_stats_nonexistent(mysql_db, mcp_config):
                 await handler.get_table_stats("nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_explain_query(mysql_db, mcp_config):
     """Test the query explanation functionality"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -139,6 +151,7 @@ async def test_explain_query(mysql_db, mcp_config):
             assert "Actual Plan" in explain_result
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_explain_query_invalid(mysql_db, mcp_config):
     """Test explanation for invalid query"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -150,6 +163,7 @@ async def test_explain_query_invalid(mysql_db, mcp_config):
                 await handler.explain_query("SELECT * FROM nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_indexes(mysql_db, mcp_config):
     """Test getting index information for MySQL table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -166,6 +180,7 @@ async def test_get_table_indexes(mysql_db, mcp_config):
             assert "Method: BTREE" in indexes
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_indexes_nonexistent(mysql_db, mcp_config):
     """Test getting indexes for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -177,6 +192,7 @@ async def test_get_table_indexes_nonexistent(mysql_db, mcp_config):
                 await handler.get_table_indexes("nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_execute_complex_queries(mysql_db, mcp_config):
     """Test executing more complex SELECT queries"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:

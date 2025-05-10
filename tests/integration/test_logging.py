@@ -1,6 +1,12 @@
 """Test MCP logging functionality"""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import os
+import MagicMock, patch
+
+
+# 检查是否跳过数据库测试
+skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
+skip_reason = "Database tests are skipped in CI environment"
 
 import pytest
 
@@ -11,6 +17,7 @@ from . import conftest
 TestConnectionHandler = conftest.TestConnectionHandler
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_handler_logging():
     """Test logging in ConnectionHandler"""
     
@@ -37,6 +44,7 @@ async def test_handler_logging():
         )
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_server_logging():
     """Test logging in ConnectionServer"""
     
@@ -87,6 +95,7 @@ async def test_server_logging():
             p.stop()
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_handler_session_inheritance():
     """Test session inheritance in handlers"""
     

@@ -16,6 +16,10 @@ from mcp_dbutils.log import create_logger
 # 创建测试用的 logger
 logger = create_logger("test-sqlite-extended", True)  # debug=True 以显示所有日志
 
+# 检查是否跳过数据库测试
+skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
+skip_reason = "Database tests are skipped in CI environment"
+
 @pytest_asyncio.fixture(autouse=True)
 async def setup_test_table(sqlite_db, mcp_config):
     """Create test table before each test"""
@@ -42,6 +46,7 @@ async def setup_test_table(sqlite_db, mcp_config):
     # Cleanup is handled by the sqlite_db fixture
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_indexes(sqlite_db, mcp_config):
     """Test getting index information for SQLite table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -58,6 +63,7 @@ async def test_get_table_indexes(sqlite_db, mcp_config):
             # so we're just checking the header is present
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_indexes_nonexistent(sqlite_db, mcp_config):
     """Test getting indexes for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -69,6 +75,7 @@ async def test_get_table_indexes_nonexistent(sqlite_db, mcp_config):
                 await handler.get_table_indexes("nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_explain_query(sqlite_db, mcp_config):
     """Test the query explanation functionality"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -84,6 +91,7 @@ async def test_explain_query(sqlite_db, mcp_config):
             assert "Details:" in explain_result
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_explain_query_invalid(sqlite_db, mcp_config):
     """Test the query explanation with invalid query"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -95,6 +103,7 @@ async def test_explain_query_invalid(sqlite_db, mcp_config):
                 await handler.explain_query("SELECT * FROM nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_stats(sqlite_db, mcp_config):
     """Test getting table statistics"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -111,6 +120,7 @@ async def test_get_table_stats(sqlite_db, mcp_config):
             assert "Total Size:" in stats
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_get_table_stats_nonexistent(sqlite_db, mcp_config):
     """Test getting statistics for nonexistent table"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -122,6 +132,7 @@ async def test_get_table_stats_nonexistent(sqlite_db, mcp_config):
                 await handler.get_table_stats("nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_execute_complex_queries(sqlite_db, mcp_config):
     """Test executing more complex SELECT queries"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:

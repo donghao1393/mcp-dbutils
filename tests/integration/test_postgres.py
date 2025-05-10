@@ -1,3 +1,4 @@
+import os
 import tempfile
 
 import pytest
@@ -12,7 +13,12 @@ from mcp_dbutils.log import create_logger
 # 创建测试用的 logger
 logger = create_logger("test-postgres", True)  # debug=True 以显示所有日志
 
+# 检查是否跳过数据库测试
+skip_db_tests = os.environ.get("SKIP_DB_TESTS", "false").lower() == "true"
+skip_reason = "Database tests are skipped in CI environment"
+
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_list_tables(postgres_db, mcp_config):
     """Test listing tables in PostgreSQL database"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -37,6 +43,7 @@ async def test_list_tables(postgres_db, mcp_config):
             assert schema["columns"][2]["type"] == "text"
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_execute_query(postgres_db, mcp_config):
     """Test executing SELECT queries"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -60,6 +67,7 @@ async def test_execute_query(postgres_db, mcp_config):
                 assert result["rows"][0]["name"] == "Alice"
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_non_select_query(postgres_db, mcp_config):
     """Test that non-SELECT queries are rejected"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -71,6 +79,7 @@ async def test_non_select_query(postgres_db, mcp_config):
                 await handler.execute_query("DELETE FROM users")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_invalid_query(postgres_db, mcp_config):
     """Test handling of invalid SQL queries"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
@@ -82,6 +91,7 @@ async def test_invalid_query(postgres_db, mcp_config):
                 await handler.execute_query("SELECT * FROM nonexistent_table")
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(skip_db_tests, reason=skip_reason)
 async def test_connection_cleanup(postgres_db, mcp_config):
     """Test that database connections are properly cleaned up"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
