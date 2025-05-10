@@ -3,9 +3,9 @@
 Fix import issues in test files.
 """
 
+import glob
 import os
 import re
-import glob
 
 # 要修改的测试文件目录
 TEST_DIR = "../tests/integration"
