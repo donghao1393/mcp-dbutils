@@ -1,7 +1,7 @@
 """Test MongoDB integration"""
 
-import tempfile
 import os
+import tempfile
 
 import pytest
 import yaml
