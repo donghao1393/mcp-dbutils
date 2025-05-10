@@ -4,10 +4,10 @@ import os
 import tempfile
 
 import pytest
+import pytest_asyncio
 import yaml
 
 from mcp_dbutils.base import (
-import pytest_asyncio
     ConnectionHandlerError,
     ConnectionServer,
 )
@@ -38,7 +38,7 @@ async def setup_test_table(mysql_db, mcp_config):
             """)
             # Insert test data
             await handler.execute_query("""
-                INSERT IGNORE INTO users (id, name, email) VALUES 
+                INSERT IGNORE INTO users (id, name, email) VALUES
                 (1, 'Test User 1', 'test1@example.com'),
                 (2, 'Test User 2', 'test2@example.com')
             """)
@@ -56,7 +56,7 @@ async def test_get_table_description(mysql_db, mcp_config):
         async with server.get_handler("test_mysql") as handler:
             # Get description for users table
             desc = await handler.get_table_description("users")
-            
+
             # Verify description content
             assert "Table: users" in desc
             assert "Columns:" in desc
@@ -86,7 +86,7 @@ async def test_get_table_constraints(mysql_db, mcp_config):
         async with server.get_handler("test_mysql") as handler:
             # Get constraints for users table
             constraints = await handler.get_table_constraints("users")
-            
+
             # Verify constraints content
             assert "Constraints for users:" in constraints
             assert "PRIMARY KEY Constraint: PRIMARY" in constraints
@@ -114,7 +114,7 @@ async def test_get_table_stats(mysql_db, mcp_config):
         async with server.get_handler("test_mysql") as handler:
             # Get statistics for users table
             stats = await handler.get_table_stats("users")
-            
+
             # Verify statistics content
             assert "Table Statistics for users:" in stats
             assert "Row Count" in stats
@@ -144,7 +144,7 @@ async def test_explain_query(mysql_db, mcp_config):
         async with server.get_handler("test_mysql") as handler:
             # Get execution plan for a SELECT query
             explain_result = await handler.explain_query("SELECT * FROM users WHERE id = 1")
-            
+
             # Verify the explanation includes expected MySQL EXPLAIN output
             assert "Query Execution Plan:" in explain_result
             assert "Estimated Plan:" in explain_result
@@ -173,7 +173,7 @@ async def test_get_table_indexes(mysql_db, mcp_config):
         async with server.get_handler("test_mysql") as handler:
             # Get indexes for users table
             indexes = await handler.get_table_indexes("users")
-            
+
             # Verify indexes content
             assert "Index: PRIMARY" in indexes
             assert "Type: UNIQUE" in indexes
@@ -209,14 +209,14 @@ async def test_execute_complex_queries(mysql_db, mcp_config):
             assert "rows" in result
             assert len(result["columns"]) == 1
             assert result["columns"][0] == "count"
-            
+
             # Query with ORDER BY and LIMIT
             result_str = await handler.execute_query(
                 "SELECT name FROM users ORDER BY name LIMIT 1"
             )
             result = eval(result_str)
             assert len(result["rows"]) == 1
-            
+
             # Query with JOIN (assuming a related table exists, otherwise this may fail)
             try:
                 # Create a posts table if it doesn't exist
@@ -228,14 +228,14 @@ async def test_execute_complex_queries(mysql_db, mcp_config):
                         FOREIGN KEY (user_id) REFERENCES users(id)
                     )
                 """)
-                
+
                 # Insert test data
                 await handler.execute_query("""
-                    INSERT IGNORE INTO posts (id, user_id, title) VALUES 
+                    INSERT IGNORE INTO posts (id, user_id, title) VALUES
                     (1, 1, 'Test Post 1'),
                     (2, 2, 'Test Post 2')
                 """)
-                
+
                 # Execute JOIN query
                 result_str = await handler.execute_query(
                     "SELECT u.name, p.title FROM users u JOIN posts p ON u.id = p.user_id ORDER BY u.name"
