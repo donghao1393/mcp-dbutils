@@ -718,6 +718,10 @@ class ConnectionServer:
                     # 在生产环境中使用新的适配器
                     from .mysql.adapted_handler import AdaptedMySQLHandler
                     return AdaptedMySQLHandler(self.config_path, connection, self.debug)
+            elif db_type == "mongodb":
+                # MongoDB只有新的适配器实现
+                from .mongo.adapted_handler import AdaptedMongoDBHandler
+                return AdaptedMongoDBHandler(self.config_path, connection, self.debug)
             else:
                 raise ConfigurationError(f"Unsupported database type: {db_type}")
         except ImportError as e:
