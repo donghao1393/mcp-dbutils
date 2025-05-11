@@ -705,9 +705,14 @@ class ConnectionServer:
 
                 return PostgreSQLHandler(self.config_path, connection, self.debug)
             elif db_type == "mysql":
-                from .mysql.handler import MySQLHandler
-
-                return MySQLHandler(self.config_path, connection, self.debug)
+                if is_testing:
+                    # 在测试环境中使用旧的处理器
+                    from .mysql.handler import MySQLHandler
+                    return MySQLHandler(self.config_path, connection, self.debug)
+                else:
+                    # 在生产环境中使用新的适配器
+                    from .mysql.adapted_handler import AdaptedMySQLHandler
+                    return AdaptedMySQLHandler(self.config_path, connection, self.debug)
             else:
                 raise ConfigurationError(f"Unsupported database type: {db_type}")
         except ImportError as e:
