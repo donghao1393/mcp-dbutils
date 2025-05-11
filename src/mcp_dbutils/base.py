@@ -701,9 +701,14 @@ class ConnectionServer:
                     from .sqlite.adapted_handler import AdaptedSQLiteHandler
                     return AdaptedSQLiteHandler(self.config_path, connection, self.debug)
             elif db_type == "postgres":
-                from .postgres.handler import PostgreSQLHandler
-
-                return PostgreSQLHandler(self.config_path, connection, self.debug)
+                if is_testing:
+                    # 在测试环境中使用旧的处理器
+                    from .postgres.handler import PostgreSQLHandler
+                    return PostgreSQLHandler(self.config_path, connection, self.debug)
+                else:
+                    # 在生产环境中使用新的适配器
+                    from .postgres.adapted_handler import AdaptedPostgreSQLHandler
+                    return AdaptedPostgreSQLHandler(self.config_path, connection, self.debug)
             elif db_type == "mysql":
                 if is_testing:
                     # 在测试环境中使用旧的处理器
