@@ -9,7 +9,7 @@ from typing import Any, Dict
 
 import mcp.types as types
 
-from ..adapter import AdaptedConnectionHandler, MULTI_DB_AVAILABLE
+from ..adapter import MULTI_DB_AVAILABLE, AdaptedConnectionHandler
 from ..base import ConnectionHandlerError
 from .config import SQLiteConfig
 

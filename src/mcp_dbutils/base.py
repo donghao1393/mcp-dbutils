@@ -1,11 +1,11 @@
 """Connection server base class"""
 
 import json
+import sys
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from datetime import datetime
 from importlib.metadata import metadata
-import sys
 from typing import Any, AsyncContextManager, Dict
 
 import mcp.server.stdio
