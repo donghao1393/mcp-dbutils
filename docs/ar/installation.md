@@ -132,7 +132,31 @@ connections:
 
 نفس الخطوة 2 في الخيار أ، قم بإنشاء ملف `config.yaml`.
 
-### الخطوة 3: تكوين تطبيق الذكاء الاصطناعي الخاص بك
+### الخطوة 3: بناء صورة Docker
+
+1. قم بإنشاء ملف باسم `Dockerfile` (بدون امتداد) بالمحتوى التالي:
+
+```dockerfile
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir mcp-dbutils
+
+WORKDIR /app
+COPY config.yaml /app/config.yaml
+
+ENTRYPOINT ["mcp-dbutils"]
+CMD ["--config", "/app/config.yaml"]
+```
+
+2. قم ببناء الصورة بتنفيذ الأمر التالي في الدليل الذي يحتوي على Dockerfile:
+
+```bash
+docker build -t mcp/dbutils .
+```
+
+> **ملاحظة**: للتحديث إلى أحدث إصدار، ستحتاج إلى إعادة بناء الصورة للحصول على أحدث إصدار من MCP Database Utilities.
+
+### الخطوة 4: تكوين تطبيق الذكاء الاصطناعي الخاص بك
 
 #### تكوين Claude Desktop
 
@@ -304,8 +328,10 @@ uv pip install -U mcp-dbutils
 
 ### تحديث الخيار ب (Docker)
 
+أعد بناء صورة Docker الخاصة بك للحصول على أحدث إصدار:
+
 ```bash
-docker pull mcp/dbutils:latest
+docker build -t mcp/dbutils .
 ```
 
 ### تحديث الخيار ج (Smithery)

@@ -214,21 +214,11 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 - Docker مثبت ويعمل
 - اتصال بالإنترنت (لتنزيل صورة Docker)
 
-### استخدام صورة Docker الرسمية
+### بناء صورة Docker محلية
 
-1. قم بسحب صورة Docker:
-   ```bash
-   docker pull mcp/dbutils
-   ```
+بسبب قيود الشبكة في بعض المناطق، نوصي ببناء صورة Docker محلياً:
 
-2. قم بتشغيل الحاوية مع ملف التكوين الخاص بك:
-   ```bash
-   docker run -i --rm -v /path/to/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
-   ```
-
-### إنشاء صورة Docker مخصصة
-
-إذا كنت بحاجة إلى تخصيص صورة Docker، يمكنك إنشاء Dockerfile الخاص بك:
+1. قم بإنشاء Dockerfile:
 
 ```dockerfile
 FROM python:3.10-slim
@@ -241,12 +231,19 @@ ENTRYPOINT ["mcp-dbutils"]
 CMD ["--help"]
 ```
 
-قم ببناء وتشغيل صورتك المخصصة:
+2. قم ببناء الصورة:
 
 ```bash
-docker build -t custom-mcp-dbutils .
-docker run -i --rm -v /path/to/config.yaml:/app/config.yaml custom-mcp-dbutils --config /app/config.yaml
+docker build -t mcp/dbutils .
 ```
+
+3. قم بتشغيل الحاوية:
+
+```bash
+docker run -i --rm -v /path/to/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
+```
+
+> **ملاحظة**: للتحديث إلى أحدث إصدار، ستحتاج إلى إعادة بناء الصورة للحصول على أحدث إصدار من MCP Database Utilities.
 
 ## التثبيت بدون اتصال بالإنترنت
 
