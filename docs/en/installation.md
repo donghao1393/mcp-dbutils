@@ -133,7 +133,31 @@ If you don't have Docker installed, download and install it from [docker.com](ht
 
 Same as Step 2 in Option A, create a `config.yaml` file.
 
-### Step 3: Configure your AI application
+### Step 3: Build the Docker image
+
+1. Create a file named `Dockerfile` (without any extension) with the following content:
+
+```dockerfile
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir mcp-dbutils
+
+WORKDIR /app
+COPY config.yaml /app/config.yaml
+
+ENTRYPOINT ["mcp-dbutils"]
+CMD ["--config", "/app/config.yaml"]
+```
+
+2. Build the image by running the following command in the directory containing the Dockerfile:
+
+```bash
+docker build -t mcp/dbutils .
+```
+
+> **Note**: To update to the latest version, you'll need to rebuild the image to get the latest MCP Database Utilities version.
+
+### Step 4: Configure your AI application
 
 #### Claude Desktop Configuration
 
@@ -305,8 +329,10 @@ uv pip install -U mcp-dbutils
 
 ### Option B (Docker) Update
 
+Rebuild your Docker image to get the latest version:
+
 ```bash
-docker pull mcp/dbutils:latest
+docker build -t mcp/dbutils .
 ```
 
 ### Option C (Smithery) Update

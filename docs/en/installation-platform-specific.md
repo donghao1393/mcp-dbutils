@@ -199,23 +199,9 @@ wsl --install
 
 ## Docker Installation Guide
 
-### Using Pre-built Image
+### Building a Local Image
 
-1. Pull the MCP Database Utilities image:
-
-```bash
-docker pull mcp/dbutils
-```
-
-2. Run the container:
-
-```bash
-docker run -i --rm \
-  -v /path/to/config.yaml:/app/config.yaml \
-  mcp/dbutils --config /app/config.yaml
-```
-
-### Building a Custom Image
+Due to network restrictions in some regions, we recommend building the Docker image locally:
 
 1. Create a Dockerfile:
 
@@ -234,14 +220,18 @@ CMD ["--config", "/app/config.yaml"]
 2. Build the image:
 
 ```bash
-docker build -t custom-mcp-dbutils .
+docker build -t mcp/dbutils .
 ```
 
 3. Run the container:
 
 ```bash
-docker run -i --rm custom-mcp-dbutils
+docker run -i --rm \
+  -v /path/to/config.yaml:/app/config.yaml \
+  mcp/dbutils --config /app/config.yaml
 ```
+
+> **Note**: To update to the latest version, you'll need to rebuild the image to get the latest MCP Database Utilities version.
 
 ## Troubleshooting
 
