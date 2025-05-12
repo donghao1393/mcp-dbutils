@@ -214,21 +214,11 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 - Установленный и работающий Docker
 - Подключение к интернету (для загрузки Docker-образа)
 
-### Использование официального Docker-образа
+### Создание локального Docker-образа
 
-1. Загрузите Docker-образ:
-   ```bash
-   docker pull mcp/dbutils
-   ```
+Из-за сетевых ограничений в некоторых регионах мы рекомендуем собирать Docker-образ локально:
 
-2. Запустите контейнер с вашим файлом конфигурации:
-   ```bash
-   docker run -i --rm -v /путь/к/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
-   ```
-
-### Создание пользовательского Docker-образа
-
-Если вам нужно настроить Docker-образ, вы можете создать свой собственный Dockerfile:
+1. Создайте Dockerfile:
 
 ```dockerfile
 FROM python:3.10-slim
@@ -241,12 +231,19 @@ ENTRYPOINT ["mcp-dbutils"]
 CMD ["--help"]
 ```
 
-Соберите и запустите ваш пользовательский образ:
+2. Соберите образ:
 
 ```bash
-docker build -t custom-mcp-dbutils .
-docker run -i --rm -v /путь/к/config.yaml:/app/config.yaml custom-mcp-dbutils --config /app/config.yaml
+docker build -t mcp/dbutils .
 ```
+
+3. Запустите контейнер:
+
+```bash
+docker run -i --rm -v /путь/к/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
+```
+
+> **Примечание**: Для обновления до последней версии вам потребуется пересобрать образ, чтобы получить последнюю версию MCP Database Utilities.
 
 ## Офлайн-установка
 

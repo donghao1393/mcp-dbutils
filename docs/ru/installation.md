@@ -130,7 +130,31 @@ connections:
 
 Так же, как Шаг 2 в Варианте A, создайте файл `config.yaml`.
 
-### Шаг 3: Настройте ваше ИИ-приложение
+### Шаг 3: Создайте Docker-образ
+
+1. Создайте файл с именем `Dockerfile` (без расширения) со следующим содержимым:
+
+```dockerfile
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir mcp-dbutils
+
+WORKDIR /app
+COPY config.yaml /app/config.yaml
+
+ENTRYPOINT ["mcp-dbutils"]
+CMD ["--config", "/app/config.yaml"]
+```
+
+2. Соберите образ, выполнив следующую команду в директории, содержащей Dockerfile:
+
+```bash
+docker build -t mcp/dbutils .
+```
+
+> **Примечание**: Для обновления до последней версии вам потребуется пересобрать образ, чтобы получить последнюю версию MCP Database Utilities.
+
+### Шаг 4: Настройте ваше ИИ-приложение
 
 #### Настройка Claude Desktop
 
@@ -302,8 +326,10 @@ uv pip install -U mcp-dbutils
 
 ### Обновление Варианта B (Docker)
 
+Пересоберите ваш Docker-образ для получения последней версии:
+
 ```bash
-docker pull mcp/dbutils:latest
+docker build -t mcp/dbutils .
 ```
 
 ### Обновление Варианта C (Smithery)
