@@ -133,29 +133,23 @@ If you don't have Docker installed, download and install it from [docker.com](ht
 
 Same as Step 2 in Option A, create a `config.yaml` file.
 
-### Step 3: Build the Docker image
+### Step 3: Get the project code and build the Docker image
 
-1. Create a file named `Dockerfile` (without any extension) with the following content:
+1. First, get the project code (choose one of the following methods):
+   - Clone the project from GitHub: `git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - Or download the latest version from the [Releases page](https://github.com/donghao1393/mcp-dbutils/releases) and extract it
 
-```dockerfile
-FROM python:3.10-slim
+2. Navigate to the project directory:
+   ```bash
+   cd mcp-dbutils
+   ```
 
-RUN pip install --no-cache-dir mcp-dbutils
+3. Build the Docker image:
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-WORKDIR /app
-COPY config.yaml /app/config.yaml
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--config", "/app/config.yaml"]
-```
-
-2. Build the image by running the following command in the directory containing the Dockerfile:
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-> **Note**: To update to the latest version, you'll need to rebuild the image to get the latest MCP Database Utilities version.
+> **Note**: The project root directory already includes a Dockerfile, so you don't need to create one manually. To update to the latest version, you'll need to get the latest code and rebuild the image.
 
 ### Step 4: Configure your AI application
 
@@ -329,11 +323,16 @@ uv pip install -U mcp-dbutils
 
 ### Option B (Docker) Update
 
-Rebuild your Docker image to get the latest version:
+1. Get the latest project code:
+   ```bash
+   git pull
+   ```
+   Or download the latest version from the [Releases page](https://github.com/donghao1393/mcp-dbutils/releases)
 
-```bash
-docker build -t mcp/dbutils .
-```
+2. Rebuild your Docker image:
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
 ### Option C (Smithery) Update
 

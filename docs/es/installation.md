@@ -130,29 +130,23 @@ Si no tiene Docker instalado, descárguelo e instálelo desde [docker.com](https
 
 Igual que el Paso 2 en la Opción A, cree un archivo `config.yaml`.
 
-### Paso 3: Construir la imagen Docker
+### Paso 3: Obtener el código del proyecto y construir la imagen Docker
 
-1. Cree un archivo llamado `Dockerfile` (sin extensión) con el siguiente contenido:
+1. Primero, obtenga el código del proyecto (elija uno de los siguientes métodos):
+   - Clone el proyecto desde GitHub: `git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - O descargue la última versión desde la [página de Releases](https://github.com/donghao1393/mcp-dbutils/releases) y extráigala
 
-```dockerfile
-FROM python:3.10-slim
+2. Navegue al directorio del proyecto:
+   ```bash
+   cd mcp-dbutils
+   ```
 
-RUN pip install --no-cache-dir mcp-dbutils
+3. Construya la imagen Docker:
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-WORKDIR /app
-COPY config.yaml /app/config.yaml
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--config", "/app/config.yaml"]
-```
-
-2. Construya la imagen ejecutando el siguiente comando en el directorio que contiene el Dockerfile:
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-> **Nota**: Para actualizar a la última versión, necesitará reconstruir la imagen para obtener la versión más reciente de MCP Database Utilities.
+> **Nota**: El directorio raíz del proyecto ya incluye un Dockerfile, por lo que no necesita crear uno manualmente. Para actualizar a la última versión, necesitará obtener el código más reciente y reconstruir la imagen.
 
 ### Paso 4: Configurar su aplicación de IA
 
@@ -326,11 +320,16 @@ uv pip install -U mcp-dbutils
 
 ### Actualización de Opción B (Docker)
 
-Reconstruya su imagen Docker para obtener la última versión:
+1. Obtenga el código del proyecto más reciente:
+   ```bash
+   git pull
+   ```
+   O descargue la última versión desde la [página de Releases](https://github.com/donghao1393/mcp-dbutils/releases)
 
-```bash
-docker build -t mcp/dbutils .
-```
+2. Reconstruya su imagen Docker:
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
 ### Actualización de Opción C (Smithery)
 

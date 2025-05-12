@@ -130,29 +130,23 @@ connections:
 
 Так же, как Шаг 2 в Варианте A, создайте файл `config.yaml`.
 
-### Шаг 3: Создайте Docker-образ
+### Шаг 3: Получите код проекта и создайте Docker-образ
 
-1. Создайте файл с именем `Dockerfile` (без расширения) со следующим содержимым:
+1. Сначала получите код проекта (выберите один из следующих методов):
+   - Клонируйте проект с GitHub: `git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - Или загрузите последнюю версию со [страницы Releases](https://github.com/donghao1393/mcp-dbutils/releases) и распакуйте её
 
-```dockerfile
-FROM python:3.10-slim
+2. Перейдите в директорию проекта:
+   ```bash
+   cd mcp-dbutils
+   ```
 
-RUN pip install --no-cache-dir mcp-dbutils
+3. Соберите Docker-образ:
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-WORKDIR /app
-COPY config.yaml /app/config.yaml
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--config", "/app/config.yaml"]
-```
-
-2. Соберите образ, выполнив следующую команду в директории, содержащей Dockerfile:
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-> **Примечание**: Для обновления до последней версии вам потребуется пересобрать образ, чтобы получить последнюю версию MCP Database Utilities.
+> **Примечание**: Корневая директория проекта уже содержит Dockerfile, поэтому вам не нужно создавать его вручную. Для обновления до последней версии вам потребуется получить последний код и пересобрать образ.
 
 ### Шаг 4: Настройте ваше ИИ-приложение
 
@@ -326,11 +320,16 @@ uv pip install -U mcp-dbutils
 
 ### Обновление Варианта B (Docker)
 
-Пересоберите ваш Docker-образ для получения последней версии:
+1. Получите последний код проекта:
+   ```bash
+   git pull
+   ```
+   Или загрузите последнюю версию со [страницы Releases](https://github.com/donghao1393/mcp-dbutils/releases)
 
-```bash
-docker build -t mcp/dbutils .
-```
+2. Пересоберите ваш Docker-образ:
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
 ### Обновление Варианта C (Smithery)
 

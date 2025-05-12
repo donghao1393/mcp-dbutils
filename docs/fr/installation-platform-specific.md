@@ -214,36 +214,30 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 - Docker installé et fonctionnel
 - Connexion Internet (pour télécharger l'image Docker)
 
-### Construction d'une Image Docker Locale
+### Utilisation de l'Image Docker
 
-En raison des restrictions réseau dans certaines régions, nous recommandons de construire l'image Docker localement :
+1. Obtenez le code du projet :
+   ```bash
+   git clone https://github.com/donghao1393/mcp-dbutils.git
+   ```
+   Ou téléchargez la dernière version depuis la [page des Releases](https://github.com/donghao1393/mcp-dbutils/releases) et extrayez-la
 
-1. Créez un Dockerfile :
+2. Naviguez vers le répertoire du projet :
+   ```bash
+   cd mcp-dbutils
+   ```
 
-```dockerfile
-FROM python:3.10-slim
+3. Construisez l'image MCP Database Utilities :
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-WORKDIR /app
+4. Configurez votre application IA pour utiliser cette image (voir [Guide d'installation](installation.md) Option B)
 
-RUN pip install --no-cache-dir mcp-dbutils
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--help"]
-```
-
-2. Construisez l'image :
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-3. Exécutez le conteneur :
-
-```bash
-docker run -i --rm -v /path/to/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
-```
-
-> **Remarque** : Pour mettre à jour vers la dernière version, vous devrez reconstruire l'image pour obtenir la dernière version de MCP Database Utilities.
+> **Remarque** :
+> - Le répertoire racine du projet contient déjà un Dockerfile, vous n'avez donc pas besoin d'en créer un manuellement
+> - Pour mettre à jour vers la dernière version, vous devrez obtenir le code le plus récent et reconstruire l'image
+> - Il s'agit d'un service MCP, principalement destiné à être appelé par les LLM dans les applications IA, et non à être exécuté comme un service autonome
 
 ## Installation Hors Ligne
 

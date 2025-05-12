@@ -130,29 +130,23 @@ Si vous n'avez pas Docker installé, téléchargez et installez-le depuis [docke
 
 Identique à l'Étape 2 de l'Option A, créez un fichier `config.yaml`.
 
-### Étape 3 : Construire l'image Docker
+### Étape 3 : Obtenir le code du projet et construire l'image Docker
 
-1. Créez un fichier nommé `Dockerfile` (sans extension) avec le contenu suivant :
+1. D'abord, obtenez le code du projet (choisissez l'une des méthodes suivantes) :
+   - Clonez le projet depuis GitHub : `git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - Ou téléchargez la dernière version depuis la [page des Releases](https://github.com/donghao1393/mcp-dbutils/releases) et extrayez-la
 
-```dockerfile
-FROM python:3.10-slim
+2. Naviguez vers le répertoire du projet :
+   ```bash
+   cd mcp-dbutils
+   ```
 
-RUN pip install --no-cache-dir mcp-dbutils
+3. Construisez l'image Docker :
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-WORKDIR /app
-COPY config.yaml /app/config.yaml
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--config", "/app/config.yaml"]
-```
-
-2. Construisez l'image en exécutant la commande suivante dans le répertoire contenant le Dockerfile :
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-> **Remarque** : Pour mettre à jour vers la dernière version, vous devrez reconstruire l'image pour obtenir la dernière version de MCP Database Utilities.
+> **Remarque** : Le répertoire racine du projet contient déjà un Dockerfile, vous n'avez donc pas besoin d'en créer un manuellement. Pour mettre à jour vers la dernière version, vous devrez obtenir le code le plus récent et reconstruire l'image.
 
 ### Étape 4 : Configurer votre application IA
 
@@ -326,11 +320,16 @@ uv pip install -U mcp-dbutils
 
 ### Option B (Docker) Mise à Jour
 
-Reconstruisez votre image Docker pour obtenir la dernière version :
+1. Obtenez le code du projet le plus récent :
+   ```bash
+   git pull
+   ```
+   Ou téléchargez la dernière version depuis la [page des Releases](https://github.com/donghao1393/mcp-dbutils/releases)
 
-```bash
-docker build -t mcp/dbutils .
-```
+2. Reconstruisez votre image Docker :
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
 ### Option C (Smithery) Mise à Jour
 
