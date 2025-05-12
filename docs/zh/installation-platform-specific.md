@@ -196,23 +196,9 @@ wsl --install
 
 ## Docker 安装指南
 
-### 使用预构建镜像
+### 构建本地镜像
 
-1. 拉取 MCP 数据库工具镜像：
-
-```bash
-docker pull mcp/dbutils
-```
-
-2. 运行容器：
-
-```bash
-docker run -i --rm \
-  -v /path/to/config.yaml:/app/config.yaml \
-  mcp/dbutils --config /app/config.yaml
-```
-
-### 构建自定义镜像
+由于网络限制，我们推荐直接在本地构建 Docker 镜像：
 
 1. 创建 Dockerfile：
 
@@ -231,14 +217,18 @@ CMD ["--config", "/app/config.yaml"]
 2. 构建镜像：
 
 ```bash
-docker build -t custom-mcp-dbutils .
+docker build -t mcp/dbutils .
 ```
 
 3. 运行容器：
 
 ```bash
-docker run -i --rm custom-mcp-dbutils
+docker run -i --rm \
+  -v /path/to/config.yaml:/app/config.yaml \
+  mcp/dbutils --config /app/config.yaml
 ```
+
+> **注意**：每次需要更新到最新版本时，您需要重新构建镜像以获取最新的 MCP 数据库工具版本。
 
 ## 故障排除
 

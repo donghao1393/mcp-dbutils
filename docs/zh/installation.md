@@ -130,7 +130,31 @@ connections:
 
 与方式 A 的步骤 2 相同，创建一个 `config.yaml` 文件。
 
-### 步骤 3：配置您的 AI 应用
+### 步骤 3：构建 Docker 镜像
+
+1. 创建一个名为 `Dockerfile` 的文件（无扩展名），内容如下：
+
+```dockerfile
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir mcp-dbutils
+
+WORKDIR /app
+COPY config.yaml /app/config.yaml
+
+ENTRYPOINT ["mcp-dbutils"]
+CMD ["--config", "/app/config.yaml"]
+```
+
+2. 在 Dockerfile 所在目录中运行以下命令构建镜像：
+
+```bash
+docker build -t mcp/dbutils .
+```
+
+> **注意**：每次需要更新到最新版本时，您需要重新构建镜像以获取最新的 MCP 数据库工具版本。
+
+### 步骤 4：配置您的 AI 应用
 
 #### Claude Desktop 配置
 
@@ -302,8 +326,10 @@ uv pip install -U mcp-dbutils
 
 ### 方式 B（Docker）更新
 
+重新构建您的 Docker 镜像以获取最新版本：
+
 ```bash
-docker pull mcp/dbutils:latest
+docker build -t mcp/dbutils .
 ```
 
 ### 方式 C（Smithery）更新
