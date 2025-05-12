@@ -196,39 +196,30 @@ wsl --install
 
 ## Docker 安装指南
 
-### 构建本地镜像
+### 使用 Docker 镜像
 
-由于网络限制，我们推荐直接在本地构建 Docker 镜像：
+1. 获取项目代码：
+   ```bash
+   git clone https://github.com/donghao1393/mcp-dbutils.git
+   ```
+   或从 [Releases 页面](https://github.com/donghao1393/mcp-dbutils/releases) 下载最新版本的压缩包并解压
 
-1. 创建 Dockerfile：
+2. 进入项目目录：
+   ```bash
+   cd mcp-dbutils
+   ```
 
-```dockerfile
-FROM python:3.10-slim
+3. 构建 MCP 数据库工具镜像：
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-RUN pip install --no-cache-dir mcp-dbutils
+4. 在 AI 应用中配置使用该镜像（参见[安装指南](installation.md)中的方式 B）
 
-WORKDIR /app
-COPY config.yaml /app/config.yaml
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--config", "/app/config.yaml"]
-```
-
-2. 构建镜像：
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-3. 运行容器：
-
-```bash
-docker run -i --rm \
-  -v /path/to/config.yaml:/app/config.yaml \
-  mcp/dbutils --config /app/config.yaml
-```
-
-> **注意**：每次需要更新到最新版本时，您需要重新构建镜像以获取最新的 MCP 数据库工具版本。
+> **注意**：
+> - 项目根目录中已包含 Dockerfile，无需手动创建
+> - 每次需要更新到最新版本时，您需要重新获取最新代码并重新构建镜像
+> - 这是一个 MCP 服务，主要用于在 AI 应用中被 LLM 调用，而不是直接作为独立服务运行
 
 ## 故障排除
 

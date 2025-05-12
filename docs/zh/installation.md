@@ -130,29 +130,23 @@ connections:
 
 与方式 A 的步骤 2 相同，创建一个 `config.yaml` 文件。
 
-### 步骤 3：构建 Docker 镜像
+### 步骤 3：获取项目代码并构建 Docker 镜像
 
-1. 创建一个名为 `Dockerfile` 的文件（无扩展名），内容如下：
+1. 首先，获取项目代码（选择以下任一方式）：
+   - 从 GitHub 克隆项目：`git clone https://github.com/donghao1393/mcp-dbutils.git`
+   - 或从 [Releases 页面](https://github.com/donghao1393/mcp-dbutils/releases) 下载最新版本的压缩包并解压
 
-```dockerfile
-FROM python:3.10-slim
+2. 进入项目目录：
+   ```bash
+   cd mcp-dbutils
+   ```
 
-RUN pip install --no-cache-dir mcp-dbutils
+3. 构建 Docker 镜像：
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
-WORKDIR /app
-COPY config.yaml /app/config.yaml
-
-ENTRYPOINT ["mcp-dbutils"]
-CMD ["--config", "/app/config.yaml"]
-```
-
-2. 在 Dockerfile 所在目录中运行以下命令构建镜像：
-
-```bash
-docker build -t mcp/dbutils .
-```
-
-> **注意**：每次需要更新到最新版本时，您需要重新构建镜像以获取最新的 MCP 数据库工具版本。
+> **注意**：项目根目录中已包含 Dockerfile，无需手动创建。每次需要更新到最新版本时，您需要重新获取最新代码并重新构建镜像。
 
 ### 步骤 4：配置您的 AI 应用
 
@@ -326,11 +320,16 @@ uv pip install -U mcp-dbutils
 
 ### 方式 B（Docker）更新
 
-重新构建您的 Docker 镜像以获取最新版本：
+1. 获取最新的项目代码：
+   ```bash
+   git pull
+   ```
+   或从 [Releases 页面](https://github.com/donghao1393/mcp-dbutils/releases) 下载最新版本
 
-```bash
-docker build -t mcp/dbutils .
-```
+2. 重新构建 Docker 镜像：
+   ```bash
+   docker build -t mcp/dbutils .
+   ```
 
 ### 方式 C（Smithery）更新
 
