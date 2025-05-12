@@ -130,7 +130,31 @@ Si vous n'avez pas Docker installé, téléchargez et installez-le depuis [docke
 
 Identique à l'Étape 2 de l'Option A, créez un fichier `config.yaml`.
 
-### Étape 3 : Configurer votre application IA
+### Étape 3 : Construire l'image Docker
+
+1. Créez un fichier nommé `Dockerfile` (sans extension) avec le contenu suivant :
+
+```dockerfile
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir mcp-dbutils
+
+WORKDIR /app
+COPY config.yaml /app/config.yaml
+
+ENTRYPOINT ["mcp-dbutils"]
+CMD ["--config", "/app/config.yaml"]
+```
+
+2. Construisez l'image en exécutant la commande suivante dans le répertoire contenant le Dockerfile :
+
+```bash
+docker build -t mcp/dbutils .
+```
+
+> **Remarque** : Pour mettre à jour vers la dernière version, vous devrez reconstruire l'image pour obtenir la dernière version de MCP Database Utilities.
+
+### Étape 4 : Configurer votre application IA
 
 #### Configuration de Claude Desktop
 
@@ -302,8 +326,10 @@ uv pip install -U mcp-dbutils
 
 ### Option B (Docker) Mise à Jour
 
+Reconstruisez votre image Docker pour obtenir la dernière version :
+
 ```bash
-docker pull mcp/dbutils:latest
+docker build -t mcp/dbutils .
 ```
 
 ### Option C (Smithery) Mise à Jour

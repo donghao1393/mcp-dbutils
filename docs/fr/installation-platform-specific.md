@@ -214,21 +214,11 @@ npx -y @smithery/cli install @donghao1393/mcp-dbutils --client claude
 - Docker installé et fonctionnel
 - Connexion Internet (pour télécharger l'image Docker)
 
-### Utilisation de l'Image Docker Officielle
+### Construction d'une Image Docker Locale
 
-1. Tirez l'image Docker :
-   ```bash
-   docker pull mcp/dbutils
-   ```
+En raison des restrictions réseau dans certaines régions, nous recommandons de construire l'image Docker localement :
 
-2. Exécutez le conteneur avec votre fichier de configuration :
-   ```bash
-   docker run -i --rm -v /path/to/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
-   ```
-
-### Création d'une Image Docker Personnalisée
-
-Si vous avez besoin de personnaliser l'image Docker, vous pouvez créer votre propre Dockerfile :
+1. Créez un Dockerfile :
 
 ```dockerfile
 FROM python:3.10-slim
@@ -241,12 +231,19 @@ ENTRYPOINT ["mcp-dbutils"]
 CMD ["--help"]
 ```
 
-Construisez et exécutez votre image personnalisée :
+2. Construisez l'image :
 
 ```bash
-docker build -t custom-mcp-dbutils .
-docker run -i --rm -v /path/to/config.yaml:/app/config.yaml custom-mcp-dbutils --config /app/config.yaml
+docker build -t mcp/dbutils .
 ```
+
+3. Exécutez le conteneur :
+
+```bash
+docker run -i --rm -v /path/to/config.yaml:/app/config.yaml mcp/dbutils --config /app/config.yaml
+```
+
+> **Remarque** : Pour mettre à jour vers la dernière version, vous devrez reconstruire l'image pour obtenir la dernière version de MCP Database Utilities.
 
 ## Installation Hors Ligne
 
