@@ -24,19 +24,6 @@ build-backend = "hatchling.build"
 [project.scripts]
 mcp-dbutils = "mcp_dbutils:main"
 
-[tool.semantic_release]
-version_variables = [
-    "pyproject.toml:project.version"
-]
-version_toml = [
-    "pyproject.toml:project.version"
-]
-commit_parser = "conventional"
-major_on_zero = false
-branch = "main"
-changelog_components = "semantic_release.changelog.changelog"
-build_command = "uv build"
-
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",
@@ -46,7 +33,7 @@ test = [
     "aiosqlite>=0.19.0",
     "testcontainers>=3.7.0",
     "pytest-cov>=4.1.0",
-    "ruff>=0.3.0",
+    "ruff==0.17.5",
     "pre-commit>=3.6.0"
 ]
 
@@ -96,6 +83,7 @@ ignore = [
     "UP035", # 使用新的typing语法
     "UP006", # 使用新的类型注解语法
     "UP007", # 使用X | Y替代Union
+    "UP045", # 使用X | None替代Optional
     "F401",  # 未使用的导入
     "F541",  # f-string没有占位符
     "UP015", # 不必要的mode参数

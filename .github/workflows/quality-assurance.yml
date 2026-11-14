@@ -37,11 +37,13 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Set up Python
-        run: uv python install
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Create and activate venv
         run: |
-          uv venv
+          uv venv --python 3.12
           . .venv/bin/activate
 
       - name: Install dependencies
@@ -123,6 +125,7 @@ jobs:
       - name: SonarCloud PR Comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -272,6 +275,7 @@ jobs:
       - name: Extract SonarCloud Issues
         if: always()
         uses: actions/github-script@v6
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: 'donghao1393_mcp-dbutils'

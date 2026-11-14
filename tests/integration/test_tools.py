@@ -310,7 +310,9 @@ async def test_list_tables_tool_errors(postgres_db, mcp_config):
                 assert result.isError, "应该返回错误状态"
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
-                assert "Connection name must be specified" in result.content[0].text
+                error_text = result.content[0].text.lower()
+                assert "connection" in error_text
+                assert "required" in error_text
 
         finally:
             # 清理

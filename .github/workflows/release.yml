@@ -1,62 +1,71 @@
-name: Release
+name: Release Please
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  release:
+  release-please:
     runs-on: ubuntu-latest
-    concurrency: release
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Create or update release pull request
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
     environment:
       name: pypi
       url: https://pypi.org/p/mcp-dbutils
     permissions:
-      id-token: write
       contents: write
-      issues: write
-      pull-requests: write
-
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out release tag
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.tag_name }}
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.12"
 
       - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        uses: astral-sh/setup-uv@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-
-      - name: Install semantic-release
-        run: |
-          npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/exec
-
-      - name: Release
-        id: semantic-release
+      - name: Verify tag matches package version
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-
-      - name: Check if dist directory exists
-        id: check_dist
+          RELEASE_TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
-          if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
-            echo "dist_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "dist_exists=false" >> $GITHUB_OUTPUT
-            echo "No distribution packages found in dist/ directory. Skipping PyPI publish."
+          version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          expected_tag="v${version}"
+          if [[ "${RELEASE_TAG}" != "${expected_tag}" ]]; then
+            echo "Release tag ${RELEASE_TAG} does not match ${expected_tag}" >&2
+            exit 1
           fi
 
+      - name: Build distributions
+        run: uv build
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: gh release upload "${RELEASE_TAG}" dist/* --clobber
+
       - name: Publish to PyPI
-        if: steps.check_dist.outputs.dist_exists == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
