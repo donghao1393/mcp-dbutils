@@ -1,7 +1,10 @@
 """MySQL connection handler implementation"""
 
+import threading
 import mcp.types as types
-import mysql.connector
+import pymysql
+from pymysql.cursors import DictCursor
+from dbutils.pooled_db import PooledDB
 
 from ..base import ConnectionHandler, ConnectionHandlerError
 from .config import MySQLConfig
@@ -11,6 +14,9 @@ COLUMNS_HEADER = "Columns:"
 
 
 class MySQLHandler(ConnectionHandler):
+    _instance: dict[str, PooledDB] = {}
+    _lock = threading.RLock()
+    
     @property
     def db_type(self) -> str:
         return 'mysql'
@@ -30,6 +36,40 @@ class MySQLHandler(ConnectionHandler):
         masked_params = self.config.get_masked_connection_info()
         self.log("debug", f"Configuring connection with parameters: {masked_params}")
         self.pool = None
+
+    def get_connection(self) -> PooledDB:
+        if self.pool:
+            return self.pool
+        mysql_config = self.config.get_connection_params()
+        key = f"{mysql_config['host']}:{mysql_config['port']}:{mysql_config['database']}"
+        with MySQLHandler._lock:
+            if key not in MySQLHandler._instance:
+                host = mysql_config["host"]
+                port = mysql_config["port"]
+                username = mysql_config["user"]
+                database = mysql_config["database"]
+                self.log_info("Connect mysql ... (host: {}:{}, database: {})", host, port, database)
+                while True:
+                    try:
+                        MySQLHandler._instance[key] = PooledDB(creator=pymysql,  # 使用链接数据库的模块
+                                            maxconnections=100,  # 连接池允许的最大连接数
+                                            mincached=5,  # 初始化时，链接池中至少创建的空闲的链接
+                                            maxcached=5,  # 链接池中最多闲置的链接
+                                            maxshared=2,  # 链接池中最多共享的链接数量
+                                            blocking=True,  # 连接池中如果没有可用连接后，是否阻塞等待
+                                            autocommit=True,  # 是否自动提交
+                                            host=host,  # 数据库服务器地址
+                                            port=port,  # 数据库服务器端口
+                                            user=username,  # 数据库用户名
+                                            password=str(mysql_config["password"]),  # 数据库密码
+                                            database=database,  # 数据库名
+                                            cursorclass=DictCursor)
+                        break
+                    except Exception as e:
+                        self.log_error('Connect mysql failed. host: {}:{}, username: {}, database: {}, {}', host, port, username, database, str(e))
+                self.log_info('Connect mysql success.')
+            self.pool = MySQLHandler._instance[key]
+        return self.pool
 
     async def _check_table_exists(self, cursor, table_name: str) -> None:
         """检查表是否存在
@@ -64,9 +104,8 @@ class MySQLHandler(ConnectionHandler):
         """Get all table resources"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()  # Get a connection from the pool
+            with conn.cursor() as cur:  # NOSONAR
                 cur.execute("""
                     SELECT
                         TABLE_NAME as table_name,
@@ -83,7 +122,7 @@ class MySQLHandler(ConnectionHandler):
                         mimeType="application/json"
                     ) for table in tables
                 ]
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to get tables: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -95,9 +134,8 @@ class MySQLHandler(ConnectionHandler):
         """Get table schema information"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()  # Get a connection from the pool
+            with conn.cursor() as cur:  # NOSONAR
                 # Get column information
                 cur.execute("""
                     SELECT
@@ -133,7 +171,7 @@ class MySQLHandler(ConnectionHandler):
                         'type': con['constraint_type']
                     } for con in constraints]
                 })
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to read table schema: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -145,11 +183,10 @@ class MySQLHandler(ConnectionHandler):
         """Execute SQL query"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            self.log("debug", f"Executing query: {sql}")
+            conn = self.get_connection().connection()
+            self.log_debug(f"Executing query: {sql}")
 
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            with conn.cursor() as cur:  # NOSONAR
                 # Check if the query is a SELECT statement
                 sql_upper = sql.strip().upper()
                 is_select = sql_upper.startswith("SELECT")
@@ -169,12 +206,12 @@ class MySQLHandler(ConnectionHandler):
                         "columns": columns,
                         "rows": results
                     })
-                except mysql.connector.Error as e:
+                except Exception as e:
                     self.log("error", f"Query error: {str(e)}")
                     raise ConnectionHandlerError(str(e))
                 finally:
                     cur.close()
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"[{self.db_type}] Query execution failed: {str(e)}"
             raise ConnectionHandlerError(error_msg)
         finally:
@@ -205,8 +242,7 @@ class MySQLHandler(ConnectionHandler):
             if not (is_insert or is_update or is_delete or is_transaction):
                 raise ConnectionHandlerError("Only INSERT, UPDATE, DELETE, and transaction statements are allowed for write operations")
 
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
+            conn = self.get_connection().connection()
             self.log("debug", f"Executing write operation: {sql}")
 
             with conn.cursor() as cur:
@@ -228,13 +264,13 @@ class MySQLHandler(ConnectionHandler):
                         return f"Transaction operation executed successfully"
                     else:
                         return f"Write operation executed successfully. {affected_rows} row{'s' if affected_rows != 1 else ''} affected."
-                except mysql.connector.Error as e:
+                except Exception as e:
                     # Rollback on error
                     if not is_transaction:
                         conn.rollback()
                     self.log("error", f"Write operation error: {str(e)}")
                     raise ConnectionHandlerError(str(e))
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"[{self.db_type}] Write operation failed: {str(e)}"
             raise ConnectionHandlerError(error_msg)
         finally:
@@ -245,9 +281,8 @@ class MySQLHandler(ConnectionHandler):
         """Get detailed table description"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()
+            with conn.cursor() as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
 
@@ -306,7 +341,7 @@ class MySQLHandler(ConnectionHandler):
 
                 return "\n".join(description)
 
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to get table description: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -318,9 +353,8 @@ class MySQLHandler(ConnectionHandler):
         """Get DDL statement for creating table"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()
+            with conn.cursor() as cur:  # NOSONAR
                 # MySQL provides a SHOW CREATE TABLE statement
                 cur.execute(f"SHOW CREATE TABLE {table_name}")
                 result = cur.fetchone()
@@ -328,7 +362,7 @@ class MySQLHandler(ConnectionHandler):
                     return result['Create Table']
                 return f"Failed to get DDL for table {table_name}"
 
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to get table DDL: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -340,9 +374,8 @@ class MySQLHandler(ConnectionHandler):
         """Get index information for table"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()
+            with conn.cursor() as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
 
@@ -390,7 +423,7 @@ class MySQLHandler(ConnectionHandler):
 
                 return "\n".join(formatted_indexes)
 
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to get index information: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -402,9 +435,8 @@ class MySQLHandler(ConnectionHandler):
         """Get table statistics information"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()
+            with conn.cursor() as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
 
@@ -458,7 +490,7 @@ class MySQLHandler(ConnectionHandler):
 
                 return "\n".join(output)
 
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to get table statistics: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -470,9 +502,8 @@ class MySQLHandler(ConnectionHandler):
         """Get constraint information for table"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()
+            with conn.cursor() as cur:  # NOSONAR
                 # Check if table exists
                 await self._check_table_exists(cur, table_name)
 
@@ -524,7 +555,7 @@ class MySQLHandler(ConnectionHandler):
 
                 return "\n".join(output)
 
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to get constraint information: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -536,9 +567,8 @@ class MySQLHandler(ConnectionHandler):
         """Get query execution plan"""
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR
+            conn = self.get_connection().connection()
+            with conn.cursor() as cur:  # NOSONAR
                 # Get EXPLAIN output
                 cur.execute(f"EXPLAIN FORMAT=TREE {sql}")
                 explain_result = cur.fetchall()
@@ -565,7 +595,7 @@ class MySQLHandler(ConnectionHandler):
 
                 return "\n".join(output)
 
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"Failed to explain query: {str(e)}"
             self.stats.record_error(e.__class__.__name__)
             raise ConnectionHandlerError(error_msg)
@@ -581,12 +611,11 @@ class MySQLHandler(ConnectionHandler):
         """
         conn = None
         try:
-            conn_params = self.config.get_connection_params()
-            conn = mysql.connector.connect(**conn_params)
+            conn = self.get_connection().connection()
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
                 return True
-        except mysql.connector.Error as e:
+        except Exception as e:
             self.log("error", f"Connection test failed: {str(e)}")
             return False
         finally:

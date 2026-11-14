@@ -4,13 +4,12 @@ import json
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from datetime import datetime
-from importlib.metadata import metadata
-from typing import Any, AsyncContextManager, Dict
+from importlib.metadata import PackageNotFoundError, metadata
+from typing import Any, AsyncContextManager, Dict, overload
 
-import mcp.server.stdio
 import mcp.types as types
 import yaml
-from mcp.server import Server
+import mcp.server
 
 from .audit import format_logs, get_logs, log_write_operation
 from .log import create_logger
@@ -49,7 +48,10 @@ WRITE_CONFIRMATION_REQUIRED_ERROR = "Operation not confirmed. To execute write o
 UNSUPPORTED_WRITE_OPERATION_ERROR = "Unsupported SQL operation: {operation}. Only INSERT, UPDATE, DELETE are supported."
 
 # 获取包信息用于日志命名
-pkg_meta = metadata("mcp-dbutils")
+try:
+    pkg_meta = metadata("mcp-dbutils")
+except PackageNotFoundError:
+    pkg_meta = {"Version": "dev"}
 
 # 日志名称常量
 LOG_NAME = "dbutils"
@@ -63,8 +65,7 @@ LOG_LEVEL_ERROR = "error"  # 4
 LOG_LEVEL_CRITICAL = "critical"  # 5
 LOG_LEVEL_ALERT = "alert"  # 6
 LOG_LEVEL_EMERGENCY = "emergency"  # 7
-
-
+                    
 class ConnectionHandler(ABC):
     """Abstract base class defining common interface for connection handlers"""
 
@@ -99,6 +100,24 @@ class ConnectionHandler(ABC):
             self._session.request_context.session.send_log_message(
                 level=level, data=message
             )
+        
+    def log_debug(self, message: str, *args, **kwargs):
+        """Log debug message with optional formatting"""
+        self.send_log(LOG_LEVEL_DEBUG, message.format(*args, **kwargs))
+        
+    def log_info(self, message: str, *args, **kwargs):
+        """Log info message with optional formatting"""
+        self.send_log(LOG_LEVEL_INFO, message.format(*args, **kwargs))
+
+
+    def log_warn(self, message: str, *args, **kwargs):
+        """Log warning message with optional formatting"""
+        self.send_log(LOG_LEVEL_WARNING, message.format(*args, **kwargs))
+        
+
+    def log_error(self, message: str, *args, **kwargs):
+        """Log error message with optional formatting"""
+        self.send_log(LOG_LEVEL_ERROR, message.format(*args, **kwargs))
 
     @property
     @abstractmethod
@@ -459,13 +478,29 @@ class ConnectionServer:
         """
         self.config_path = config_path
         self.debug = debug
+        
+        @asynccontextmanager
+        async def app_lifespan(app: mcp.server.fastmcp.FastMCP):
+            """Application lifespan context manager for SSE model"""
+            self.send_log(LOG_LEVEL_INFO, "App Lifespan initialising")
+            try:                    
+                yield
+            finally:
+                self.send_log(LOG_LEVEL_INFO, "SSE model server stopped") 
+            
         # 获取包信息用于服务器配置
-        pkg_meta = metadata("mcp-dbutils")
+        try:
+            pkg_meta = metadata("mcp-dbutils")
+        except PackageNotFoundError:
+            pkg_meta = {"Version": "dev"}
         self.logger = create_logger(f"{LOG_NAME}.server", debug)
-        self.server = Server(name=LOG_NAME, version=pkg_meta["Version"])
-        self._session = None
+        self.logger(LOG_LEVEL_INFO, f"MCP Connection Utilities Service v{pkg_meta['Version']}")
+        self.mcp = mcp.server.fastmcp.FastMCP(name=LOG_NAME, lifespan=app_lifespan)
+        self.server = self.mcp._mcp_server     
         self._setup_handlers()
         self._setup_prompts()
+        
+    
 
     def send_log(self, level: str, message: str):
         """通过MCP发送日志消息和写入stderr
@@ -483,6 +518,24 @@ class ConnectionServer:
                 self.server.session.send_log_message(level=level, data=message)
             except Exception as e:
                 self.logger("error", f"Failed to send MCP log message: {str(e)}")
+                
+    def log_debug(self, message: str, *args, **kwargs):
+        """Log debug message with optional formatting"""
+        self.send_log(LOG_LEVEL_DEBUG, message.format(*args, **kwargs))
+        
+    def log_info(self, message: str, *args, **kwargs):
+        """Log info message with optional formatting"""
+        self.send_log(LOG_LEVEL_INFO, message.format(*args, **kwargs))
+
+
+    def log_warn(self, message: str, *args, **kwargs):
+        """Log warning message with optional formatting"""
+        self.send_log(LOG_LEVEL_WARNING, message.format(*args, **kwargs))
+        
+
+    def log_error(self, message: str, *args, **kwargs):
+        """Log error message with optional formatting"""
+        self.send_log(LOG_LEVEL_ERROR, message.format(*args, **kwargs))
 
     def _setup_prompts(self):
         """Setup prompts handlers"""
@@ -699,6 +752,10 @@ class ConnectionServer:
                 from .mysql.handler import MySQLHandler
 
                 return MySQLHandler(self.config_path, connection, self.debug)
+            elif db_type == "oracle":
+                from .oracle.handler import OracleHandler
+                
+                return OracleHandler(self.config_path, connection, self.debug)
             else:
                 raise ConfigurationError(f"Unsupported database type: {db_type}")
         except ImportError as e:
@@ -1539,11 +1596,17 @@ class ConnectionServer:
             else:
                 raise ConfigurationError(f"Unknown tool: {name}")
 
-    async def run(self):
+    async def run(self, model: str | None = None) -> None:
         """Run server"""
-        async with mcp.server.stdio.stdio_server() as streams:
-            await self.server.run(
-                streams[0],
-                streams[1],
-                self.server.create_initialization_options()
-            )
+        if model is None or model == "" or model == "stdio":
+            await self.mcp.run_stdio_async()
+            # async with mcp.server.stdio.stdio_server() as streams:
+            #     await self.server.run(
+            #         streams[0],
+            #         streams[1],
+            #         self.server.create_initialization_options()
+            #     )
+        elif model == "sse":            
+            await self.mcp.run_sse_async()
+            
+                

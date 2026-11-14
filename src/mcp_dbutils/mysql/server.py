@@ -1,9 +1,10 @@
 """MySQL MCP server implementation"""
+import threading
 from typing import Optional
-
 import mcp.types as types
-import mysql.connector
-from mysql.connector.pooling import MySQLConnectionPool, PooledMySQLConnection
+import pymysql
+from pymysql.cursors import DictCursor
+from dbutils.pooled_db import PooledDB
 
 # 获取包信息用于日志命名
 from ..base import LOG_NAME, ConnectionServer
@@ -12,6 +13,9 @@ from .config import MySQLConfig
 
 
 class MySQLServer(ConnectionServer):
+    _instance: dict[str, PooledDB] = {}
+    _lock = threading.RLock()
+    
     def __init__(self, config: MySQLConfig, config_path: Optional[str] = None):
         """初始化MySQL服务器
         Args:
@@ -24,32 +28,50 @@ class MySQLServer(ConnectionServer):
         self.log = create_logger(f"{LOG_NAME}.db.mysql", config.debug)
         # 创建连接池
         try:
-            conn_params = config.get_connection_params()
             masked_params = config.get_masked_connection_info()
             self.log("debug", f"正在连接数据库，参数: {masked_params}")
-
-            # 测试连接
-            test_conn = mysql.connector.connect(**conn_params)
-            test_conn.close()
-            self.log("info", "测试连接成功")
-
-            # 创建连接池配置
-            pool_config = {
-                'pool_name': 'mypool',
-                'pool_size': 5,
-                **conn_params
-            }
-            self.pool = MySQLConnectionPool(**pool_config)
+            self.pool = self.get_connection(self.config.get_connection_params())
             self.log("info", "连接池创建成功")
-        except mysql.connector.Error as e:
+        except Exception as e:
             self.log("error", f"连接失败: {str(e)}")
             raise
+        
+    def get_connection(self, mysql_config: dict) -> PooledDB:
+        key = f"{mysql_config['host']}:{mysql_config['port']}:{mysql_config['database']}"
+        with MySQLServer._lock:
+            if key not in MySQLServer._instance:
+                host = mysql_config["host"]
+                port = mysql_config["port"]
+                username = mysql_config["user"]
+                database = mysql_config["database"]
+                self.log('info', "Connect mysql ... (host: {}:{}, database: {})", host, port, database)
+                while True:
+                    try:
+                        MySQLServer._instance[key] = PooledDB(creator=pymysql,  # 使用链接数据库的模块
+                                            maxconnections=200,  # 连接池允许的最大连接数
+                                            mincached=5,  # 初始化时，链接池中至少创建的空闲的链接
+                                            maxcached=5,  # 链接池中最多闲置的链接
+                                            maxshared=2,  # 链接池中最多共享的链接数量
+                                            blocking=True,  # 连接池中如果没有可用连接后，是否阻塞等待
+                                            autocommit=True,  # 是否自动提交
+                                            host=host,  # 数据库服务器地址
+                                            port=port,  # 数据库服务器端口
+                                            user=username,  # 数据库用户名
+                                            password=str(mysql_config["password"]),  # 数据库密码
+                                            database=database,  # 数据库名
+                                            cursorclass=DictCursor)
+                        break
+                    except Exception as e:
+                        self.log('error', 'Connect mysql failed. host: {}:{}, username: {}, database: {}, {}', host, port, username, database, str(e))
+                self.log('info', 'Connect mysql success.')
+            return MySQLServer._instance[key]
+        return None
 
     async def list_resources(self) -> list[types.Resource]:
         """列出所有表资源"""
         try:
-            conn = self.pool.get_connection()
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
+            conn = self.pool.connection()
+            with conn.cursor() as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 cur.execute("""
                     SELECT
                         table_name,
@@ -66,7 +88,7 @@ class MySQLServer(ConnectionServer):
                         mimeType="application/json"
                     ) for table in tables
                 ]
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"获取表列表失败: {str(e)}"
             self.log("error", error_msg)
             raise
@@ -77,8 +99,8 @@ class MySQLServer(ConnectionServer):
         """读取表结构信息"""
         try:
             table_name = uri.split('/')[-2]
-            conn = self.pool.get_connection()
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
+            conn = self.pool.connection()
+            with conn.cursor() as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 # 获取列信息
                 cur.execute("""
                     SELECT
@@ -114,7 +136,7 @@ class MySQLServer(ConnectionServer):
                         'type': con['constraint_type']
                     } for con in constraints]
                 })
-        except mysql.connector.Error as e:
+        except Exception as e:
             error_msg = f"读取表结构失败: {str(e)}"
             self.log("error", error_msg)
             raise
@@ -167,13 +189,17 @@ class MySQLServer(ConnectionServer):
                 conn_params = config.get_connection_params()
                 masked_params = config.get_masked_connection_info()
                 self.log("info", f"使用配置 {connection} 连接数据库: {masked_params}")
-                conn = mysql.connector.connect(**conn_params)
+                pool = self.get_connection(conn_params)
+                if not pool:
+                    raise ValueError(f"无法获取连接池: {masked_params}")
+                conn = pool.connection()
+                self.log("info", f"连接成功，使用配置: {masked_params}")
             else:
                 # 使用现有连接池
-                conn = self.pool.get_connection()
+                conn = self.pool.connection()
 
             self.log("info", f"执行查询: {sql}")
-            with conn.cursor(dictionary=True) as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
+            with conn.cursor() as cur:  # NOSONAR - dictionary参数是正确的，用于返回字典格式的结果
                 # 设置只读事务
                 cur.execute("SET TRANSACTION READ ONLY")
                 try:
@@ -222,7 +248,7 @@ class MySQLServer(ConnectionServer):
                 # 尝试获取并关闭所有活动连接
                 for _ in range(5):  # 假设最多有5个连接在池中
                     try:
-                        conn = self.pool.get_connection()
+                        conn = self.pool.connection()
                         conn.close()
                     except Exception as e:
                         # 如果没有更多连接或出现其他错误，跳出循环

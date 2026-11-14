@@ -140,7 +140,7 @@ class ConnectionConfig(ABC):
             if 'type' not in db_config:
                 raise ValueError(f"Database configuration {conn_name} missing required 'type' field")
             db_type = db_config['type']
-            if db_type not in ('sqlite', 'postgres', 'mysql'):
+            if db_type not in ('sqlite', 'postgres', 'mysql', 'oracle'):
                 raise ValueError(f"Invalid type value in database configuration {conn_name}: {db_type}")
 
             # Validate write permissions if writable is true

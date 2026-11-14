@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import os
 import sys
-from importlib.metadata import metadata
+from importlib.metadata import PackageNotFoundError, metadata
 from pathlib import Path
 
 import yaml
@@ -13,7 +13,10 @@ from .base import LOG_NAME, ConnectionServer
 from .log import create_logger
 
 # 获取包信息
-pkg_meta = metadata("mcp-dbutils")
+try:
+    pkg_meta = metadata("mcp-dbutils")
+except PackageNotFoundError:
+    pkg_meta = {"Version": "dev"}
 
 # 创建全局logger
 log = create_logger(LOG_NAME)
@@ -36,6 +39,9 @@ async def run_server():
     log("info", f"MCP Connection Utilities Service v{pkg_meta['Version']}")
     if debug:
         log("debug", "Debug模式已开启")
+        
+    model = os.getenv('MCP_MODEL', '').lower()
+    log("info", f"服务模式: {model}")
 
     # 验证配置文件
     try:
@@ -54,7 +60,7 @@ async def run_server():
     # 创建并运行服务器
     try:
         server = ConnectionServer(args.config, debug)
-        await server.run()
+        await server.run(model)
     except KeyboardInterrupt:
         log("info", "服务器已停止")
     except Exception as e:
@@ -66,3 +72,6 @@ def main():
     asyncio.run(run_server())
 
 __all__ = ['main']
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,6 @@
+mcp
+psycopg2==2.9.10
+sqlite3==2.6.0
+PyMySQL==1.1.1
+DBUtils==3.1.0
+oracledb==3.1.1

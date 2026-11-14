@@ -138,6 +138,7 @@ class PostgreSQLServer(ConnectionServer):
                 }
             )
         ]
+        
     async def call_tool(self, name: str, arguments: dict) -> list[types.TextContent]:
         """执行工具调用"""
         if name != "query":
@@ -216,6 +217,7 @@ class PostgreSQLServer(ConnectionServer):
                         conn.close()
                 except Exception as e:
                     self.log("warning", f"关闭连接时出错: {str(e)}")
+    
     async def cleanup(self):
         """清理资源"""
         if hasattr(self, 'pool'):
