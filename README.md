@@ -8,7 +8,6 @@
 <!-- 版本和安装徽章 -->
 [![PyPI 版本](https://img.shields.io/pypi/v/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
 [![PyPI 下载量](https://img.shields.io/pypi/dm/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
-[![Smithery](https://smithery.ai/badge/@donghao1393/mcp-dbutils)](https://smithery.ai/server/@donghao1393/mcp-dbutils)
 
 <!-- 技术规格徽章 -->
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)

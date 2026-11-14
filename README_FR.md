@@ -8,7 +8,6 @@
 <!-- Badges de version et d'installation -->
 [![Version PyPI](https://img.shields.io/pypi/v/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
 [![Téléchargements PyPI](https://img.shields.io/pypi/dm/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
-[![Smithery](https://smithery.ai/badge/@donghao1393/mcp-dbutils)](https://smithery.ai/server/@donghao1393/mcp-dbutils)
 
 <!-- Badges de spécifications techniques -->
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)

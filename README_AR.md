@@ -10,7 +10,6 @@
 <!-- شارات الإصدار والتثبيت -->
 [![إصدار PyPI](https://img.shields.io/pypi/v/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
 [![تنزيلات PyPI](https://img.shields.io/pypi/dm/mcp-dbutils)](https://pypi.org/project/mcp-dbutils/)
-[![Smithery](https://smithery.ai/badge/@donghao1393/mcp-dbutils)](https://smithery.ai/server/@donghao1393/mcp-dbutils)
 
 <!-- شارات المواصفات التقنية -->
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
