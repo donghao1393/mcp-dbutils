@@ -22,6 +22,8 @@ MCP Database Utilities is an all-in-one MCP service that enables your AI to do d
 
 Think of it as a secure bridge between AI systems and your databases, allowing AI to read and analyze your data without direct database access or risking data modifications.
 
+**Scope: SQL first, NoSQL where it makes sense.** The supported core is SQLite, MySQL, and PostgreSQL; other database types are considered only when their model genuinely fits.
+
 ### Key Features
 
 - **Security First**: Strictly read-only operations, no direct database access, isolated connections, on-demand connectivity, automatic timeouts

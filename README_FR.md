@@ -22,6 +22,8 @@ MCP Database Utilities est un service MCP tout-en-un qui permet à votre IA d'ef
 
 Considérez-le comme un pont sécurisé entre les systèmes d'IA et vos bases de données, permettant à l'IA de lire et d'analyser vos données sans accès direct à la base de données ou sans risquer de modifications des données.
 
+**Périmètre : SQL d'abord, NoSQL lorsque c'est pertinent.** Le cœur pris en charge est SQLite, MySQL et PostgreSQL ; les autres types de bases ne sont envisagés que lorsque leur modèle s'y prête vraiment.
+
 ### Caractéristiques clés
 
 - **Sécurité d'abord** : Opérations strictement en lecture seule, pas d'accès direct à la base de données, connexions isolées, connectivité à la demande, délais d'expiration automatiques
