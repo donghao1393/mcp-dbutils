@@ -125,6 +125,7 @@ jobs:
       - name: SonarCloud PR Comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -274,6 +275,7 @@ jobs:
       - name: Extract SonarCloud Issues
         if: always()
         uses: actions/github-script@v6
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: 'donghao1393_mcp-dbutils'
