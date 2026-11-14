@@ -24,19 +24,6 @@ build-backend = "hatchling.build"
 [project.scripts]
 mcp-dbutils = "mcp_dbutils:main"
 
-[tool.semantic_release]
-version_variables = [
-    "pyproject.toml:project.version"
-]
-version_toml = [
-    "pyproject.toml:project.version"
-]
-commit_parser = "conventional"
-major_on_zero = false
-branch = "main"
-changelog_components = "semantic_release.changelog.changelog"
-build_command = "uv build"
-
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",
