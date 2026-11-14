@@ -5,6 +5,19 @@
 
 * 修改文档中的Docker安装说明，添加获取项目代码步骤 ([#111](https://github.com/donghao1393/mcp-dbutils/issues/111)) ([e56805f](https://github.com/donghao1393/mcp-dbutils/commit/e56805fe01ae32e28c60cdeaf2458d936ee8ca15)), closes [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110) [#110](https://github.com/donghao1393/mcp-dbutils/issues/110)
 
+## [1.0.5](https://github.com/donghao1393/mcp-dbutils/compare/v1.0.4...v1.0.5) (2026-11-14)
+
+
+### Bug Fixes
+
+* **deps:** cap mcp below 2.0 ([3fed474](https://github.com/donghao1393/mcp-dbutils/commit/3fed4747147038e1665f4e1410da0e47e1a29a87))
+
+
+### Documentation
+
+* **readme:** remove retired Smithery badge ([5e9e07a](https://github.com/donghao1393/mcp-dbutils/commit/5e9e07acb5fd7c9f077e9b4fc506d18e5c80b911))
+* **readme:** state scope as SQL first, NoSQL where it makes sense ([6d3c3f5](https://github.com/donghao1393/mcp-dbutils/commit/6d3c3f5022c956f7ca77248e3126597d46d13121))
+
 ## [1.0.3](https://github.com/donghao1393/mcp-dbutils/compare/v1.0.2...v1.0.3) (2025-05-05)
 
 
