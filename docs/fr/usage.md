@@ -107,7 +107,7 @@ CREATE TABLE commandes (
 
 CREATE INDEX idx_order_date ON commandes(order_date);
 CREATE INDEX idx_customer_id ON commandes(customer_id);
-```"
+```
 
 ### dbutils-list-indexes
 
