@@ -37,11 +37,13 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Set up Python
-        run: uv python install
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Create and activate venv
         run: |
-          uv venv
+          uv venv --python 3.12
           . .venv/bin/activate
 
       - name: Install dependencies
