@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/donghao1393-mcp-dbutils-badge.png)](https://mseep.ai/app/donghao1393-mcp-dbutils)
+
 # MCP 数据库工具
 
 <!-- 项目状态徽章 -->
