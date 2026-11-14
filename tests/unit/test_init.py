@@ -1,7 +1,7 @@
 """Test the module initialization and command line entry point"""
 import os
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import yaml
@@ -30,6 +30,7 @@ def mock_config_file(tmp_path):
 class TestInit:
     """Test the module initialization"""
 
+    @pytest.mark.asyncio
     @patch("mcp_dbutils.ConnectionServer")
     @patch("argparse.ArgumentParser.parse_args")
     @patch("mcp_dbutils.create_logger")
@@ -40,6 +41,7 @@ class TestInit:
         mock_create_logger.return_value = mock_logger
         mock_parse_args.return_value = MagicMock(config=mock_config_file, local_host=None)
         mock_server_instance = MagicMock()
+        mock_server_instance.run = AsyncMock()
         mock_server.return_value = mock_server_instance
 
         # Run the function
@@ -51,6 +53,7 @@ class TestInit:
         mock_server_instance.run.assert_called_once()
         mock_logger.assert_any_call("info", f"MCP Connection Utilities Service v{mcp_dbutils.pkg_meta['Version']}")
 
+    @pytest.mark.asyncio
     @patch("mcp_dbutils.ConnectionServer")
     @patch("argparse.ArgumentParser.parse_args")
     @patch("mcp_dbutils.create_logger")
@@ -61,6 +64,7 @@ class TestInit:
         mock_create_logger.return_value = mock_logger
         mock_parse_args.return_value = MagicMock(config=mock_config_file, local_host=None)
         mock_server_instance = MagicMock()
+        mock_server_instance.run = AsyncMock()
         mock_server.return_value = mock_server_instance
 
         # Set debug environment variable
@@ -72,6 +76,7 @@ class TestInit:
         mock_server_instance.run.assert_called_once()
         mock_logger.assert_any_call("debug", "Debug模式已开启")
 
+    @pytest.mark.asyncio
     @patch("mcp_dbutils.ConnectionServer")
     @patch("argparse.ArgumentParser.parse_args")
     @patch("mcp_dbutils.create_logger")
@@ -88,11 +93,16 @@ class TestInit:
         mock_parse_args.return_value = MagicMock(config=str(invalid_config_file), local_host=None)
 
         # Run the function and expect exit
-        with patch.object(sys, 'exit') as mock_exit:
-            with patch.object(sys, 'argv', ['mcp_dbutils', '--config', str(invalid_config_file)]):
-                await run_server()
-            mock_exit.assert_called_once_with(1)
+        with (
+            pytest.raises(SystemExit) as exc_info,
+            patch.object(
+                sys, 'argv', ['mcp_dbutils', '--config', str(invalid_config_file)]
+            ),
+        ):
+            await run_server()
+        assert exc_info.value.code == 1
 
+    @pytest.mark.asyncio
     @patch("mcp_dbutils.ConnectionServer")
     @patch("argparse.ArgumentParser.parse_args")
     @patch("mcp_dbutils.create_logger")
@@ -110,11 +120,16 @@ class TestInit:
         mock_parse_args.return_value = MagicMock(config=str(empty_config_file), local_host=None)
 
         # Run the function and expect exit
-        with patch.object(sys, 'exit') as mock_exit:
-            with patch.object(sys, 'argv', ['mcp_dbutils', '--config', str(empty_config_file)]):
-                await run_server()
-            mock_exit.assert_called_once_with(1)
+        with (
+            pytest.raises(SystemExit) as exc_info,
+            patch.object(
+                sys, 'argv', ['mcp_dbutils', '--config', str(empty_config_file)]
+            ),
+        ):
+            await run_server()
+        assert exc_info.value.code == 1
 
+    @pytest.mark.asyncio
     @patch("mcp_dbutils.ConnectionServer")
     @patch("argparse.ArgumentParser.parse_args")
     @patch("mcp_dbutils.create_logger")
@@ -125,17 +140,23 @@ class TestInit:
         mock_create_logger.return_value = mock_logger
         mock_parse_args.return_value = MagicMock(config=mock_config_file, local_host=None)
         mock_server_instance = MagicMock()
-        mock_server_instance.run.side_effect = Exception("Test exception")
+        mock_server_instance.run = AsyncMock(side_effect=Exception("Test exception"))
         mock_server.return_value = mock_server_instance
 
         # Run the function and expect exit
-        with patch.object(sys, 'exit') as mock_exit:
-            with patch.object(sys, 'argv', ['mcp_dbutils', '--config', mock_config_file]):
-                await run_server()
-            mock_exit.assert_called_once_with(1)
+        with (
+            pytest.raises(SystemExit) as exc_info,
+            patch.object(
+                sys, 'argv', ['mcp_dbutils', '--config', mock_config_file]
+            ),
+        ):
+            await run_server()
+        assert exc_info.value.code == 1
 
+    @patch("mcp_dbutils.run_server", new_callable=MagicMock)
     @patch("mcp_dbutils.asyncio.run")
-    def test_main(self, mock_run):
+    def test_main(self, mock_run, mock_run_server):
         """Test the main function"""
         main()
+        mock_run_server.assert_called_once()
         mock_run.assert_called_once()
