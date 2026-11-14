@@ -106,7 +106,7 @@ CREATE TABLE products (
   INDEX idx_category (category_id),
   CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-```"
+```
 
 ### dbutils-get-stats
 
